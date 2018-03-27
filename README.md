@@ -7,10 +7,8 @@
 
 ❤ Speed, duration and easing parameters
 
-❤ fade vs crossfade
+❤ fade vs crossfade options
 
 ❤ Add pause/resume functionality
 
-❤ Rewrite without jQuery?
-
-❤ Lazyloading
+❤ Native Lazyloading

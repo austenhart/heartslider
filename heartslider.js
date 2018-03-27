@@ -32,7 +32,7 @@ function heartslider(slideshow) {
         currentSlide.classList.add('active');
         previousSlide.classList.add('previous');
         setTimeout(function() {
-            previousSlide.classList.remove('active', 'previous'); // queue/dequeue is for crossfade effect
+            previousSlide.classList.remove('active', 'previous');
         }, duration);
         index++;
         if (index == 2) duration = duration + (speed * 0.5);

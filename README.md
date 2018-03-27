@@ -1,6 +1,6 @@
 # heartslider
 ### A minimalist javascript slideshow 
-##### *developed by Austen Hart*
+##### *Developed by Austen Hart*
 
 
 ### heartslider is a work in progress. Features to add:

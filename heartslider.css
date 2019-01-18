@@ -1,0 +1,62 @@
+/* Image Loading Style */
+.image-holder img,
+.image-holder img.image-loading {
+    opacity: 0;
+    -webkit-transition: opacity 0.35s ease-out;
+    -o-transition: opacity 0.35s ease-out;
+    transition: opacity 0.35s ease-out;
+}
+.image-holder img.image-loaded {
+    opacity: 1;
+}
+.image-holder img[data-ofi-src] {
+	pointer-events: none;
+}
+
+
+/* HeartSlider Styles — 2.0.5 */
+.heart-slideshow {
+	position: relative;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	height: 100vh;
+	width: 100vw;
+	overflow: hidden;
+	z-index: 10;
+}
+.heart-slideshow .heart-slide {
+	position: absolute;
+	height: 100%;
+	width: 100%;
+	z-index: 10;
+	opacity: 0;
+}
+.heart-slideshow .image-holder {
+	height: 100%;
+	width: 100%;
+	margin: 0;
+}
+.heart-slide img {
+	height: 100%;
+	width: 100%;
+}
+.heart-slide img[src] {
+	-o-object-fit: cover;
+	object-fit: cover;
+	font-family: 'object-fit: cover;';
+}
+.heart-slideshow .heart-slide.active {
+	opacity: 1;
+	z-index: 20;
+	-webkit-backface-visibility: visible;
+	backface-visibility: visible;
+	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
+	-webkit-transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
+	transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
+}
+.heart-slideshow .heart-slide.previous {
+	z-index: 10;
+}

@@ -26,7 +26,6 @@ To Do:
 Last Updated: January 18, 2019
 */
 var heartSlider = (function () {
-    // test comment
     "use strict";
     // HeartSlider default settings
     var settings = {

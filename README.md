@@ -1,6 +1,6 @@
-#-  Heartslider  -
+# -  Heartslider  -
 ### A Minimalist Javascript Slideshow
-#####- Version 2.0.5 -
+##### - Version 2.0.5 -
 '''''''''''''''''
 
 Features:
@@ -23,4 +23,4 @@ To Do:
 - Additional easing options
 '''''''''''''''
 
-####Last Updated: January 18, 2019
+#### Last Updated: January 18, 2019

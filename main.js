@@ -10,17 +10,32 @@ var documentReady = function () {
         delay: 2000,
         loop: true,
         randomize: false,
-        paused: true,
+        paused: false,
         progressive: true
     });
-    setTimeout(() => {
-        heartSlider.resume();
-    }, 2000);
+
+    /* 
+    Available Public Functions:
+
+    heartSlider.init();
+    // Inits heartSlider with default settings
+    
+    heartSlider.settings();
+    // Returns all current/custom settings
+    
+    heartSlider.getIndex();
+    // Returns index of current slide
+    
+    heartSlider.pause();
+    // Stops the slideshow from progressing to the next slide
+    
+    heartSlider.resume();
+    // Starts the slideshow back up
+    
+    heartSlider.nextSlide();
+    // Manually advance to next slide
+    */
 };
-
-
-
-
 
 // Ignore.
 // Document Ready Listener

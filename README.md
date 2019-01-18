@@ -1,6 +1,6 @@
-# -  Heartslider  -
+# Heartslider
 ### A Minimalist Javascript Slideshow
-##### - Version 2.0.5 -
+##### Version 2.0.5
 '''''''''''''''''
 
 Features:
@@ -21,6 +21,7 @@ Change Log:
 To Do:
 - Add option to use Fade In/Out rather than (Default) Crossfade effect
 - Additional easing options
+
 '''''''''''''''
 
 #### Last Updated: January 18, 2019

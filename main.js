@@ -4,14 +4,16 @@ var documentReady = function () {
 
     // otherwise, here's all the default values:
     heartSlider.init({
-        slideshow: '.myCustomClass',
-        slides: '.heart-slide',
-        transition: 4000,
+        slideshow: '.customClassName',
+        slides: '.customSlideName',
+        transition: 3000,
         delay: 2000,
         loop: true,
         randomize: false,
         paused: false,
-        progressive: true
+        progressive: true,
+        effect: 'crossfade'
+        // effect: 'dissolve'
     });
 
     /* 
@@ -23,8 +25,17 @@ var documentReady = function () {
     heartSlider.settings();
     // Returns all current/custom settings
     
-    heartSlider.getIndex();
-    // Returns index of current slide
+    heartSlider.current();
+    // Returns current slide index
+
+    heartSlider.slideshow();
+    // Returns slideshow selector
+
+    heartSlider.slides();
+    // Returns slides as NodeList
+
+    heartSlider.count();
+    // Returns total number of slides
     
     heartSlider.pause();
     // Stops the slideshow from progressing to the next slide

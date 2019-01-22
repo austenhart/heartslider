@@ -1,6 +1,6 @@
 /*
 ❤  Heartslider  ❤
-❤ Version 2.0.5 ❤
+❤ Version 2.1.0 ❤
 '''''''''''''''''
 
 Features:
@@ -10,6 +10,10 @@ Features:
 ❤ Progressive loading for sourceset and regular src images
 
 Change Log:
+❤ 2.1.0 Cleaned up code and added ability to choose between crossfade (default) and dissolve!
+--
+❤ 2.0.6 Fixed private variable scope error
+--
 ❤ 2.0.5 Added conditionals for slides without images
 --
 ❤ 2.0.4 Fixed jumping issue when looping past last slide
@@ -23,7 +27,7 @@ To Do:
 ❤ Additional easing options
 '''''''''''''''
 
-Last Updated: January 18, 2019
+Last Updated: January 22, 2019
 */
 var heartSlider = (function () {
     "use strict";
@@ -36,26 +40,23 @@ var heartSlider = (function () {
         loop: true,
         randomize: false,
         paused: false,
-        progressive: true
+        progressive: true,
+        effect: 'crossfade'
     };
     // Private variables and functions
-    var index = 0,
+    var index,
         prop,
-        isStart = true,
-        slideshowSelector = document.querySelector(settings.slideshow);
-
-    if (!slideshowSelector) return;
-
-    var slides = slideshowSelector.querySelectorAll(settings.slides),
-        count = slides.length,
+        isStart,
+        slides,
+        count,
         previousSlide,
-        currentSlide;
+        currentSlide,
+        isDissolve;
 
     // Initial setup based on settings
     var start = function () {
         if (settings.randomize) index = Math.floor(Math.random() * count);
         if (settings.progressive) progressiveLoad(slides[index].querySelector('img'));
-        // if (settings.paused) isStart = false; // this was causing flickering issues on repeat
         nextSlide();
         isStart = false;
     };
@@ -99,9 +100,11 @@ var heartSlider = (function () {
 
         if (settings.paused) return;
         if (!settings.paused || !isStart) {
+            if (isDissolve) previousSlide.classList.remove('active');
             setTimeout(function () {
-                previousSlide.classList.remove('active', 'previous');
-                if (settings.transition !== 3000) {
+                previousSlide.classList.remove('previous');
+                if (!isDissolve) previousSlide.classList.remove('active');
+                if (settings.transition !== 3000 && isDissolve == false) {
                     currentSlide.style.WebkitTransitionDuration = '0ms';
                     currentSlide.style.MozTransitionDuration = '0ms';
                     currentSlide.style.transitionDuration = '0ms';
@@ -125,7 +128,7 @@ var heartSlider = (function () {
     var resumeSlide = function () {
         settings.paused = false;
         isStart = false;
-        heartSlider.nextSlide(heartSlider.getIndex());
+        heartSlider.nextSlide(heartSlider.current());
     };
 
     // Public functions
@@ -139,14 +142,35 @@ var heartSlider = (function () {
                     settings[prop] = userSettings[prop];
                 };
             };
+            // Check to see if slideshow actually exists
+            var slideshowSelector = document.querySelector(settings.slideshow);
+            // Dont. Want. None. Unless. You. Got. Buns. Hun.
+            if (!slideshowSelector) return false;
+
+            // Redefine global variables
+            slides = slideshowSelector.querySelectorAll(settings.slides),
+            count = slides.length,
+            index = 0,
+            isStart = true,
+            isDissolve = settings.effect == 'dissolve';
+
             // if you have slides, then kick off to nextSlide.
             if (count > 1) start(index);
         },
         settings: function () {
             return settings;
         },
-        getIndex: function () {
+        current: function () {
             return index;
+        },
+        slideshow: function() {
+            return document.querySelector(settings.slideshow);
+        },
+        slides: function () {
+            return slides;
+        },
+        count: function () {
+            return count;
         },
         pause: function () {
             pauseSlide();

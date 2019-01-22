@@ -13,8 +13,7 @@
 	pointer-events: none;
 }
 
-
-/* HeartSlider Styles — 2.0.5 */
+/* HeartSlider Styles — 2.0.6 */
 .heart-slideshow {
 	position: relative;
 	top: 0;
@@ -57,6 +56,12 @@
 	-webkit-transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
 	transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
 }
+.heart-slideshow .heart-slide.active.previous {
+	-webkit-transition: none;
+	transition: none;
+}
 .heart-slideshow .heart-slide.previous {
 	z-index: 10;
+	-webkit-transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
+	transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
 }

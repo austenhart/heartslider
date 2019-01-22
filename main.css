@@ -1,3 +1,20 @@
 /* Demo styles */
 body, html{height: 100%;margin: 0;}
 body::after{content: '\2665';font-size: 2em;color: #fff;position: absolute;top: auto;right: 1.5em;bottom: 1.5em;left: auto;margin: auto;text-align: center;height: 0.6em;z-index: 99999;opacity: 0.8;transform: scaleX(1.4);pointer-events: none;}
+.heart-slideshow {
+    background: blueviolet;
+}
+.heart-slideshow::before {
+    content: "WARNING: Hideous background color for testing purposes only.";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    font-size: 1em;
+    color: #fff;
+    height: 1em;
+    text-align: center;
+    margin: auto;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}

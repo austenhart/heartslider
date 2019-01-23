@@ -13,7 +13,7 @@
 	pointer-events: none;
 }
 
-/* HeartSlider Styles — 2.0.6 */
+/* HeartSlider Styles — 2.1.0 */
 .heart-slideshow {
 	position: relative;
 	top: 0;
@@ -32,7 +32,7 @@
 	z-index: 10;
 	opacity: 0;
 }
-.heart-slideshow .image-holder {
+.heart-slide .image-holder {
 	height: 100%;
 	width: 100%;
 	margin: 0;
@@ -46,7 +46,7 @@
 	object-fit: cover;
 	font-family: 'object-fit: cover;';
 }
-.heart-slideshow .heart-slide.active {
+.heart-slide.active {
 	opacity: 1;
 	z-index: 20;
 	-webkit-backface-visibility: visible;
@@ -56,12 +56,13 @@
 	-webkit-transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
 	transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
 }
-.heart-slideshow .heart-slide.active.previous {
+.heart-slide.previous {
+	opacity: 0;
+	z-index: 10;
 	-webkit-transition: none;
 	transition: none;
 }
-.heart-slideshow .heart-slide.previous {
-	z-index: 10;
+.heart-slide.previous.active {
 	-webkit-transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
 	transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
 }

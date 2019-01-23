@@ -10,7 +10,7 @@ Features:
 ❤ Progressive loading for sourceset and regular src images
 
 Change Log:
-❤ 2.1.0 Cleaned up code and added ability to choose between crossfade (default) and dissolve!
+❤ 2.1.0 Cleaned up code and added ability to choose between fadeOut (default) and fadeInOut!
 --
 ❤ 2.0.6 Fixed private variable scope error
 --
@@ -27,7 +27,7 @@ To Do:
 ❤ Additional easing options
 '''''''''''''''
 
-Last Updated: January 22, 2019
+Last Updated: January 23, 2019
 */
 var heartSlider = (function () {
     "use strict";
@@ -41,7 +41,7 @@ var heartSlider = (function () {
         randomize: false,
         paused: false,
         progressive: true,
-        effect: 'crossfade'
+        effect: 'fadeOut'
     };
     // Private variables and functions
     var index,
@@ -51,7 +51,7 @@ var heartSlider = (function () {
         count,
         previousSlide,
         currentSlide,
-        isDissolve;
+        fadeInOut;
 
     // Initial setup based on settings
     var start = function () {
@@ -100,11 +100,11 @@ var heartSlider = (function () {
 
         if (settings.paused) return;
         if (!settings.paused || !isStart) {
-            if (isDissolve) previousSlide.classList.remove('active');
+            if (fadeInOut) previousSlide.classList.remove('active');
             setTimeout(function () {
                 previousSlide.classList.remove('previous');
-                if (!isDissolve) previousSlide.classList.remove('active');
-                if (settings.transition !== 3000 && isDissolve == false) {
+                if (!fadeInOut) previousSlide.classList.remove('active');
+                if (settings.transition !== 3000 && fadeInOut == false) {
                     currentSlide.style.WebkitTransitionDuration = '0ms';
                     currentSlide.style.MozTransitionDuration = '0ms';
                     currentSlide.style.transitionDuration = '0ms';
@@ -152,7 +152,7 @@ var heartSlider = (function () {
             count = slides.length,
             index = 0,
             isStart = true,
-            isDissolve = settings.effect == 'dissolve';
+            fadeInOut = settings.effect == 'fadeInOut';
 
             // if you have slides, then kick off to nextSlide.
             if (count > 1) start(index);

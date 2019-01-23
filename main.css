@@ -16,5 +16,6 @@ body::after{content: '\2665';font-size: 2em;color: #fff;position: absolute;top: 
     height: 1em;
     text-align: center;
     margin: auto;
+    letter-spacing: 1px;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }

@@ -12,8 +12,8 @@ var documentReady = function () {
         randomize: false,
         paused: false,
         progressive: true,
-        effect: 'crossfade'
-        // effect: 'dissolve'
+        effect: 'fadeOut'
+        // effect: 'fadeInOut'
     });
 
     /* 

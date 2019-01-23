@@ -1,6 +1,6 @@
 /*
 ❤  Heartslider  ❤
-❤ Version 2.1.0 ❤
+❤ Version 2.1.1 ❤
 '''''''''''''''''
 
 Features:
@@ -10,6 +10,8 @@ Features:
 ❤ Progressive loading for sourceset and regular src images
 
 Change Log:
+❤ 2.1.1 Fixed flashing z-index problem with custom transition
+--
 ❤ 2.1.0 Cleaned up code and added ability to choose between fadeOut (default) and fadeInOut!
 --
 ❤ 2.0.6 Fixed private variable scope error
@@ -36,7 +38,7 @@ var heartSlider = (function () {
         slideshow: '.heart-slideshow',
         slides: '.heart-slide',
         transition: 3000,
-        delay: 2000,
+        delay: 1000,
         loop: true,
         randomize: false,
         paused: false,
@@ -84,7 +86,7 @@ var heartSlider = (function () {
 
         currentSlide.classList.add('active');
         if (!isStart) previousSlide.classList.add('previous');
-        if (settings.transition !== 3000) {
+        if (settings.transition !== 3000 && currentSlide.style.transitionDuration !== settings.transition + 'ms') {
             currentSlide.style.WebkitTransitionDuration = settings.transition + 'ms';
             currentSlide.style.MozTransitionDuration = settings.transition + 'ms';
             currentSlide.style.transitionDuration = settings.transition + 'ms';
@@ -104,10 +106,10 @@ var heartSlider = (function () {
             setTimeout(function () {
                 previousSlide.classList.remove('previous');
                 if (!fadeInOut) previousSlide.classList.remove('active');
-                if (settings.transition !== 3000 && fadeInOut == false) {
-                    currentSlide.style.WebkitTransitionDuration = '0ms';
-                    currentSlide.style.MozTransitionDuration = '0ms';
-                    currentSlide.style.transitionDuration = '0ms';
+                if (!fadeInOut && settings.transition !== 3000) {
+                    previousSlide.style.WebkitTransitionDuration = '0ms';
+                    previousSlide.style.MozTransitionDuration = '0ms';
+                    previousSlide.style.transitionDuration = '0ms';
                 };
             }, settings.delay + settings.transition);
 

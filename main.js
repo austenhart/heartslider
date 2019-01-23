@@ -6,8 +6,8 @@ var documentReady = function () {
     heartSlider.init({
         slideshow: '.customClassName',
         slides: '.customSlideName',
-        transition: 3000,
-        delay: 2000,
+        transition: 2000,
+        delay: 1000,
         loop: true,
         randomize: false,
         paused: false,

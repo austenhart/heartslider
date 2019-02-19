@@ -4,9 +4,9 @@ var documentReady = function () {
 
     // otherwise, here's all the default values:
     heartSlider.init({
-        slideshow: '.customClassName',
-        slides: '.customSlideName',
-        transition: 2000,
+        // slideshow: '.customClassName',
+        // slides: '.customSlideName',
+        transition: 3000,
         delay: 1000,
         loop: true,
         randomize: false,
@@ -43,7 +43,7 @@ var documentReady = function () {
     heartSlider.resume();
     // Starts the slideshow back up
     
-    heartSlider.nextSlide();
+    heartSlider.next();
     // Manually advance to next slide
     */
 };

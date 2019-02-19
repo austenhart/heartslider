@@ -34,7 +34,7 @@
 	-webkit-transform: translate3d(0, 0, 0);
 	transform: translate3d(0, 0, 0);
 	-webkit-transition: none;
-	-ms-transition: none;
+	-o-transition: none;
 	transition: none;
 }
 .heart-slide .image-holder {
@@ -57,10 +57,12 @@
 	-webkit-backface-visibility: visible;
 	backface-visibility: visible;
 	-webkit-transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
+	-o-transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
 	transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
 }
 .heart-slide.previous {
 	z-index: 10;
 	-webkit-transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
+	-o-transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
 	transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
 }

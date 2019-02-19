@@ -1,7 +1,7 @@
 /* Demo styles */
 body, html{height: 100%;margin: 0;}
 body::after{content: '\2665';font-size: 2em;color: #fff;position: absolute;top: auto;right: 1.5em;bottom: 1.5em;left: auto;margin: auto;text-align: center;height: 0.6em;z-index: 99999;opacity: 0.8;transform: scaleX(1.4);pointer-events: none;}
-.heart-slideshow {
+/* .heart-slideshow {
     background: blueviolet;
 }
 .heart-slideshow::before {
@@ -18,4 +18,4 @@ body::after{content: '\2665';font-size: 2em;color: #fff;position: absolute;top: 
     margin: auto;
     letter-spacing: 1px;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-}
+} */

@@ -53,6 +53,7 @@ var heartSlider = (function () {
         count,
         previousSlide,
         currentSlide,
+        status,
         fadeInOut;
 
     // Initial setup based on settings
@@ -77,12 +78,32 @@ var heartSlider = (function () {
     };
 
     // Onto the main event
-    var nextSlide = function () {
-        var previous = index - 1;
-        if (previous < 0) previous = count - 1;
+    var nextSlide = function (current, manualMode, reverse) {
+        // If slideshow is paused and you are not calling heartSlider.next(), don't do anything.
+        if (settings.paused && !manualMode) return;
+        // Dont allow nextSlide to be called if it is already doing it
+        if (status === 'running') {
+            // console.info("Skipping command. NextSlide is already in progress.");
+            return;
+        }
+        // Used for goTo method.
+        if(current !== undefined) index = current;
+        
+        // Setting up previous/next slides
+        var previous;
+        if(reverse !== undefined) {
+            index--;
+            if (index < 0) index = count - 1;
+            previous = index + 1;
+        } else {
+            previous = index - 1;
+            if (previous < 0) previous = count - 1;
+        }
 
         previousSlide = slides[previous];
         currentSlide = slides[index];
+
+        status = 'running';
 
         currentSlide.classList.add('active');
         if (!isStart) previousSlide.classList.add('previous');
@@ -98,31 +119,38 @@ var heartSlider = (function () {
             progressiveLoad(currentImage);
         };
 
-        index++;
+        // console.log("current Slide", previous);
+        // console.log("previous Slide", index);
+        reverse ? index-- : index++;
+        // index++;
 
-        if (settings.paused) return;
         if (!settings.paused || !isStart) {
             if (fadeInOut) previousSlide.classList.remove('active');
+            let scopedPreviousSlide = previousSlide;
             setTimeout(function () {
-                previousSlide.classList.remove('previous');
-                if (!fadeInOut) previousSlide.classList.remove('active');
+                scopedPreviousSlide.classList.remove('previous');
+                if (!fadeInOut) scopedPreviousSlide.classList.remove('active');
                 if (!fadeInOut && settings.transition !== 3000) {
-                    previousSlide.style.WebkitTransitionDuration = '0ms';
-                    previousSlide.style.MozTransitionDuration = '0ms';
-                    previousSlide.style.transitionDuration = '0ms';
+                    scopedPreviousSlide.style.WebkitTransitionDuration = '0ms';
+                    scopedPreviousSlide.style.MozTransitionDuration = '0ms';
+                    scopedPreviousSlide.style.transitionDuration = '0ms';
                 };
-            }, settings.delay + settings.transition);
+                status = 'waiting';
+            }, settings.transition);
 
             if (settings.loop) {
-                if (index == count) index = 0;
+                if (!reverse && index == count) index = 0;
                 setTimeout(function () {
-                    heartSlider.nextSlide(index);
+                    nextSlide();
                 }, settings.delay + settings.transition);
             } else {
-                if (index < count) setTimeout(nextSlide(index), settings.delay);
+                if (index < count) setTimeout(nextSlide(), settings.delay);
             };
         };
-
+        // if(manualMode) manualMode = false;
+    };
+    var prevSlide = function() {
+        nextSlide(heartSlider.current(), true, true);
     };
     var pauseSlide = function () {
         settings.paused = true;
@@ -130,8 +158,18 @@ var heartSlider = (function () {
     var resumeSlide = function () {
         settings.paused = false;
         isStart = false;
-        heartSlider.nextSlide(heartSlider.current());
+        nextSlide(heartSlider.current(), false);
     };
+
+    document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState == 'hidden') {
+            console.log('%cWindow Lost Focus. HeartSlider is Paused.', 'font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;');
+            heartSlider.pause();
+        } else {
+            console.log('%cRegained Focus. Resumed HeartSlider.', 'font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;');
+            heartSlider.resume();
+        }
+    });
 
     // Public functions
     // Accessible via heartSlider.functionName(properties);
@@ -148,12 +186,13 @@ var heartSlider = (function () {
             var slideshowSelector = document.querySelector(settings.slideshow);
             // Dont. Want. None. Unless. You. Got. Buns. Hun.
             if (!slideshowSelector) return false;
-
-            // Redefine global variables
+            
+            // Define private variables
             slides = slideshowSelector.querySelectorAll(settings.slides),
             count = slides.length,
             index = 0,
             isStart = true,
+            status = 'waiting',
             fadeInOut = settings.effect == 'fadeInOut';
 
             // if you have slides, then kick off to nextSlide.
@@ -164,6 +203,9 @@ var heartSlider = (function () {
         },
         current: function () {
             return index;
+        },
+        status: function () {
+            return status;
         },
         slideshow: function() {
             return document.querySelector(settings.slideshow);
@@ -180,8 +222,15 @@ var heartSlider = (function () {
         resume: function () {
             resumeSlide();
         },
-        nextSlide: function () {
-            nextSlide();
+        next: function () {
+            nextSlide(heartSlider.current(), true);
+        },
+        prev: function() {
+            prevSlide();
+        },
+        goTo: function(current) {
+            if (current == undefined) current = heartSlider.current();
+            nextSlide(current);
         }
     };
 

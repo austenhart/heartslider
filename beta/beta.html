@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>HeartSlider.js Beta</title>
+	<link rel="icon" href="favicon.ico" sizes="16x16" type="image/ico">
+	<link rel="stylesheet" href="../main.css">
+	<link rel="stylesheet" href="heartslider-beta.css">
+
+	<script type="text/javascript">
+		// <![CDATA[
+		// swap 'image-loading' class for 'image-loaded'
+		function imageLoaded(img) {
+			img.classList.add('image-loaded');
+			img.classList.remove('image-loading');
+		};
+
+		function imageSharing(img) {
+			if (img.getAttribute('src') === 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7') {
+				img.setAttribute('src', img.getAttribute('data-src'));
+			};
+		};
+		//]]>
+	</script>
+
+	<!-- testing jquery issues -->
+	<!-- <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script> -->
+</head>
+
+<body>
+	<div class="heart-slideshow original-slideshow">
+		<div class="heart-slide">
+			<figure class="image-holder">
+				<!-- <h2 style="color:aqua;">TESTING</h2> -->
+				<img onload="imageLoaded(this)" data-sizes="100vw" data-src="../img/image-01.jpg" alt="">
+			</figure>
+		</div>
+		<div class="heart-slide">
+			<figure class="image-holder">
+				<!-- <h2 style="color:blue;">SLIDE NUMBER 02</h2> -->
+				<img onload="imageLoaded(this)" data-sizes="100vw" data-src="../img/image-02.jpg" alt="">
+			</figure>
+		</div>
+		<div class="heart-slide">
+			<figure class="image-holder">
+				<!-- <h2 style="color:blueviolet;">Lets see if this works 003</h2> -->
+				<img onload="imageLoaded(this)" data-sizes="100vw" data-src="../img/image-03.jpg" alt="">
+			</figure>
+		</div>
+	</div>
+	<!-- ANOTHER SLIDESHOW FOR TESTING -->
+	<div class="heart-slideshow test-slideshow">
+		<div class="heart-slide">
+			<figure class="image-holder">
+				<img onload="imageLoaded(this)" data-sizes="100vw" data-src="../img/image-01.jpg" alt="">
+			</figure>
+		</div>
+		<div class="heart-slide">
+			<figure class="image-holder">
+				<img onload="imageLoaded(this)" data-sizes="100vw" data-src="../img/image-02.jpg" alt="">
+			</figure>
+		</div>
+		<div class="heart-slide">
+			<figure class="image-holder">
+				<img onload="imageLoaded(this)" data-sizes="100vw" data-src="../img/image-03.jpg" alt="">
+			</figure>
+		</div>
+	</div>
+	<script type="text/javascript">
+		//<![CDATA[
+		// get all 'image-loader' containers
+		function imageLoader() {
+			var containers = document.getElementsByClassName('image-holder');
+			var containerList = Array.prototype.slice.call(containers);
+			containerList.forEach(getImage);
+		}
+		// get all images from within 'image-loader' containers
+		function getImage(element) {
+			var images = element.getElementsByTagName('img'),
+				imageList = Array.prototype.slice.call(images);
+			imageList.forEach(addImageLoadingClass);
+		}
+		// add 'image-loading' class
+		function addImageLoadingClass(element) {
+			element.classList.add('image-loading');
+		}
+		// launch the image loader
+		(function () {
+			imageLoader();
+		})();
+		//]]>
+	</script>
+	<script src="heartslider-beta.js"></script>
+	<script src="main.js"></script>
+</body>
+
+</html>

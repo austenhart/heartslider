@@ -15,7 +15,7 @@
 	pointer-events: none;
 }
 
-/* HeartSlider Styles — 3.0.0 */
+/* HeartSlider Styles — 3.1.1 */
 .heart-slideshow {
 	position: fixed;
 	top: 0;
@@ -62,7 +62,7 @@
 	visibility: visible;
 	-o-object-fit: cover;
 	object-fit: cover;
-	font-family: 'object-fit: cover;';
+	font-family: "object-fit: cover;";
 }
 
 .heart-slide.active {
@@ -72,9 +72,9 @@
 	transform: translate3d(0, 0, 0);
 	-webkit-backface-visibility: visible;
 	backface-visibility: visible;
-	-webkit-transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
-	-o-transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
-	transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
+	-webkit-transition: opacity 3s cubic-bezier(0.455, 0.03, 0.515, 0.955);
+	-o-transition: opacity 3s cubic-bezier(0.455, 0.03, 0.515, 0.955);
+	transition: opacity 3s cubic-bezier(0.455, 0.03, 0.515, 0.955);
 }
 
 /* .heart-slide.previous {

@@ -13,9 +13,9 @@
 	pointer-events: none;
 }
 
-/* HeartSlider Styles — 2.1.1 */
+/* HeartSlider Styles — 2.1.3 */
 .heart-slideshow {
-	position: relative;
+	position: fixed;
 	top: 0;
 	right: 0;
 	bottom: 0;
@@ -31,8 +31,7 @@
 	width: 100%;
 	z-index: 1;
 	opacity: 0;
-	-webkit-transform: translate3d(0, 0, 0);
-	transform: translate3d(0, 0, 0);
+	will-change: opacity;
 	-webkit-transition: none;
 	-o-transition: none;
 	transition: none;
@@ -43,10 +42,13 @@
 	margin: 0;
 }
 .heart-slide img {
+	display: block;
 	height: 100%;
 	width: 100%;
+	visibility: hidden;
 }
 .heart-slide img[src] {
+	visibility: visible;
 	-o-object-fit: cover;
 	object-fit: cover;
 	font-family: 'object-fit: cover;';
@@ -54,6 +56,8 @@
 .heart-slide.active {
 	opacity: 1;
 	z-index: 20;
+	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
 	-webkit-backface-visibility: visible;
 	backface-visibility: visible;
 	-webkit-transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
@@ -62,6 +66,8 @@
 }
 .heart-slide.previous {
 	z-index: 10;
+	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
 	-webkit-transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
 	-o-transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);
 	transition: opacity 3s cubic-bezier(0.455, 0.030, 0.515, 0.955);

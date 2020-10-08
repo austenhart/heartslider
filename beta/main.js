@@ -1,4 +1,4 @@
-// main.js
+	// main.js
 var homepageSlider = new HeartSlider({
 	slideshow: ".original-slideshow",
 	slides: ".heart-slide",

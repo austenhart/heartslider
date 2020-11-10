@@ -34,20 +34,21 @@ function _createClass(Constructor, protoProps, staticProps) {
 	return Constructor;
 }
 
-// Trying a new approach
-
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.1.1 ❤
+❤ Version 3.1.3 ❤
 === Changelog ===
+3.1.3 - First slide no longer takes years to fade in on start
+3.1.2 - Comment improvements, removed will-change from CSS
 3.1.1 - Fixed setting paused issues, added option to enable pauseOnInactiveWindow
 */
 var HeartSlider = (function () {
 	function HeartSlider(userSettings) {
 		_classCallCheck(this, HeartSlider);
 
-		var _this = this; // HeartSlider default settings
+		var _this = this;
 
+		/* HeartSlider default settings */
 		_this.settings = {
 			delay: 1000,
 			effect: "fadeOut",
@@ -95,7 +96,7 @@ var HeartSlider = (function () {
 		}
 
 		if (this.settings.progressive) this.progressiveLoad(this.index);
-		this.goToSlide(this.index);
+		this.goToSlide(this.index, true);
 
 		if (!this.settings.paused) {
 			var currentIndex = this.index;
@@ -130,7 +131,7 @@ var HeartSlider = (function () {
 		{
 			key: "heartVisibilityHandler",
 			value: function heartVisibilityHandler(_this) {
-				// Disables the slideshow when the window in not in view
+				/* Disables the slideshow when the window in not in view */
 				if (
 					_this !== null &&
 					!_this.settings.paused &&
@@ -157,22 +158,25 @@ var HeartSlider = (function () {
 		},
 		{
 			key: "goToSlide",
-			value: function goToSlide(targetIndex) {
+			value: function goToSlide(targetIndex, isFirstSlide) {
 				/* Check if slides are animating, if so, don't run this again. */
 				if (this.transitioning) return;
 				/* Set transitioning to true */
 				this.transitioning = true;
 
-				// 1) Remove the old active class
-				// 2) Find the new active slide
-				// 3) Add the new active class
+				/* 
+				1) Remove the old active class
+				2) Find the new active slide
+				3) Add the new active class 
+				*/
 				var _this = this;
 
 				function changeSlides() {
 					var oldslide = _this.slides[_this.index];
 					_this.index = (targetIndex + _this.total) % _this.total;
-					var newslide = _this.slides[_this.index]; // remove styles from old slide
+					var newslide = _this.slides[_this.index];
 
+					/* remove styles from old slide */
 					if (oldslide !== newslide) {
 						oldslide.classList.remove("active");
 						oldslide.setAttribute("aria-hidden", "true");
@@ -184,10 +188,12 @@ var HeartSlider = (function () {
 						oldslide.style.transitionDuration = 0 + "ms";
 						// setTimeout(function () {
 						// }, _this.settings.transition);
-					} // add styles to new slide
+					}
 
-					newslide.style.transitionDuration =
-						_this.settings.transition + "ms";
+					/* add styles to new slide */
+					var duration = _this.settings.transition;
+					if (isFirstSlide) duration = 400;
+					newslide.style.transitionDuration = duration + "ms";
 					newslide.style.transitionDelay = 0 + "ms";
 					newslide.classList.add("active");
 					newslide.removeAttribute("aria-hidden");

@@ -1,11 +1,7 @@
 "use strict";
 
 function _instanceof(left, right) {
-	if (
-		right != null &&
-		typeof Symbol !== "undefined" &&
-		right[Symbol.hasInstance]
-	) {
+	if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
 		return !!right[Symbol.hasInstance](left);
 	} else {
 		return left instanceof right;
@@ -36,8 +32,9 @@ function _createClass(Constructor, protoProps, staticProps) {
 
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.1.3 ❤
+❤ Version 3.1.4 ❤
 === Changelog ===
+3.1.4 - Support for multiple images within slides
 3.1.3 - First slide no longer takes years to fade in on start
 3.1.2 - Comment improvements, removed will-change from CSS
 3.1.1 - Fixed setting paused issues, added option to enable pauseOnInactiveWindow
@@ -70,17 +67,13 @@ var HeartSlider = (function () {
 		}
 
 		/* Check to see if slideshow actually exists */
-		this.slideshowSelector = document.querySelector(
-			_this.settings.slideshow
-		);
+		this.slideshowSelector = document.querySelector(_this.settings.slideshow);
 
 		/* Dont. Want. None. Unless. You. Got. Buns. Hun. */
 		if (!this.slideshowSelector) return false;
 
 		/* Setting up scoped variables */
-		this.slides = Array.prototype.slice.apply(
-			this.slideshowSelector.querySelectorAll(this.settings.slides)
-		);
+		this.slides = Array.prototype.slice.apply(this.slideshowSelector.querySelectorAll(this.settings.slides));
 		this.slides.forEach(function (slide) {
 			slide.setAttribute("aria-hidden", "true");
 			slide.setAttribute("tab-index", "-1");
@@ -103,9 +96,7 @@ var HeartSlider = (function () {
 
 			var startProgressiveLoad = function startProgressiveLoad() {
 				setTimeout(function () {
-					_this.progressiveLoad(
-						(currentIndex + 1 + _this.total) % _this.total
-					);
+					_this.progressiveLoad((currentIndex + 1 + _this.total) % _this.total);
 				}, _this.settings.delay);
 			};
 
@@ -132,24 +123,13 @@ var HeartSlider = (function () {
 			key: "heartVisibilityHandler",
 			value: function heartVisibilityHandler(_this) {
 				/* Disables the slideshow when the window in not in view */
-				if (
-					_this !== null &&
-					!_this.settings.paused &&
-					_this.settings.pauseOnInactiveWindow &&
-					document.querySelector(_this.settings.slideshow) !== null
-				) {
+				if (_this !== null && !_this.settings.paused && _this.settings.pauseOnInactiveWindow && document.querySelector(_this.settings.slideshow) !== null) {
 					if (document.visibilityState == "hidden") {
-						console.log(
-							"%cWindow Lost Focus. HeartSlider is Paused.",
-							"font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;"
-						);
+						console.log("%cWindow Lost Focus. HeartSlider is Paused.", "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
 
 						_this.pause();
 					} else {
-						console.log(
-							"%cRegained Focus. Resumed HeartSlider.",
-							"font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;"
-						);
+						console.log("%cRegained Focus. Resumed HeartSlider.", "font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;");
 
 						_this.resume();
 					}
@@ -181,8 +161,7 @@ var HeartSlider = (function () {
 						oldslide.classList.remove("active");
 						oldslide.setAttribute("aria-hidden", "true");
 						oldslide.setAttribute("tab-index", "-1");
-						oldslide.style.transitionDelay =
-							_this.settings.transition + "ms";
+						oldslide.style.transitionDelay = _this.settings.transition + "ms";
 
 						// oldslide.style.transitionDelay = 0 + 'ms';
 						oldslide.style.transitionDuration = 0 + "ms";
@@ -206,25 +185,18 @@ var HeartSlider = (function () {
 		{
 			key: "progressiveLoad",
 			value: function progressiveLoad(target) {
-				var currentImage = this.slides[target].querySelector("img");
-				if (
-					currentImage == undefined ||
-					currentImage.classList.contains("image-loaded")
-				)
-					return;
-				var atts = ["sizes", "srcset", "src"];
-				atts.forEach(function (attribute) {
-					var targetAtt = currentImage.getAttribute(
-						"data-" + attribute
-					);
+				var currentImages = Array.prototype.slice.call(this.slides[target].querySelectorAll("img"));
+				currentImages.forEach(function (currentImage) {
+					if (currentImage == undefined || currentImage.classList.contains("image-loaded")) return;
+					var atts = ["sizes", "srcset", "src"];
+					atts.forEach(function (attribute) {
+						var targetAtt = currentImage.getAttribute("data-" + attribute);
 
-					if (
-						targetAtt &&
-						currentImage.getAttribute(attribute) == null
-					) {
-						currentImage.setAttribute(attribute, targetAtt);
-						currentImage.setAttribute("data-" + attribute, "");
-					}
+						if (targetAtt && currentImage.getAttribute(attribute) == null) {
+							currentImage.setAttribute(attribute, targetAtt);
+							currentImage.setAttribute("data-" + attribute, "");
+						}
+					});
 				});
 			},
 		},
@@ -238,9 +210,7 @@ var HeartSlider = (function () {
 
 				if (_this.settings.progressive) {
 					setTimeout(function () {
-						_this.progressiveLoad(
-							(nextIndex + 1 + _this.total) % _this.total
-						);
+						_this.progressiveLoad((nextIndex + 1 + _this.total) % _this.total);
 					}, _this.settings.delay);
 				}
 			},
@@ -250,8 +220,7 @@ var HeartSlider = (function () {
 			value: function previous() {
 				var _this = this;
 
-				var previousIndex =
-					(_this.index - 1 + _this.total) % _this.total;
+				var previousIndex = (_this.index - 1 + _this.total) % _this.total;
 
 				_this.goToSlide(_this.index - 1);
 
@@ -271,9 +240,7 @@ var HeartSlider = (function () {
 
 				if (_this.settings.progressive) {
 					setTimeout(function () {
-						_this.progressiveLoad(
-							(_this.index + 1 + _this.total) % _this.total
-						);
+						_this.progressiveLoad((_this.index + 1 + _this.total) % _this.total);
 					}, _this.settings.delay);
 				}
 

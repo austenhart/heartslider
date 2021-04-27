@@ -1,13 +1,12 @@
 /* Image Loading Style */
-.image-holder img,
-.image-holder img.image-loading {
+/* Image Loading Style */
+.image-holder img[onload],
+.image-holder img[onload].image-loading {
 	opacity: 0;
-	-webkit-transition: opacity 0.35s ease-out;
-	-o-transition: opacity 0.35s ease-out;
 	transition: opacity 0.35s ease-out;
 }
 
-.image-holder img.image-loaded {
+.image-holder img[onload].image-loaded {
 	opacity: 1;
 }
 
@@ -15,7 +14,7 @@
 	pointer-events: none;
 }
 
-/* HeartSlider Styles — 3.1.3 */
+/* HeartSlider Styles — 3.1.4 */
 .heart-slideshow {
 	position: fixed;
 	top: 0;

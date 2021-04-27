@@ -18,10 +18,7 @@
 			}
 
 			function imageSharing(img) {
-				if (
-					img.getAttribute("src") ===
-					"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-				) {
+				if (img.getAttribute("src") === "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7") {
 					img.setAttribute("src", img.getAttribute("data-src"));
 				}
 			}
@@ -36,78 +33,43 @@
 		<div class="heart-slideshow original-slideshow">
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<!-- <h2 style="color:aqua;">TESTING</h2> -->
-					<img
-						onload="imageLoaded(this)"
-						data-sizes="100vw"
-						data-src="../img/image-01.jpg"
-						alt=""
-					/>
+					<img data-sizes="100vw" data-src="../img/image-01.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<!-- <h2 style="color:blue;">SLIDE NUMBER 02</h2> -->
-					<img
-						onload="imageLoaded(this)"
-						data-sizes="100vw"
-						data-src="../img/image-02.jpg"
-						alt=""
-					/>
+					<img data-sizes="100vw" data-src="../img/image-02.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<!-- <h2 style="color:blueviolet;">Lets see if this works 003</h2> -->
-					<img
-						onload="imageLoaded(this)"
-						data-sizes="100vw"
-						data-src="../img/image-03.jpg"
-						alt=""
-					/>
+					<img data-sizes="100vw" data-src="../img/image-03.jpg" alt="" />
 				</figure>
 			</div>
 		</div>
 		<!-- ANOTHER SLIDESHOW FOR TESTING -->
-		<div class="heart-slideshow test-slideshow">
+		<!-- <div class="heart-slideshow test-slideshow">
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img
-						onload="imageLoaded(this)"
-						data-sizes="100vw"
-						data-src="../img/image-01.jpg"
-						alt=""
-					/>
+					<img data-sizes="100vw" data-src="../img/image-01.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img
-						onload="imageLoaded(this)"
-						data-sizes="100vw"
-						data-src="../img/image-02.jpg"
-						alt=""
-					/>
+					<img data-sizes="100vw" data-src="../img/image-02.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img
-						onload="imageLoaded(this)"
-						data-sizes="100vw"
-						data-src="../img/image-03.jpg"
-						alt=""
-					/>
+					<img data-sizes="100vw" data-src="../img/image-03.jpg" alt="" />
 				</figure>
 			</div>
-		</div>
+		</div> -->
 		<script type="text/javascript">
 			//<![CDATA[
 			// get all 'image-loader' containers
 			function imageLoader() {
-				var containers = document.getElementsByClassName(
-					"image-holder"
-				);
+				var containers = document.getElementsByClassName("image-holder");
 				var containerList = Array.prototype.slice.call(containers);
 				containerList.forEach(getImage);
 			}
@@ -119,7 +81,9 @@
 			}
 			// add 'image-loading' class
 			function addImageLoadingClass(element) {
-				element.classList.add("image-loading");
+				if (!!element.onload) {
+					element.classList.add("image-loading");
+				}
 			}
 			// launch the image loader
 			(function () {

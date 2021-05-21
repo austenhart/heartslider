@@ -22,7 +22,6 @@ Change Log:
 -   3.1.3 - First slide no longer takes years to fade in on start
 -   3.1.2 - Comment improvements, removed will-change from CSS
 -   3.1.1 - Fixed setting paused issues, added option to enable pauseOnInactiveWindow
--   == v3 ==
 -   2.1.3 - Added option to enable or disable the visibility change function
 -   2.1.2 - Slideshow now pauses when user changes tabs/windows. PREV function still not working. Converted spaces to tabs.
 -   2.1.1 - Fixed flashing z-index problem with custom transition

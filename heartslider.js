@@ -1,269 +1,205 @@
-/*
+/* 
 ❤  Heartslider  ❤
-❤ Version 2.1.3 ❤
-'''''''''''''''''
-
-Features:
-❤ No dependancies
-❤ Custom user settings
-❤ Small, lightweight and supports IE10
-❤ Progressive loading for sourceset and regular src images
-
-Change Log:
-❤ 2.1.3 Added option to enable or disable the visibility change function
---
-❤ 2.1.2 Slideshow now pauses when user changes tabs/windows. PREV function still not working. Converted spaces to tabs.
---
-❤ 2.1.1 Fixed flashing z-index problem with custom transition
---
-❤ 2.1.0 Cleaned up code and added ability to choose between fadeOut (default) and fadeInOut!
---
-❤ 2.0.6 Fixed private variable scope error
---
-❤ 2.0.5 Added conditionals for slides without images
---
-❤ 2.0.4 Fixed jumping issue when looping past last slide
---
-❤ 2.0.3 Updated CSS and JS for compatibility with IE (ugh)
---
-❤ Removed .children selector so jQuery doesn't get confused
-
-To Do:
-❤ Fix Previous/next Commands
-❤ Additional easing options
-'''''''''''''''
-
-Last Updated: January 23, 2019
+❤ Version 3.1.5 ❤
+=== Changelog ===
+3.1.5 - Cleaning up repo and getting ready for 4.0
+3.1.4 - Support for multiple images within slides
+3.1.3 - First slide no longer takes years to fade in on start
+3.1.2 - Comment improvements, removed will-change from CSS
+3.1.1 - Fixed setting paused issues, added option to enable pauseOnInactiveWindow
 */
-var heartSlider = (function () {
-	"use strict";
-	// HeartSlider default settings
-	var settings = {
-		slideshow: ".heart-slideshow",
-		slides: ".heart-slide",
-		transition: 3000,
-		delay: 1000,
-		loop: true,
-		randomize: false,
-		paused: false,
-		progressive: true,
-		effect: "fadeOut",
-		enableVisibilityChange: false,
-	};
-	// Private variables and functions
-	var index,
-		prop,
-		isStart,
-		slides,
-		count,
-		previousSlide,
-		currentSlide,
-		status,
-		fadeInOut;
+class HeartSlider {
+	constructor(userSettings) {
+		var _this = this;
 
-	// Initial setup based on settings
-	var start = function () {
-		if (settings.randomize) index = Math.floor(Math.random() * count);
-		if (settings.progressive)
-			progressiveLoad(slides[index].querySelector("img"));
-		nextSlide();
-		isStart = false;
-	};
+		/* HeartSlider default settings */
+		_this.settings = {
+			delay: 1000,
+			effect: "fadeOut",
+			loop: true,
+			paused: false,
+			progressive: true,
+			randomize: false,
+			slideshow: ".heart-slideshow",
+			slides: ".heart-slide",
+			transition: 3000,
+			pauseOnInactiveWindow: false,
+		};
 
-	// Loads the next image in the sequence
-	// Only triggers an event if image is missing a src, srcset, or sizes attribute
-	var progressiveLoad = function (currentImage) {
-		if (currentImage == undefined) return;
-		var dataSrc = currentImage.getAttribute("data-src"),
-			dataSizes = currentImage.getAttribute("data-sizes"),
-			dataSrcset = currentImage.getAttribute("data-srcset");
-
-		if (dataSizes && currentImage.getAttribute("sizes") == null)
-			currentImage.setAttribute("sizes", dataSizes);
-		if (dataSrcset && currentImage.getAttribute("srcset") == null)
-			currentImage.setAttribute("srcset", dataSrcset);
-		if (dataSrc && currentImage.getAttribute("src") == null)
-			currentImage.setAttribute("src", dataSrc);
-	};
-
-	// Onto the main event
-	var nextSlide = function (current, manualMode, reverse) {
-		// If slideshow is paused and you are not calling heartSlider.next(), don't do anything.
-		if (settings.paused && !manualMode) return;
-		// Dont allow nextSlide to be called if it is already doing it
-		if (status === "running") return;
-		// Used for goTo method.
-		if (current !== undefined) index = current;
-
-		// Setting up previous/next slides
-		var previous;
-		if (reverse !== undefined) {
-			index--;
-			if (index < 0) index = count - 1;
-			previous = index + 1;
-		} else {
-			previous = index - 1;
-			if (previous < 0) previous = count - 1;
-		}
-
-		previousSlide = slides[previous];
-		currentSlide = slides[index];
-
-		status = "running";
-
-		currentSlide.classList.add("active");
-		if (!isStart) {
-			previousSlide.classList.add("previous");
-		} else {
-			currentSlide.style.transitionDuration = "0ms";
-			setTimeout(function () {
-				currentSlide.style.transitionDuration = null;
-			}, 100);
-		}
-		if (
-			!isStart &&
-			settings.transition !== 3000 &&
-			currentSlide.style.transitionDuration !== settings.transition + "ms"
-		) {
-			currentSlide.style.transitionDuration = settings.transition + "ms";
-		}
-		if (settings.progressive) {
-			var next = index + 1;
-			if (index == count - 1) next = 0;
-			var currentImage = slides[next].querySelector("img");
-			progressiveLoad(currentImage);
-		}
-
-		// console.log("current Slide", previous);
-		// console.log("previous Slide", index);
-		reverse ? index-- : index++;
-		// index++;
-
-		if (!settings.paused || !isStart) {
-			if (fadeInOut) previousSlide.classList.remove("active");
-			let scopedPreviousSlide = previousSlide;
-			if (document.querySelector(settings.slideshow) == null)
-				return false;
-			setTimeout(function () {
-				scopedPreviousSlide.classList.remove("previous");
-				if (!fadeInOut) scopedPreviousSlide.classList.remove("active");
-				if (!fadeInOut && settings.transition !== 3000) {
-					scopedPreviousSlide.style.transitionDuration = "0ms";
-				}
-				status = "waiting";
-			}, settings.transition);
-
-			if (settings.loop) {
-				if (!reverse && index == count) index = 0;
-				setTimeout(function () {
-					nextSlide();
-				}, settings.delay + settings.transition);
-			} else {
-				if (index < count) setTimeout(nextSlide(), settings.delay);
+		/* Overwrite defaults with user-defined settings */
+		for (var prop in userSettings) {
+			if (this.settings.hasOwnProperty(prop)) {
+				this.settings[prop] = userSettings[prop];
 			}
 		}
-		// if(manualMode) manualMode = false;
-	};
-	var prevSlide = function () {
-		nextSlide(heartSlider.current(), true, true);
-	};
-	var pauseSlide = function () {
-		settings.paused = true;
-	};
-	var resumeSlide = function () {
-		settings.paused = false;
-		isStart = false;
-		nextSlide(heartSlider.current(), false);
-	};
 
-	// Disables the slideshow when the window in not in view
-	if (!settings.paused || !settings.loop) {
-		if (settings.enableVisibilityChange) {
-			document.addEventListener("visibilitychange", function () {
-				if (document.visibilityState == "hidden") {
-					console.log(
-						"%cWindow Lost Focus. HeartSlider is Paused.",
-						"font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;"
-					);
-					heartSlider.pause();
-				} else {
-					console.log(
-						"%cRegained Focus. Resumed HeartSlider.",
-						"font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;"
-					);
-					heartSlider.resume();
-					// This hides a white flash when going back to the slideshow
-					currentSlide.style.transitionDuration = 0;
-					currentSlide.style.opacity = 0.6;
-					setTimeout(function () {
-						currentSlide.style.transitionDuration = null;
-						currentSlide.style.opacity = null;
-					}, 100);
-				}
-			});
+		/* Check to see if slideshow actually exists */
+		this.slideshowSelector = typeof _this.settings.slideshow === "object" ? _this.settings.slideshow : document.querySelector(_this.settings.slideshow);
+
+		/* Dont. Want. None. Unless. You. Got. Buns. Hun. */
+		if (!this.slideshowSelector) return false;
+
+		/* Setting up scoped variables */
+		this.slides = Array.prototype.slice.apply(this.slideshowSelector.querySelectorAll(this.settings.slides));
+		this.slides.forEach(function (slide) {
+			slide.setAttribute("aria-hidden", "true");
+			slide.setAttribute("tab-index", "-1");
+		});
+		this.total = this.slides.length;
+		this.index = 0;
+		this.transitioning = false;
+
+		/* Start */
+		if (this.settings.randomize) {
+			this.index = Math.floor(Math.random() * this.total);
+			this.progressiveLoad(this.index);
 		}
+
+		if (this.settings.progressive) this.progressiveLoad(this.index);
+		this.goToSlide(this.index, true);
+
+		if (!this.settings.paused) {
+			var currentIndex = this.index;
+
+			var startProgressiveLoad = function startProgressiveLoad() {
+				setTimeout(function () {
+					_this.progressiveLoad((currentIndex + 1 + _this.total) % _this.total);
+				}, _this.settings.delay);
+			};
+
+			window.requestAnimationFrame(startProgressiveLoad);
+
+			var startAutoPlay = function startAutoPlay() {
+				_this.slideInterval = setInterval(function () {
+					_this.next(_this);
+				}, _this.settings.delay + _this.settings.transition);
+			};
+
+			window.requestAnimationFrame(startAutoPlay);
+		}
+
+		var initVis = function initVis() {
+			return _this.heartVisibilityHandler(_this);
+		};
+
+		document.addEventListener("visibilitychange", initVis, true);
 	}
 
-	// Public functions
-	// Accessible via heartSlider.functionName(properties);
-	// Ex: heartSlider.init({transition: 4000, slideshow: '.homepage-slideshow'});
-	return {
-		init: function (userSettings) {
-			// imports user settings and overrides defaults
-			for (prop in userSettings) {
-				if (settings.hasOwnProperty(prop)) {
-					settings[prop] = userSettings[prop];
-				}
+	heartVisibilityHandler(_this) {
+		/* Disables the slideshow when the window in not in view */
+		if (_this !== null && !_this.settings.paused && _this.settings.pauseOnInactiveWindow && document.querySelector(_this.settings.slideshow) !== null) {
+			if (document.visibilityState == "hidden") {
+				console.log("%cWindow Lost Focus. HeartSlider is Paused.", "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
+				_this.pause();
+			} else {
+				console.log("%cRegained Focus. Resumed HeartSlider.", "font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;");
+				_this.resume();
 			}
-			// Check to see if slideshow actually exists
-			var slideshowSelector = document.querySelector(settings.slideshow);
-			// Dont. Want. None. Unless. You. Got. Buns. Hun.
-			if (!slideshowSelector) return false;
+		}
+	}
+	goToSlide(targetIndex, isFirstSlide) {
+		/* Check if slides are animating, if so, don't run this again. */
+		if (this.transitioning) return;
+		/* Set transitioning to true */
+		this.transitioning = true;
 
-			// Define private variables
-			(slides = slideshowSelector.querySelectorAll(settings.slides)),
-				(count = slides.length),
-				(index = 0),
-				(isStart = true),
-				(status = "waiting"),
-				(fadeInOut = settings.effect == "fadeInOut");
+		/* 
+		1) Remove the old active class
+		2) Find the new active slide
+		3) Add the new active class 
+		*/
+		var _this = this;
 
-			// if you have slides, then kick off to nextSlide.
-			if (count > 1) start(index);
-		},
-		settings: function () {
-			return settings;
-		},
-		current: function () {
-			return index;
-		},
-		status: function () {
-			return status;
-		},
-		slideshow: function () {
-			return document.querySelector(settings.slideshow);
-		},
-		slides: function () {
-			return slides;
-		},
-		count: function () {
-			return count;
-		},
-		pause: function () {
-			pauseSlide();
-		},
-		resume: function () {
-			resumeSlide();
-		},
-		next: function () {
-			nextSlide(heartSlider.current(), true);
-		},
-		prev: function () {
-			prevSlide();
-		},
-		goTo: function (current) {
-			if (current == undefined) current = heartSlider.current();
-			nextSlide(current);
-		},
-	};
-})();
+		function changeSlides() {
+			var oldslide = _this.slides[_this.index];
+			_this.index = (targetIndex + _this.total) % _this.total;
+			var newslide = _this.slides[_this.index];
+
+			/* remove styles from old slide */
+			if (oldslide !== newslide) {
+				oldslide.classList.remove("active");
+				oldslide.setAttribute("aria-hidden", "true");
+				oldslide.setAttribute("tab-index", "-1");
+				oldslide.style.transitionDelay = _this.settings.transition + "ms";
+
+				// oldslide.style.transitionDelay = 0 + 'ms';
+				oldslide.style.transitionDuration = 0 + "ms";
+				// setTimeout(function () {
+				// }, _this.settings.transition);
+			}
+
+			/* add styles to new slide */
+			var duration = _this.settings.transition;
+			if (isFirstSlide) duration = 400;
+			newslide.style.transitionDuration = duration + "ms";
+			newslide.style.transitionDelay = 0 + "ms";
+			newslide.classList.add("active");
+			newslide.removeAttribute("aria-hidden");
+			newslide.removeAttribute("tab-index");
+		}
+
+		window.requestAnimationFrame(changeSlides);
+	}
+	progressiveLoad(target) {
+		var currentImages = Array.prototype.slice.call(this.slides[target].querySelectorAll("img"));
+		currentImages.forEach(function (currentImage) {
+			if (currentImage == undefined || currentImage.classList.contains("image-loaded")) return;
+			var atts = ["sizes", "srcset", "src"];
+			atts.forEach(function (attribute) {
+				var targetAtt = currentImage.getAttribute("data-" + attribute);
+
+				if (targetAtt && currentImage.getAttribute(attribute) == null) {
+					currentImage.setAttribute(attribute, targetAtt);
+					currentImage.setAttribute("data-" + attribute, "");
+				}
+			});
+		});
+	}
+	next(_this) {
+		_this.transitioning = false;
+		var nextIndex = this.index + 1 || 1;
+
+		_this.goToSlide(nextIndex);
+
+		if (_this.settings.progressive) {
+			setTimeout(function () {
+				_this.progressiveLoad((nextIndex + 1 + _this.total) % _this.total);
+			}, _this.settings.delay);
+		}
+	}
+	previous() {
+		var _this = this;
+
+		var previousIndex = (_this.index - 1 + _this.total) % _this.total;
+
+		_this.goToSlide(_this.index - 1);
+
+		if (_this.settings.progressive) {
+			_this.progressiveLoad(previousIndex);
+		}
+	}
+	resume() {
+		var _this = this;
+
+		if (_this.settings.paused == true) {
+			_this.settings.paused = false;
+		}
+
+		if (_this.settings.progressive) {
+			setTimeout(function () {
+				_this.progressiveLoad((_this.index + 1 + _this.total) % _this.total);
+			}, _this.settings.delay);
+		}
+
+		_this.goToSlide(_this.index + 1);
+
+		this.slideInterval = setInterval(function () {
+			_this.next(_this);
+		}, _this.settings.delay + _this.settings.transition);
+	}
+	pause() {
+		const _this = this;
+		_this.settings.paused = true;
+		clearInterval(this.slideInterval);
+	}
+}

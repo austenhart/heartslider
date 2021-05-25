@@ -105,6 +105,7 @@ class HeartSlider {
 		}
 
 		if (_this.settings.swipe) {
+			// another test comment
 			_this.slideshowSelector.addEventListener("touchstart", _this.swipeHandler.handleTouchStart, false);
 			_this.slideshowSelector.addEventListener("touchmove", _this.swipeHandler.handleTouchMove, false);
 		}

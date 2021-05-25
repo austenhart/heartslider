@@ -34,10 +34,13 @@ Change Log:
 
 To Do:
 
--   Remove Class format
+-   Swipe to advance
+-   Add native support for prev/next buttons
 -   Add first image loaded callback
 -   Wait until first image load to start timer
--   Swipe to advance
+-   Better way to manage multiple slideshows
+-   Use JS bind() function instead of using \_this variable
+-   ~~Remove Class format?~~
 
 '''''''''''''''
 

@@ -8,6 +8,7 @@
 3.1.2 - Comment improvements, removed will-change from CSS
 3.1.1 - Fixed setting paused issues, added option to enable pauseOnInactiveWindow
 */
+
 class HeartSlider {
 	constructor(userSettings) {
 		var _this = this;
@@ -34,17 +35,34 @@ class HeartSlider {
 		}
 
 		/* Check to see if slideshow actually exists */
+		/* If `slideshow` is a string, then use a query selector. If it is already a query selector, then use that. */
 		this.slideshowSelector = typeof _this.settings.slideshow === "object" ? _this.settings.slideshow : document.querySelector(_this.settings.slideshow);
 
 		/* Dont. Want. None. Unless. You. Got. Buns. Hun. */
 		if (!this.slideshowSelector) return false;
 
-		/* Setting up scoped variables */
+		/* In case you forgot to add heart-slideshow class, add it so the CSS will work */
+		if (!this.slideshowSelector.classList.contains("heart-slideshow")) {
+			this.slideshowSelector.classList.add("heart-slideshow");
+		}
+
+		/* Grab all heart-slides */
 		this.slides = Array.prototype.slice.apply(this.slideshowSelector.querySelectorAll(this.settings.slides));
+		/* If there are no elements with the heart-slide class, then fallback to use the direct children of the main div */
+		if (this.slides.length === 0) {
+			this.slides = Array.prototype.slice.apply(this.slideshowSelector.children);
+		}
+
+		/* Loop through each slide  */
 		this.slides.forEach(function (slide) {
 			slide.setAttribute("aria-hidden", "true");
 			slide.setAttribute("tab-index", "-1");
+			if (!slide.classList.contains("heart-slide")) {
+				slide.classList.add("heart-slide");
+			}
 		});
+
+		/* Setting up scoped variables */
 		this.total = this.slides.length;
 		this.index = 0;
 		this.transitioning = false;

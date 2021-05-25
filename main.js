@@ -14,7 +14,10 @@ var homepageSlider = new HeartSlider({
 var anotherSlider = new HeartSlider({
 	slideshow: ".stealthy-slideshow",
 	delay: 200,
+	swipe: true,
+	pauseOnInactiveWindow: true,
 });
+
 const slideshow = document.querySelector(".heart-slideshow");
 const slideshows = document.querySelectorAll(".heart-slideshow");
 

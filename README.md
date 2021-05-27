@@ -34,10 +34,11 @@ Change Log:
 
 To Do:
 
--   Swipe to advance
+-   ~~Swipe to advance~~
+-   ~~Manually advancing a slide should transition quicker (or a custom time)~~
 -   Add native support for prev/next buttons
 -   Add first image loaded callback
--   Wait until first image load to start timer
+-   ~~Wait until first image load to start timer~~
 -   Better way to manage multiple slideshows
 -   Use JS bind() function instead of using \_this variable
 -   ~~Remove Class format?~~

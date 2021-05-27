@@ -9,6 +9,7 @@ var homepageSlider = new HeartSlider({
 	paused: false,
 	progressive: true,
 	effect: "fadeOut",
+	swipe: false,
 });
 
 var anotherSlider = new HeartSlider({
@@ -16,10 +17,11 @@ var anotherSlider = new HeartSlider({
 	delay: 200,
 	swipe: true,
 	pauseOnInactiveWindow: true,
+	clickToAdvance: true,
 });
 
-const slideshow = document.querySelector(".heart-slideshow");
-const slideshows = document.querySelectorAll(".heart-slideshow");
+// const slideshow = document.querySelector(".heart-slideshow");
+// const slideshows = document.querySelectorAll(".heart-slideshow");
 
 // slideshows.forEach((slideshow) => {
 // 	new HeartSlider({

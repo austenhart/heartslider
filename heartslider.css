@@ -43,6 +43,7 @@
 }
 
 .heart-slide .image-holder {
+	pointer-events: none;
 	height: 100%;
 	width: 100%;
 	margin: 0;
@@ -52,6 +53,13 @@
 	display: block;
 	height: 100%;
 	width: 100%;
+	opacity: 0;
+	pointer-events: none;
+	-moz-user-select: -moz-none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	-o-user-select: none;
+	user-select: none;
 	visibility: hidden;
 }
 
@@ -61,6 +69,10 @@
 	-o-object-fit: cover;
 	object-fit: cover;
 	font-family: "object-fit: cover;";
+}
+
+.heart-slide img.image-loaded {
+	opacity: 1;
 }
 
 .heart-slide.active {

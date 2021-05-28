@@ -25,9 +25,18 @@
 	width: 100%;
 	overflow: hidden;
 	z-index: 10;
+	opacity: 0;
+	visibility: hidden;
+}
+.heart-slideshow.progressive-loading-disabled,
+.heart-slideshow.first-image-loaded {
+	opacity: 1;
+	transition: opacity 1s ease;
+	visibility: visible;
 }
 
 .heart-slideshow .heart-slide {
+	pointer-events: none;
 	position: absolute;
 	top: 0;
 	right: 0;
@@ -71,6 +80,7 @@
 	font-family: "object-fit: cover;";
 }
 
+.heart-slideshow.progressive-loading-disabled img,
 .heart-slide img.image-loaded {
 	opacity: 1;
 }

@@ -2,6 +2,7 @@
 ❤  Heartslider  ❤
 ❤ Version 3.1.5 ❤
 === Changelog ===
+3.2.0 - Added click and swipe to advance.
 3.1.5 - Cleaning up repo and getting ready for 4.0
 3.1.4 - Support for multiple images within slides
 3.1.3 - First slide no longer takes years to fade in on start
@@ -77,29 +78,34 @@ class HeartSlider {
 		if (this.settings.randomize) this.index = Math.floor(Math.random() * this.total);
 		if (this.settings.progressive) this.progressiveLoad(this.index, true, this);
 
-		this.goToSlide(this.index, false, true);
+		var firstIndex = this.index;
+		this.goToSlide(firstIndex, false, true);
 
 		if (this.slides.length < 2) return false;
 
 		_this.kickstart = function () {
-			if (!this.settings.paused) {
-				var currentIndex = this.index;
+			if (_this.settings.progressive) {
+				_this.slideshowSelector.classList.add("first-image-loaded");
 
 				var startProgressiveLoad = function startProgressiveLoad() {
 					setTimeout(function () {
-						_this.progressiveLoad((currentIndex + 1 + _this.total) % _this.total);
+						_this.progressiveLoad((firstIndex + 1 + _this.total) % _this.total);
 					}, _this.settings.delay);
 				};
 
 				window.requestAnimationFrame(startProgressiveLoad);
-
+			}
+			if (!_this.settings.paused) {
 				setTimeout(function () {
 					_this.resume();
-				}, _this.settings.delay);
+				}, _this.settings.delay * 0.5 + _this.settings.transition);
 			}
 		};
 		if (!_this.settings.progressive) {
-			_this.kickstart();
+			setTimeout(function () {
+				_this.slideshowSelector.classList.add("progressive-loading-disabled");
+				_this.kickstart();
+			}, 100);
 		}
 
 		var initVis = function initVis() {
@@ -125,30 +131,42 @@ class HeartSlider {
 		}
 
 		_this.prevNextHandler = function (targetIndex, indexToProgressiveLoad, isManuallyCalled) {
-			if (_this.transitioning == true) {
-				if (isManuallyCalled == true) {
+			// console.log(_this.index, indexToProgressiveLoad);
+			if (_this.transitioning === true) {
+				if (isManuallyCalled === true) {
 					/* This triggers if a manual transition is called during an automatic one*/
-					// console.log("Manual trigger during auto transition");
+					if (_this.manualTimeout) clearTimeout(_this.manualTimeout);
+					if (!_this.settings.paused) {
+						_this.manualTimeout = setTimeout(_this.resume(), _this.settings.transition + _this.settings.delay);
+					}
 					_this.pause();
-					_this.goToSlide(_this.index, isManuallyCalled);
-					clearTimeout(_this.manualTimeout);
-					_this.manualTimeout = setTimeout(_this.resume(), 400);
+					_this.progressiveLoad(indexToProgressiveLoad);
+					var skipDefaultTransition = true;
+					_this.goToSlide(_this.index, isManuallyCalled, false, skipDefaultTransition);
 					return;
 				} else {
+					// console.log("prevNext triggered automatically?");
 					return;
 				}
-			}
+			} else {
+				_this.goToSlide(targetIndex, isManuallyCalled);
 
-			_this.goToSlide(targetIndex, isManuallyCalled);
-
-			if (_this.settings.progressive) {
-				setTimeout(function () {
-					_this.progressiveLoad(indexToProgressiveLoad);
-				}, _this.settings.delay);
+				if (_this.settings.progressive) {
+					setTimeout(function () {
+						// _this.progressiveLoad(indexToProgressiveLoad);
+						if (!_this.settings.paused) {
+							_this.resume();
+						}
+					}, _this.settings.delay);
+				}
 			}
-			setTimeout(function () {
-				_this.transitioning = false;
-			}, _this.settings.transition);
+			setTimeout(
+				function () {
+					console.log("transition is done");
+					_this.transitioning = false;
+				},
+				isManuallyCalled ? 400 : _this.settings.transition
+			);
 		};
 	}
 
@@ -196,13 +214,6 @@ class HeartSlider {
 					// setTimeout(_this.resume(), 400);
 				}
 			}
-			// else {
-			// 	if (yDiff > 0) {
-			// 		/* Up swipe */
-			// 	} else {
-			// 		/* Down swipe */
-			// 	}
-			// }
 			/* reset values */
 			this.xDown = null;
 			this.yDown = null;
@@ -225,10 +236,11 @@ class HeartSlider {
 			}
 		}
 	}
-	goToSlide(targetIndex, isManuallyCalled = false, isFirstSlide = false) {
+	goToSlide(targetIndex, isManuallyCalled = false, isFirstSlide = false, skipDefaultTransition = false) {
 		/* Check if slides are animating, if so, don't run this again. */
 		if (this.transitioning && !isManuallyCalled) return;
-		var skipDefaultTransition = targetIndex === this.index && isManuallyCalled;
+		// if (this.transitioning && !skipDefaultTransition) return false;
+		// var skipDefaultTransition = targetIndex === this.index && isManuallyCalled;
 		/* Set transitioning to true */
 		this.transitioning = true;
 
@@ -239,28 +251,44 @@ class HeartSlider {
 		*/
 		var _this = this;
 		var oldslide = _this.slides[_this.index];
-		_this.index = (targetIndex + _this.total) % _this.total;
-		var newslide = _this.slides[_this.index];
+		var newTargetIndex = (targetIndex + _this.total) % _this.total;
+		var newslide = _this.slides[newTargetIndex];
+		/* Fade duration */
+		var duration = isManuallyCalled || isFirstSlide || skipDefaultTransition ? 400 : _this.settings.transition;
+
+		if (oldslide === newslide && skipDefaultTransition) {
+			// console.log(_this.slideInterval);
+			// clearInterval(_this.slideInterval);
+			// oldslide.style.transitionDelay = 0 + "ms";
+			// oldslide.style.transitionDuration = 0 + "ms";
+			// newslide.style.transitionDuration = duration + "ms";
+			// newslide.style.transitionDuration = duration + "ms";
+			// newslide.style.transitionDelay = 0 + "ms";
+			return;
+		}
+
+		_this.index = newTargetIndex;
+
+		console.log("goToSlide updated index to", _this.index);
 
 		function changeSlides() {
-			/* setting up global duration */
-			var duration = isManuallyCalled || isFirstSlide || skipDefaultTransition ? 400 : _this.settings.transition;
+			console.log("Go to slide #" + _this.index);
 
 			/* remove styles from old slide */
 			if (oldslide !== newslide) {
-				oldslide.classList.remove("active");
-				oldslide.setAttribute("aria-hidden", "true");
-				oldslide.setAttribute("tab-index", "-1");
 				oldslide.style.transitionDelay = duration + "ms";
 				oldslide.style.transitionDuration = 0 + "ms";
+				oldslide.setAttribute("aria-hidden", "true");
+				oldslide.setAttribute("tab-index", "-1");
+				oldslide.classList.remove("active");
 			}
 
 			/* add styles to new slide */
-			newslide.style.transitionDuration = duration + "ms";
 			newslide.style.transitionDelay = 0 + "ms";
-			newslide.classList.add("active");
+			newslide.style.transitionDuration = duration + "ms";
 			newslide.removeAttribute("aria-hidden");
 			newslide.removeAttribute("tab-index");
+			newslide.classList.add("active");
 
 			setTimeout(function () {
 				_this.transitioning = false;
@@ -273,31 +301,39 @@ class HeartSlider {
 		var currentImages = Array.prototype.slice.call(this.slides[target].querySelectorAll("img"));
 		if (currentImages.length > 0) {
 			currentImages.forEach((currentImage, index) => {
-				if (currentImage == undefined || currentImage.classList.contains("image-loaded") || currentImage.currentSrc === null) return;
-				currentImage.addEventListener("load", function () {
-					this.classList.add("image-loaded");
-					if (isFirstSlide && index == 0) {
-						console.log("isFirstSlide? (within progressiveLoad)", isFirstSlide);
-						// start slideshow for realziesz
-						console.log("kickstart on first image");
-						_this.kickstart();
-					}
-				});
-				var atts = ["sizes", "srcset", "src"];
-				atts.forEach(function (attribute) {
-					var targetAtt = currentImage.getAttribute("data-" + attribute);
-					if (targetAtt && currentImage.getAttribute(attribute) == null) {
-						currentImage.setAttribute(attribute, targetAtt);
-						currentImage.setAttribute("data-" + attribute, "");
-					}
-				});
+				if (currentImage == undefined || currentImage.classList.contains("image-loaded") || currentImage.classList.contains("image-loading") || currentImage.currentSrc === null) {
+					// console.log("%cSkip loading: " + target, "font-style: italic; font-size: 0.9em; color: red; padding: 0.2em;");
+					return;
+				} else {
+					// console.log("%cStart loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
+					currentImage.classList.add("image-loading");
+					currentImage.addEventListener("load", function () {
+						this.classList.add("image-loaded");
+						this.classList.remove("image-loading");
+						// console.log("%cFinished loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
+						if (isFirstSlide && index == 0) {
+							// start slideshow when finished loading first image
+							_this.kickstart();
+						}
+					});
+					var atts = ["sizes", "srcset", "src"];
+					atts.forEach(function (attribute) {
+						var targetAtt = currentImage.getAttribute("data-" + attribute);
+						if (targetAtt && currentImage.getAttribute(attribute) == null) {
+							currentImage.setAttribute(attribute, targetAtt);
+							currentImage.setAttribute("data-" + attribute, "");
+						}
+					});
+				}
 			});
 		}
 	}
 	next(_this, isManuallyCalled = false) {
-		var nextIndex = this.index + 1 || 1;
+		// var nextIndex = _this.index + 1 || 1;
+		var nextIndex = (_this.index + 1 + _this.total) % _this.total;
 		var indexToProgressiveLoad = (nextIndex + 1 + _this.total) % _this.total;
-
+		// console.log(nextIndex, indexToProgressiveLoad);
+		// console.log(nextIndex, indexToProgressiveLoad, isManuallyCalled);
 		_this.prevNextHandler(nextIndex, indexToProgressiveLoad, isManuallyCalled);
 	}
 	previous(_this = this, isManuallyCalled = false) {
@@ -309,25 +345,43 @@ class HeartSlider {
 	resume() {
 		var _this = this;
 
-		if (_this.settings.paused == true) {
+		if (_this.settings.paused === true) {
 			_this.settings.paused = false;
 		}
 
+		// _this.index = (_this.index + 1 + _this.total) % _this.total;
+
+		var nextSlideIndex = (_this.index + 1 + _this.total) % _this.total;
+
 		if (_this.settings.progressive) {
 			setTimeout(function () {
-				_this.progressiveLoad((_this.index + 1 + _this.total) % _this.total);
+				_this.progressiveLoad((nextSlideIndex + 1 + _this.total) % _this.total);
 			}, _this.settings.delay);
 		}
 
-		_this.goToSlide(_this.index + 1);
+		_this.goToSlide(nextSlideIndex);
 
 		this.slideInterval = setInterval(function () {
-			_this.next(_this);
+			_this.next(_this, false);
 		}, _this.settings.delay + _this.settings.transition);
 	}
 	pause() {
 		const _this = this;
 		_this.settings.paused = true;
+		// clearTimeout(this.manualTimeout);
 		clearInterval(this.slideInterval);
 	}
 }
+/* TO DO */
+/*
+ * [ ] Fix pause not working
+ * [ ] Add native support for prev/next buttons
+ * [ ] Add first image loaded callback
+ * [ ] Use JS bind() function instead of using "_this" variable
+ * [ ] Better way to manage multiple slideshows
+ * [+] Fix jump to second slide on click when slideshow is paused
+ * [+] Swipe to advance
+ * [+] Manually advancing a slide should transition quicker (or a custom time)
+ * [+] Wait until first image load to start timer
+ * [-] Remove Class format?
+ */

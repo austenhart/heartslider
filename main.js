@@ -14,10 +14,13 @@ var homepageSlider = new HeartSlider({
 
 var anotherSlider = new HeartSlider({
 	slideshow: ".stealthy-slideshow",
-	delay: 200,
+	// transition: 1000,
+	// delay: 200,
 	swipe: true,
+	// paused: true,
 	pauseOnInactiveWindow: true,
 	clickToAdvance: true,
+	// progressive: false, // just, like, never disable this.
 });
 
 // const slideshow = document.querySelector(".heart-slideshow");

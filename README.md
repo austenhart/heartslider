@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.1.5
+##### Version 3.2.1
 
 '''''''''''''''''
 
@@ -12,11 +12,12 @@ Features:
 -   Custom user settings
 -   Small and lightweight
 -   Progressive loading for multiple sourceset images
+-   Optional swipe and click to advance
 
 Change Log:
 
-=== Changelog ===
-
+-   3.2.1 - Fixing timing errors with pause/resume/click/swipe
+-   3.2.0 - Added click and swipe to advance
 -   3.1.5 - Cleaning up repo and getting ready for 4.0
 -   3.1.4 - Support for multiple images within slides
 -   3.1.3 - First slide no longer takes years to fade in on start
@@ -34,14 +35,17 @@ Change Log:
 
 To Do:
 
--   ~~Swipe to advance~~
--   ~~Manually advancing a slide should transition quicker (or a custom time)~~
--   Add native support for prev/next buttons
--   Add first image loaded callback
--   ~~Wait until first image load to start timer~~
--   Better way to manage multiple slideshows
--   Use JS bind() function instead of using \_this variable
--   ~~Remove Class format?~~
+-   [ ] Fix - clicking too soon after start skips slide transition for the first two slides
+-   [ ] Add native support for prev/next buttons
+-   [ ] Add first image loaded callback
+-   [ ] Use JS bind() function instead of using "\_this" variable
+-   [ ] Better way to manage multiple slideshows
+-   [+] Fix pause not working
+-   [+] Fix jump to second slide on click when slideshow is paused
+-   [+] Swipe to advance
+-   [+] Manually advancing a slide should transition quicker (or a custom time)
+-   [+] Wait until first image load to start timer
+-   [-] Remove Class format?
 
 '''''''''''''''
 

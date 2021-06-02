@@ -1,7 +1,8 @@
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.1.5 ❤
+❤ Version 3.2.1 ❤
 === Changelog ===
+3.2.1 - Fixing timing errors with pause/resume/click/swipe.
 3.2.0 - Added click and swipe to advance.
 3.1.5 - Cleaning up repo and getting ready for 4.0
 3.1.4 - Support for multiple images within slides
@@ -121,10 +122,23 @@ class HeartSlider {
 		}
 
 		if (_this.settings.clickToAdvance) {
+			var throttleClick;
+			var throttleClickResume;
 			_this.slideshowSelector.addEventListener(
 				"click",
 				function () {
-					_this.next(_this, true);
+					if (throttleClick) return;
+					_this.pause();
+					_this.next(_this, true, false, true);
+					throttleClick = setTimeout(function () {
+						throttleClick = undefined;
+					}, 400);
+					if (!_this.settings.paused) {
+						if (throttleClickResume) clearTimeout(throttleClickResume);
+						throttleClickResume = setTimeout(function () {
+							_this.resume();
+						}, _this.settings.transition + _this.settings.delay);
+					}
 				},
 				false
 			);
@@ -137,9 +151,8 @@ class HeartSlider {
 					/* This triggers if a manual transition is called during an automatic one*/
 					if (_this.manualTimeout) clearTimeout(_this.manualTimeout);
 					if (!_this.settings.paused) {
-						_this.manualTimeout = setTimeout(_this.resume(), _this.settings.transition + _this.settings.delay);
+						// _this.manualTimeout = setTimeout(_this.resume(), _this.settings.transition + _this.settings.delay);
 					}
-					_this.pause();
 					_this.progressiveLoad(indexToProgressiveLoad);
 					var skipDefaultTransition = true;
 					_this.goToSlide(_this.index, isManuallyCalled, false, skipDefaultTransition);
@@ -148,21 +161,24 @@ class HeartSlider {
 					// console.log("prevNext triggered automatically?");
 					return;
 				}
-			} else {
-				_this.goToSlide(targetIndex, isManuallyCalled);
+			}
 
-				if (_this.settings.progressive) {
-					setTimeout(function () {
-						// _this.progressiveLoad(indexToProgressiveLoad);
-						if (!_this.settings.paused) {
-							_this.resume();
-						}
-					}, _this.settings.delay);
-				}
+			if (isManuallyCalled === true) {
+				_this.progressiveLoad(indexToProgressiveLoad);
+			}
+
+			_this.goToSlide(targetIndex, isManuallyCalled, false, false);
+
+			if (_this.settings.progressive) {
+				// setTimeout(function () {
+				// 	if (!_this.settings.paused) {
+				// 		_this.resume();
+				// 	}
+				// }, _this.settings.transition + _this.settings.delay);
 			}
 			setTimeout(
 				function () {
-					console.log("transition is done");
+					// console.log("transition is done");
 					_this.transitioning = false;
 				},
 				isManuallyCalled ? 400 : _this.settings.transition
@@ -175,10 +191,7 @@ class HeartSlider {
 		this.yDown = null;
 
 		function getTouches(evt) {
-			return (
-				evt.touches || // browser API
-				evt.originalEvent.touches
-			); // jQuery
+			return evt.touches || evt.originalEvent.touches;
 		}
 
 		function handleTouchStart(evt) {
@@ -204,13 +217,13 @@ class HeartSlider {
 					evt.preventDefault();
 					/* Right swipe */
 					_this.pause();
-					_this.next(_this, true);
-					setTimeout(_this.resume(), 400);
+					_this.next(_this, true, false, true);
+					// setTimeout(_this.resume(), 400);
 				} else {
 					evt.preventDefault();
 					/* Left swipe */
 					_this.pause();
-					_this.previous(_this, true);
+					_this.previous(_this, true, false, true);
 					// setTimeout(_this.resume(), 400);
 				}
 			}
@@ -238,8 +251,8 @@ class HeartSlider {
 	}
 	goToSlide(targetIndex, isManuallyCalled = false, isFirstSlide = false, skipDefaultTransition = false) {
 		/* Check if slides are animating, if so, don't run this again. */
-		if (this.transitioning && !isManuallyCalled) return;
-		// if (this.transitioning && !skipDefaultTransition) return false;
+		// if (this.transitioning && !isManuallyCalled) return;
+		if (this.transitioning && !skipDefaultTransition) return false;
 		// var skipDefaultTransition = targetIndex === this.index && isManuallyCalled;
 		/* Set transitioning to true */
 		this.transitioning = true;
@@ -261,26 +274,28 @@ class HeartSlider {
 			// clearInterval(_this.slideInterval);
 			// oldslide.style.transitionDelay = 0 + "ms";
 			// oldslide.style.transitionDuration = 0 + "ms";
-			// newslide.style.transitionDuration = duration + "ms";
-			// newslide.style.transitionDuration = duration + "ms";
-			// newslide.style.transitionDelay = 0 + "ms";
-			return;
+			newslide.style.transitionDuration = duration + "ms";
+			newslide.style.transitionDelay = 0 + "ms";
+			// return;
 		}
 
 		_this.index = newTargetIndex;
 
-		console.log("goToSlide updated index to", _this.index);
+		// console.log("goToSlide updated index to", _this.index);
 
 		function changeSlides() {
-			console.log("Go to slide #" + _this.index);
+			// console.log("Go to slide #" + _this.index);
 
 			/* remove styles from old slide */
 			if (oldslide !== newslide) {
 				oldslide.style.transitionDelay = duration + "ms";
 				oldslide.style.transitionDuration = 0 + "ms";
-				oldslide.setAttribute("aria-hidden", "true");
-				oldslide.setAttribute("tab-index", "-1");
 				oldslide.classList.remove("active");
+				/* Double check this works with previous() */
+				// setTimeout(function () {
+				// 	oldslide.setAttribute("aria-hidden", "true");
+				// 	oldslide.setAttribute("tab-index", "-1");
+				// }, duration);
 			}
 
 			/* add styles to new slide */
@@ -290,7 +305,10 @@ class HeartSlider {
 			newslide.removeAttribute("tab-index");
 			newslide.classList.add("active");
 
+			/* Double check this timeout works with previous() */
 			setTimeout(function () {
+				oldslide.setAttribute("aria-hidden", "true");
+				oldslide.setAttribute("tab-index", "-1");
 				_this.transitioning = false;
 			}, duration);
 		}
@@ -329,11 +347,9 @@ class HeartSlider {
 		}
 	}
 	next(_this, isManuallyCalled = false) {
-		// var nextIndex = _this.index + 1 || 1;
 		var nextIndex = (_this.index + 1 + _this.total) % _this.total;
 		var indexToProgressiveLoad = (nextIndex + 1 + _this.total) % _this.total;
-		// console.log(nextIndex, indexToProgressiveLoad);
-		// console.log(nextIndex, indexToProgressiveLoad, isManuallyCalled);
+
 		_this.prevNextHandler(nextIndex, indexToProgressiveLoad, isManuallyCalled);
 	}
 	previous(_this = this, isManuallyCalled = false) {
@@ -345,7 +361,7 @@ class HeartSlider {
 	resume() {
 		var _this = this;
 
-		if (_this.settings.paused === true) {
+		if (_this.settings.paused) {
 			_this.settings.paused = false;
 		}
 
@@ -367,18 +383,21 @@ class HeartSlider {
 	}
 	pause() {
 		const _this = this;
-		_this.settings.paused = true;
-		// clearTimeout(this.manualTimeout);
-		clearInterval(this.slideInterval);
+		if (!_this.settings.paused) {
+			_this.settings.paused = true;
+			clearTimeout(this.manualTimeout);
+			clearInterval(this.slideInterval);
+		}
 	}
 }
 /* TO DO */
 /*
- * [ ] Fix pause not working
+ * [ ] Fix - clicking too soon after start skips slide transition for the first two slides
  * [ ] Add native support for prev/next buttons
  * [ ] Add first image loaded callback
  * [ ] Use JS bind() function instead of using "_this" variable
  * [ ] Better way to manage multiple slideshows
+ * [+] Fix pause not working
  * [+] Fix jump to second slide on click when slideshow is paused
  * [+] Swipe to advance
  * [+] Manually advancing a slide should transition quicker (or a custom time)

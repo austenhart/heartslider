@@ -1,19 +1,19 @@
 // main.js
-var homepageSlider = new HeartSlider({
-	slideshow: ".original-slideshow",
-	slides: ".heart-slide",
-	transition: 3000,
-	delay: 1000,
-	loop: true,
-	randomize: false,
-	paused: false,
-	progressive: true,
-	effect: "fadeOut",
-	swipe: false,
-});
+// var homepageSlider = new HeartSlider({
+// 	slideshow: ".original-slideshow",
+// 	slides: ".heart-slide",
+// 	transition: 3000,
+// 	delay: 1000,
+// 	loop: true,
+// 	randomize: false,
+// 	paused: false,
+// 	progressive: true,
+// 	effect: "fadeOut",
+// 	swipe: false,
+// });
 
 var anotherSlider = new HeartSlider({
-	slideshow: ".stealthy-slideshow",
+	// slideshow: ".stealthy-slideshow",
 	// transition: 1000,
 	// delay: 200,
 	swipe: true,

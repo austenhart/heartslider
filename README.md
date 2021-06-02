@@ -40,12 +40,12 @@ To Do:
 -   [ ] Add first image loaded callback
 -   [ ] Use JS bind() function instead of using "\_this" variable
 -   [ ] Better way to manage multiple slideshows
--   [+] Fix pause not working
--   [+] Fix jump to second slide on click when slideshow is paused
--   [+] Swipe to advance
--   [+] Manually advancing a slide should transition quicker (or a custom time)
--   [+] Wait until first image load to start timer
--   [-] Remove Class format?
+-   [x] Fix pause not working
+-   [x] Fix jump to second slide on click when slideshow is paused
+-   [x] Swipe to advance
+-   [x] Manually advancing a slide should transition quicker (or a custom time)
+-   [x] Wait until first image load to start timer
+-   [ ] Remove Class format?
 
 '''''''''''''''
 

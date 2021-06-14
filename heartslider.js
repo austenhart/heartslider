@@ -1,7 +1,8 @@
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.2.1 ❤
+❤ Version 3.2.2 ❤
 === Changelog ===
+3.2.2 - Fixed issue with progressiveLoad.
 3.2.1 - Fixing timing errors with pause/resume/click/swipe.
 3.2.0 - Added click and swipe to advance.
 3.1.5 - Cleaning up repo and getting ready for 4.0
@@ -280,6 +281,10 @@ class HeartSlider {
 		}
 
 		_this.index = newTargetIndex;
+
+		// console.log("inside goToSlide");
+		_this.progressiveLoad(newTargetIndex);
+		_this.progressiveLoad((newTargetIndex + 1 + _this.total) % _this.total);
 
 		// console.log("goToSlide updated index to", _this.index);
 

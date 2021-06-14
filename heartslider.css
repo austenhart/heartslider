@@ -14,7 +14,7 @@
 	pointer-events: none;
 }
 
-/* HeartSlider Styles — 3.2.1 */
+/* HeartSlider Styles — 3.2.2 */
 .heart-slideshow {
 	position: relative;
 	top: 0;
@@ -28,6 +28,7 @@
 	opacity: 0;
 	visibility: hidden;
 }
+
 .heart-slideshow.progressive-loading-disabled,
 .heart-slideshow.first-image-loaded {
 	opacity: 1;

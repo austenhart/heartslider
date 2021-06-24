@@ -1,7 +1,8 @@
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.2.2 ❤
+❤ Version 3.2.3 ❤
 === Changelog ===
+3.2.3 - Added support for buttons!
 3.2.2 - Fixed issue with progressiveLoad.
 3.2.1 - Fixing timing errors with pause/resume/click/swipe.
 3.2.0 - Added click and swipe to advance.
@@ -120,6 +121,32 @@ class HeartSlider {
 		if (_this.settings.swipe) {
 			_this.slideshowSelector.addEventListener("touchstart", _this.swipeHandler(_this).handleTouchStart, false);
 			_this.slideshowSelector.addEventListener("touchmove", _this.swipeHandler(_this).handleTouchMove, false);
+		}
+
+		/* Slideshow Buttons */
+		const slideshowButtons = _this.slideshowSelector.querySelectorAll("button[class*='heart-'");
+		if (slideshowButtons.length === 2) {
+			slideshowButtons.forEach(function (button) {
+				if (button.classList.contains("heart-next")) {
+					button.addEventListener("click", function () {
+						if (throttleClick) return;
+						_this.pause();
+						_this.next(_this, true, false, true);
+						throttleClick = setTimeout(function () {
+							throttleClick = undefined;
+						}, 200);
+					});
+				} else if (button.classList.contains("heart-prev")) {
+					button.addEventListener("click", function () {
+						if (throttleClick) return;
+						_this.pause();
+						_this.previous(_this, true, false, true);
+						throttleClick = setTimeout(function () {
+							throttleClick = undefined;
+						}, 200);
+					});
+				}
+			});
 		}
 
 		if (_this.settings.clickToAdvance) {

@@ -1,20 +1,4 @@
-/* Image Loading Style */
-/* Image Loading Style */
-.image-holder img[onload],
-.image-holder img[onload].image-loading {
-	opacity: 0;
-	transition: opacity 0.35s ease-out;
-}
-
-.image-holder img[onload].image-loaded {
-	opacity: 1;
-}
-
-.image-holder img[data-ofi-src] {
-	pointer-events: none;
-}
-
-/* HeartSlider Styles — 3.2.2 */
+/* HeartSlider Styles — 3.2.3 */
 .heart-slideshow {
 	position: relative;
 	top: 0;
@@ -32,6 +16,7 @@
 .heart-slideshow.progressive-loading-disabled,
 .heart-slideshow.first-image-loaded {
 	opacity: 1;
+	-webkit-transition: opacity 1s ease;
 	transition: opacity 1s ease;
 	visibility: visible;
 }
@@ -48,7 +33,6 @@
 	z-index: -1;
 	opacity: 0;
 	-webkit-transition: opacity 0s 3s;
-	-o-transition: opacity 0s 3s;
 	transition: opacity 0s 3s;
 }
 
@@ -70,9 +54,9 @@
 	opacity: 0;
 	pointer-events: none;
 	-moz-user-select: -moz-none;
-	-khtml-user-select: none;
 	-webkit-user-select: none;
 	-o-user-select: none;
+	-ms-user-select: none;
 	user-select: none;
 	visibility: hidden;
 }
@@ -98,6 +82,57 @@
 	-webkit-backface-visibility: visible;
 	backface-visibility: visible;
 	-webkit-transition: opacity 3s cubic-bezier(0.455, 0.03, 0.515, 0.955);
-	-o-transition: opacity 3s cubic-bezier(0.455, 0.03, 0.515, 0.955);
 	transition: opacity 3s cubic-bezier(0.455, 0.03, 0.515, 0.955);
+}
+
+.heart-prev,
+.heart-next {
+	cursor: pointer;
+	position: absolute;
+	top: 0;
+	right: 50%;
+	bottom: 0;
+	left: auto;
+	width: 50%;
+	width: calc(50% + 5em);
+	z-index: 40;
+	background: transparent;
+	border: 0;
+	outline: 0;
+	opacity: 0.3;
+	-webkit-transition: opacity 0.3s ease;
+	transition: opacity 0.3s ease;
+}
+
+.heart-prev:hover,
+.heart-next:hover {
+	opacity: 1;
+}
+
+.heart-prev::before,
+.heart-next::before {
+	content: "";
+	height: 1em;
+	width: 1em;
+	border-right: 1px solid #000;
+	border-bottom: 1px solid #000;
+	position: absolute;
+	top: 0;
+	right: auto;
+	bottom: 0;
+	left: 0;
+	margin: auto;
+	-webkit-transform: rotate(135deg);
+	transform: rotate(135deg);
+}
+
+.heart-next::before {
+	right: 0;
+	left: auto;
+	-webkit-transform: rotate(-45deg);
+	transform: rotate(-45deg);
+}
+
+.heart-next {
+	left: 50%;
 }

@@ -424,15 +424,9 @@ class HeartSlider {
 }
 /* TO DO */
 /*
- * [ ] Fix - clicking too soon after start skips slide transition for the first two slides
- * [ ] Add native support for prev/next buttons
+ * [ ] Add prev/next callback
  * [ ] Add first image loaded callback
  * [ ] Use JS bind() function instead of using "_this" variable
- * [ ] Better way to manage multiple slideshows
- * [+] Fix pause not working
- * [+] Fix jump to second slide on click when slideshow is paused
- * [+] Swipe to advance
- * [+] Manually advancing a slide should transition quicker (or a custom time)
- * [+] Wait until first image load to start timer
  * [-] Remove Class format?
+ * [-] Better way to manage multiple slideshows
  */

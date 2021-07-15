@@ -1,7 +1,8 @@
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.2.3 ❤
+❤ Version 3.2.4 ❤
 === Changelog ===
+3.2.4 - Fixed issue with tab-index on first slide
 3.2.3 - Added support for buttons!
 3.2.2 - Fixed issue with progressiveLoad.
 3.2.1 - Fixing timing errors with pause/resume/click/swipe.
@@ -59,18 +60,6 @@ class HeartSlider {
 			this.slides = Array.prototype.slice.apply(this.slideshowSelector.children);
 		}
 
-		/* Loop through each slide  */
-		this.slides.forEach(function (slide) {
-			slide.setAttribute("aria-hidden", "true");
-			slide.setAttribute("tab-index", "-1");
-			if (!slide.classList.contains("heart-slide")) {
-				slide.classList.add("heart-slide");
-			}
-			if (_this.settings.swipe) {
-				slide.setAttribute("draggable", "true");
-			}
-		});
-
 		/* Setting up scoped variables */
 		this.total = this.slides.length;
 		this.index = 0;
@@ -82,6 +71,22 @@ class HeartSlider {
 		if (this.settings.progressive) this.progressiveLoad(this.index, true, this);
 
 		var firstIndex = this.index;
+
+		/* Loop through each slide  */
+		this.slides.forEach(function (slide, index) {
+			if (index !== firstIndex) {
+				slide.setAttribute("aria-hidden", "true");
+				slide.setAttribute("tab-index", "-1");
+			}
+			if (!slide.classList.contains("heart-slide")) {
+				slide.classList.add("heart-slide");
+			}
+			if (_this.settings.swipe) {
+				slide.setAttribute("draggable", "true");
+			}
+		});
+
+		/* add styles to new slide */
 		this.goToSlide(firstIndex, false, true);
 
 		if (this.slides.length < 2) return false;
@@ -323,11 +328,6 @@ class HeartSlider {
 				oldslide.style.transitionDelay = duration + "ms";
 				oldslide.style.transitionDuration = 0 + "ms";
 				oldslide.classList.remove("active");
-				/* Double check this works with previous() */
-				// setTimeout(function () {
-				// 	oldslide.setAttribute("aria-hidden", "true");
-				// 	oldslide.setAttribute("tab-index", "-1");
-				// }, duration);
 			}
 
 			/* add styles to new slide */
@@ -338,11 +338,13 @@ class HeartSlider {
 			newslide.classList.add("active");
 
 			/* Double check this timeout works with previous() */
-			setTimeout(function () {
-				oldslide.setAttribute("aria-hidden", "true");
-				oldslide.setAttribute("tab-index", "-1");
-				_this.transitioning = false;
-			}, duration);
+			if (!isFirstSlide) {
+				setTimeout(function () {
+					oldslide.setAttribute("aria-hidden", "true");
+					oldslide.setAttribute("tab-index", "-1");
+					_this.transitioning = false;
+				}, duration);
+			}
 		}
 
 		window.requestAnimationFrame(changeSlides);

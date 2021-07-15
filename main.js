@@ -13,13 +13,13 @@
 // });
 
 var anotherSlider = new HeartSlider({
+	swipe: true,
+	pauseOnInactiveWindow: true,
+	clickToAdvance: true,
 	// slideshow: ".stealthy-slideshow",
 	// transition: 1000,
 	// delay: 200,
-	swipe: true,
-	// paused: true,
-	pauseOnInactiveWindow: true,
-	clickToAdvance: true,
+	paused: true,
 	// progressive: false, // just, like, never disable this.
 });
 

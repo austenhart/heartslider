@@ -1,6 +1,11 @@
 /* 
 ❤  Heartslider  ❤
 ❤ Version 3.2.4 ❤
+
+=== Steps to Minify ===
+1) https://babeljs.io/repl#?browsers=defaults
+2) https://javascript-minifier.com
+
 === Changelog ===
 3.2.4 - Fixed issue with tab-index on first slide
 3.2.3 - Added support for buttons!
@@ -338,13 +343,13 @@ class HeartSlider {
 			newslide.classList.add("active");
 
 			/* Double check this timeout works with previous() */
-			if (!isFirstSlide) {
-				setTimeout(function () {
+			setTimeout(function () {
+				if (!isFirstSlide) {
 					oldslide.setAttribute("aria-hidden", "true");
 					oldslide.setAttribute("tab-index", "-1");
-					_this.transitioning = false;
-				}, duration);
-			}
+				}
+				_this.transitioning = false;
+			}, duration);
 		}
 
 		window.requestAnimationFrame(changeSlides);
@@ -425,7 +430,7 @@ class HeartSlider {
 	}
 }
 /* TO DO */
-/*
+/* [ ] Optimize paint/render time — reduce number of active layers with display none
  * [ ] Add prev/next callback
  * [ ] Add first image loaded callback
  * [ ] Use JS bind() function instead of using "_this" variable

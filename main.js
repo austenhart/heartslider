@@ -19,7 +19,7 @@ var anotherSlider = new HeartSlider({
 	// slideshow: ".stealthy-slideshow",
 	// transition: 1000,
 	// delay: 200,
-	paused: true,
+	// paused: true,
 	// progressive: false, // just, like, never disable this.
 });
 

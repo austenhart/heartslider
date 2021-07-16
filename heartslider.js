@@ -2,9 +2,10 @@
 ❤  Heartslider  ❤
 ❤ Version 3.2.4 ❤
 
-=== Steps to Minify ===
+=== Steps to Push New Version ===
 1) https://babeljs.io/repl#?browsers=defaults
 2) https://javascript-minifier.com
+3) Update Changelog and version number in .js, min.js, .css and readme.md
 
 === Changelog ===
 3.2.4 - Fixed issue with tab-index on first slide
@@ -207,13 +208,13 @@ class HeartSlider {
 
 			_this.goToSlide(targetIndex, isManuallyCalled, false, false);
 
-			if (_this.settings.progressive) {
-				// setTimeout(function () {
-				// 	if (!_this.settings.paused) {
-				// 		_this.resume();
-				// 	}
-				// }, _this.settings.transition + _this.settings.delay);
-			}
+			// if (_this.settings.progressive) {
+			// setTimeout(function () {
+			// 	if (!_this.settings.paused) {
+			// 		_this.resume();
+			// 	}
+			// }, _this.settings.transition + _this.settings.delay);
+			// }
 			setTimeout(
 				function () {
 					// console.log("transition is done");
@@ -250,7 +251,6 @@ class HeartSlider {
 			var yDiff = this.yDown - yUp;
 
 			if (Math.abs(xDiff) > Math.abs(yDiff)) {
-				/*most significant*/
 				if (xDiff > 0) {
 					evt.preventDefault();
 					/* Right swipe */
@@ -289,9 +289,10 @@ class HeartSlider {
 	}
 	goToSlide(targetIndex, isManuallyCalled = false, isFirstSlide = false, skipDefaultTransition = false) {
 		/* Check if slides are animating, if so, don't run this again. */
-		// if (this.transitioning && !isManuallyCalled) return;
 		if (this.transitioning && !skipDefaultTransition) return false;
+		// if (this.transitioning && !isManuallyCalled) return;
 		// var skipDefaultTransition = targetIndex === this.index && isManuallyCalled;
+
 		/* Set transitioning to true */
 		this.transitioning = true;
 
@@ -314,16 +315,12 @@ class HeartSlider {
 			// oldslide.style.transitionDuration = 0 + "ms";
 			newslide.style.transitionDuration = duration + "ms";
 			newslide.style.transitionDelay = 0 + "ms";
-			// return;
 		}
 
 		_this.index = newTargetIndex;
 
-		// console.log("inside goToSlide");
 		_this.progressiveLoad(newTargetIndex);
 		_this.progressiveLoad((newTargetIndex + 1 + _this.total) % _this.total);
-
-		// console.log("goToSlide updated index to", _this.index);
 
 		function changeSlides() {
 			// console.log("Go to slide #" + _this.index);
@@ -342,7 +339,6 @@ class HeartSlider {
 			newslide.removeAttribute("tab-index");
 			newslide.classList.add("active");
 
-			/* Double check this timeout works with previous() */
 			setTimeout(function () {
 				if (!isFirstSlide) {
 					oldslide.setAttribute("aria-hidden", "true");
@@ -362,6 +358,8 @@ class HeartSlider {
 					// console.log("%cSkip loading: " + target, "font-style: italic; font-size: 0.9em; color: red; padding: 0.2em;");
 					return;
 				} else {
+					/* To-Do: Check if image is already loaded, and skip loading function */
+
 					// console.log("%cStart loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
 					currentImage.classList.add("image-loading");
 					currentImage.addEventListener("load", function () {
@@ -430,6 +428,7 @@ class HeartSlider {
 	}
 }
 /* TO DO */
+/* [ ] Make sure slideshow initializes when not using data-src or data-srcset
 /* [ ] Optimize paint/render time — reduce number of active layers with display none
  * [ ] Add prev/next callback
  * [ ] Add first image loaded callback

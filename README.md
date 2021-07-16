@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.2.1
+##### Version 3.2.4
 
 '''''''''''''''''
 
@@ -16,6 +16,9 @@ Features:
 
 Change Log:
 
+-   3.2.4 - Fixed issue with tab-index on first slide
+-   3.2.3 - Added support for buttons!
+-   3.2.2 - Fixed issue with progressiveLoad.
 -   3.2.1 - Fixing timing errors with pause/resume/click/swipe
 -   3.2.0 - Added click and swipe to advance
 -   3.1.5 - Cleaning up repo and getting ready for 4.0
@@ -35,11 +38,12 @@ Change Log:
 
 To Do:
 
+-   [ ] Make sure slideshow initializes when not using data-src or data-srcset
 -   [ ] Fix - clicking too soon after start skips slide transition for the first two slides
--   [ ] Add native support for prev/next buttons
 -   [ ] Add first image loaded callback
 -   [ ] Use JS bind() function instead of using "\_this" variable
 -   [ ] Better way to manage multiple slideshows
+-   [x] Add native support for prev/next buttons
 -   [x] Fix pause not working
 -   [x] Fix jump to second slide on click when slideshow is paused
 -   [x] Swipe to advance

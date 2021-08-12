@@ -16,6 +16,8 @@ var anotherSlider = new HeartSlider({
 	swipe: true,
 	pauseOnInactiveWindow: true,
 	clickToAdvance: true,
+	// loop: false,
+	// randomize: true,
 	// slideshow: ".stealthy-slideshow",
 	// transition: 1000,
 	// delay: 200,

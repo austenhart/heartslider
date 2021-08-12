@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.2.4
+##### Version 3.2.5
 
 '''''''''''''''''
 
@@ -16,6 +16,7 @@ Features:
 
 Change Log:
 
+-   3.2.5 - Loop false works again
 -   3.2.4 - Fixed issue with tab-index on first slide
 -   3.2.3 - Added support for buttons!
 -   3.2.2 - Fixed issue with progressiveLoad.
@@ -53,4 +54,4 @@ To Do:
 
 '''''''''''''''
 
-#### Last Updated: May 21, 2021
+#### Last Updated: August 12, 2021

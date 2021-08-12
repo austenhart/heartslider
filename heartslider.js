@@ -1,6 +1,6 @@
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.2.4 ❤
+❤ Version 3.2.5 ❤
 
 === Steps to Push New Version ===
 1) https://babeljs.io/repl#?browsers=defaults
@@ -8,6 +8,7 @@
 3) Update Changelog and version number in .js, min.js, .css and readme.md
 
 === Changelog ===
+3.2.5 - Loop false works again
 3.2.4 - Fixed issue with tab-index on first slide
 3.2.3 - Added support for buttons!
 3.2.2 - Fixed issue with progressiveLoad.
@@ -76,11 +77,11 @@ class HeartSlider {
 		if (this.settings.randomize) this.index = Math.floor(Math.random() * this.total);
 		if (this.settings.progressive) this.progressiveLoad(this.index, true, this);
 
-		var firstIndex = this.index;
+		this.firstIndex = this.index;
 
 		/* Loop through each slide  */
 		this.slides.forEach(function (slide, index) {
-			if (index !== firstIndex) {
+			if (index !== _this.firstIndex) {
 				slide.setAttribute("aria-hidden", "true");
 				slide.setAttribute("tab-index", "-1");
 			}
@@ -93,7 +94,7 @@ class HeartSlider {
 		});
 
 		/* add styles to new slide */
-		this.goToSlide(firstIndex, false, true);
+		this.goToSlide(this.firstIndex, false, true);
 
 		if (this.slides.length < 2) return false;
 
@@ -103,7 +104,7 @@ class HeartSlider {
 
 				var startProgressiveLoad = function startProgressiveLoad() {
 					setTimeout(function () {
-						_this.progressiveLoad((firstIndex + 1 + _this.total) % _this.total);
+						_this.progressiveLoad((_this.firstIndex + 1 + _this.total) % _this.total);
 					}, _this.settings.delay);
 				};
 
@@ -290,6 +291,11 @@ class HeartSlider {
 	goToSlide(targetIndex, isManuallyCalled = false, isFirstSlide = false, skipDefaultTransition = false) {
 		/* Check if slides are animating, if so, don't run this again. */
 		if (this.transitioning && !skipDefaultTransition) return false;
+		/* If Loop is set to false, then stop. */
+		if (!this.settings.loop && !isFirstSlide && targetIndex === this.firstIndex) {
+			this.pause();
+			return false;
+		}
 		// if (this.transitioning && !isManuallyCalled) return;
 		// var skipDefaultTransition = targetIndex === this.index && isManuallyCalled;
 

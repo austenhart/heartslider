@@ -6,6 +6,7 @@
 	bottom: 0;
 	left: 0;
 	height: 100vh;
+	height: calc(var(--vh, 1vh) * 100);
 	width: 100%;
 	overflow: hidden;
 	z-index: 10;

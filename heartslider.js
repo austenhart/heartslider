@@ -1,6 +1,6 @@
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.2.5 ❤
+❤ Version 3.2.6 ❤
 
 === Steps to Push New Version ===
 1) https://babeljs.io/repl#?browsers=defaults
@@ -8,6 +8,7 @@
 3) Update Changelog and version number in .js, min.js, .css and readme.md
 
 === Changelog ===
+3.2.6 - Fixed prev/next button selector
 3.2.5 - Loop false works again
 3.2.4 - Fixed issue with tab-index on first slide
 3.2.3 - Added support for buttons!
@@ -136,7 +137,7 @@ class HeartSlider {
 		}
 
 		/* Slideshow Buttons */
-		const slideshowButtons = _this.slideshowSelector.querySelectorAll("button[class*='heart-'");
+		const slideshowButtons = _this.slideshowSelector.querySelectorAll("button[class*='heart-']");
 		if (slideshowButtons.length === 2) {
 			slideshowButtons.forEach(function (button) {
 				if (button.classList.contains("heart-next")) {

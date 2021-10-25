@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.2.5
+##### Version 3.2.6
 
 '''''''''''''''''
 
@@ -16,6 +16,8 @@ Features:
 
 Change Log:
 
+-   3.2.6 - Fixed prev/next button selector
+-   3.2.5 - Loop false works again
 -   3.2.5 - Loop false works again
 -   3.2.4 - Fixed issue with tab-index on first slide
 -   3.2.3 - Added support for buttons!
@@ -54,4 +56,4 @@ To Do:
 
 '''''''''''''''
 
-#### Last Updated: August 12, 2021
+#### Last Updated: October 25, 2021

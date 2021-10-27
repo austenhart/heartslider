@@ -1,0 +1,24 @@
+{
+  "name": "heartslider",
+  "version": "3.2.6",
+  "description": "A Minimalist JavaScript Slideshow",
+  "main": "heartslider.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/austenhart/heartslider.git"
+  },
+  "keywords": [
+    "slideshow",
+    "javascript",
+    "minimalist"
+  ],
+  "author": "Austen Hart",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/austenhart/heartslider/issues"
+  },
+  "homepage": "https://github.com/austenhart/heartslider#readme"
+}

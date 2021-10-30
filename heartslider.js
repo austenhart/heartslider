@@ -7,6 +7,8 @@
 2) https://javascript-minifier.com
 3) Update Changelog and version number in .js, min.js, .css and readme.md
 
+CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
+
 === Changelog ===
 3.2.7 - Many QOL improvements; buttons will auto-pause slideshow while click/swipe will not
 3.2.6 - Fixed prev/next button selector

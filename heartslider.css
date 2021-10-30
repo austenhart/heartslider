@@ -1,4 +1,4 @@
-/* HeartSlider Styles — 3.2.5 */
+/* HeartSlider Styles — 3.2.7 */
 .heart-slideshow {
 	position: relative;
 	top: 0;
@@ -113,23 +113,23 @@
 .heart-prev::before,
 .heart-next::before {
 	content: "";
-	height: 1em;
-	width: 1em;
-	border-right: 1px solid #000;
-	border-bottom: 1px solid #000;
+	height: 1.35em;
+	width: 1.35em;
+	border-right: 1px solid #fff;
+	border-bottom: 1px solid #fff;
 	position: absolute;
 	top: 0;
-	right: auto;
+	right: calc(50vw - 4em);
 	bottom: 0;
-	left: 0;
+	left: auto;
 	margin: auto;
 	-webkit-transform: rotate(135deg);
 	transform: rotate(135deg);
 }
 
 .heart-next::before {
-	right: 0;
-	left: auto;
+	right: auto;
+	left: calc(50vw - 4em);
 	-webkit-transform: rotate(-45deg);
 	transform: rotate(-45deg);
 }

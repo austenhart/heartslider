@@ -7,11 +7,11 @@ var homepageSlider = new HeartSlider({
 	loop: true,
 	randomize: false,
 	paused: false,
-	progressive: true, // just, like, never disable this.
 	effect: "fadeOut",
+	buttons: false,
 	swipe: true,
-	pauseOnInactiveWindow: true,
 	clickToAdvance: true,
+	pauseOnInactiveWindow: true,
 });
 
 // const slideshow = document.querySelector(".heart-slideshow");

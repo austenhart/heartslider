@@ -13,6 +13,16 @@ var homepageSlider = new HeartSlider({
 	clickToAdvance: true,
 	pauseOnInactiveWindow: true,
 });
+console.log(homepageSlider.on);
+homepageSlider.on("transitionStart", function (slide) {
+	console.log("main.js callback");
+	// var slideIndex = slide.index();
+	// console.log("slide changed", slideIndex);
+});
+// homepageSlider.on("transitionEnd", function (slide) {
+// 	var slideIndex = slide.index();
+// 	console.log("slide changed", slideIndex);
+// });
 
 // const slideshow = document.querySelector(".heart-slideshow");
 // const slideshows = document.querySelectorAll(".heart-slideshow");

@@ -211,6 +211,16 @@ class HeartSlider {
 				}
 			}
 		}
+		_this.on = function (type, callback) {
+			if (typeof callback == "function") {
+				callback(_this);
+			}
+			console.log(type);
+			function transitionStart(_this) {
+				console.log("transitionStart");
+			}
+			this.transitionStart = transitionStart;
+		};
 
 		_this.prevNextHandler = function (targetIndex, indexToProgressiveLoad, isManuallyCalled) {
 			if (_this.transitioning === true) {
@@ -373,6 +383,8 @@ class HeartSlider {
 			if (_this.transitionOldSlideTimer) {
 				clearTimeout(_this.transitionOldSlideTimer);
 			}
+
+			// _this.on.transitionStart(_this);
 
 			_this.transitionOldSlideTimer = setTimeout(function () {
 				oldslide.style.transitionDelay = 0 + "ms";

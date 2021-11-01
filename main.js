@@ -14,6 +14,21 @@ var homepageSlider = new HeartSlider({
 	pauseOnInactiveWindow: true,
 });
 
+// Events
+homepageSlider.on("transitionStart", function (slideshow, slideshowElement) {
+	console.log("transitionStart");
+	console.log(slideshow, slideshowElement);
+});
+homepageSlider.on("transitionEnd", function (slideshow, slideshowElement) {
+	// console.log("transitionEnd");
+});
+
+// Multiple Slideshows
+// homepageSlider.on("transitionEnd", function (slide) {
+// 	var slideIndex = slide.index();
+// 	console.log("slide changed", slideIndex);
+// });
+
 // const slideshow = document.querySelector(".heart-slideshow");
 // const slideshows = document.querySelectorAll(".heart-slideshow");
 

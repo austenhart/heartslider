@@ -6,6 +6,8 @@
 
 '''''''''''''''''
 
+[![](https://data.jsdelivr.com/v1/package/gh/austenhart/heartslider/badge)](https://www.jsdelivr.com/package/gh/austenhart/heartslider)
+
 Features:
 
 -   No dependancies

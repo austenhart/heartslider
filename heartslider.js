@@ -1,6 +1,6 @@
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.2.7 ❤
+❤ Version 3.3.0 ❤
 
 === Steps to Push New Version ===
 1) https://babeljs.io/repl#?browsers=defaults
@@ -10,6 +10,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.3.0 - Added transitionStart and transitionEnd events
 3.2.7 - Many QOL improvements; buttons will auto-pause slideshow while click/swipe will not
 3.2.6 - Fixed prev/next button selector
 3.2.5 - Loop false works again

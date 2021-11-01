@@ -246,7 +246,7 @@ class HeartSlider {
 						},
 					});
 					_this.slideshowSelector.dispatchEvent(event);
-					callback(event.detail.slideshow, event.detail.slideshow.slideshowSelector);
+					callback(event.detail.slideshow, event.detail.slideshow.slideshowSelector, event.detail.slideshow.currentSlide);
 				}
 				if (type === "transitionStart") {
 					_this.transitionStart = function (_this) {
@@ -391,20 +391,23 @@ class HeartSlider {
 		this.progressiveLoad((newTargetIndex + 1 + _this.total) % _this.total);
 
 		function changeSlides() {
+			let prevSlideProgress = 1;
 			/* This part of the function smoothly transitions a skipped fade */
 			if (_this.previousSlide === _this.currentSlide && skipDefaultTransition) {
 				/* Clear any timeouts that were running */
 				clearTimeout(_this.manualTimeout);
 				clearInterval(_this.slideInterval);
 				/* Get the current opacity and apply it as an inline-style */
-				_this.previousSlide.style.opacity = window.getComputedStyle(_this.previousSlide).opacity;
+				const prevSlideOpacity = window.getComputedStyle(_this.previousSlide).opacity;
+				prevSlideProgress = 1 - prevSlideOpacity;
+				_this.previousSlide.style.opacity = prevSlideOpacity;
 				/* MUST set transition to none in order to override the css transition */
 				_this.previousSlide.style.transition = "none";
 				/* A moment later (1/60th of a second), give the slide the quick transition durations */
 				setTimeout(function () {
 					_this.previousSlide.style.transition = "opacity";
 					_this.previousSlide.style.transitionDelay = 0 + "ms";
-					_this.previousSlide.style.transitionDuration = duration + "ms";
+					_this.previousSlide.style.transitionDuration = duration * prevSlideProgress + "ms";
 					_this.previousSlide.style.opacity = null;
 				}, 16.6667);
 			} else if (_this.previousSlide !== _this.currentSlide) {
@@ -421,15 +424,16 @@ class HeartSlider {
 			_this.currentSlide.removeAttribute("tab-index");
 			_this.currentSlide.classList.add("active");
 
-			if (_this.transitionOldSlideTimer) {
-				clearTimeout(_this.transitionOldSlideTimer);
+			if (_this.transitionEndTimer) {
+				clearTimeout(_this.transitionEndTimer);
 			}
 
-			if (!isFirstSlide) {
-				_this.transitionStart(_this);
-			}
+			/* Should this be called on first slide, or not? */
+			// if (!isFirstSlide) {
+			_this.transitionStart(_this);
+			// }
 
-			let transitionOldSlideTimer = setTimeout(function () {
+			_this.transitionEndTimer = setTimeout(function () {
 				_this.previousSlide.style.transitionDelay = 0 + "ms";
 				_this.previousSlide.style.transitionDuration = 0 + "ms";
 				if (!isFirstSlide) {
@@ -438,8 +442,8 @@ class HeartSlider {
 					_this.transitionEnd(_this);
 				}
 				_this.transitioning = false;
-				transitionOldSlideTimer = undefined;
-			}, duration);
+				_this.transitionEndTimer = undefined;
+			}, duration * prevSlideProgress);
 		}
 		window.requestAnimationFrame(changeSlides);
 	}

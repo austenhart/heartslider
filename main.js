@@ -15,12 +15,12 @@ var homepageSlider = new HeartSlider({
 });
 
 // Events
-homepageSlider.on("transitionStart", function (slideshow, slideshowElement) {
+homepageSlider.on("transitionStart", function (slideshow, slideshowElement, currentSlide) {
 	console.log("transitionStart");
-	console.log(slideshow, slideshowElement);
+	console.log(slideshow, slideshowElement, currentSlide);
 });
-homepageSlider.on("transitionEnd", function (slideshow, slideshowElement) {
-	// console.log("transitionEnd");
+homepageSlider.on("transitionEnd", function (slideshow, slideshowElement, currentSlide) {
+	console.log("transitionEnd");
 });
 
 // Multiple Slideshows

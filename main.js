@@ -13,12 +13,17 @@ var homepageSlider = new HeartSlider({
 	clickToAdvance: true,
 	pauseOnInactiveWindow: true,
 });
-console.log(homepageSlider.on);
-homepageSlider.on("transitionStart", function (slide) {
-	console.log("main.js callback");
-	// var slideIndex = slide.index();
-	// console.log("slide changed", slideIndex);
+
+// Events
+homepageSlider.on("transitionStart", function (slideshow, slideshowElement) {
+	console.log("transitionStart");
+	console.log(slideshow, slideshowElement);
 });
+homepageSlider.on("transitionEnd", function (slideshow, slideshowElement) {
+	// console.log("transitionEnd");
+});
+
+// Multiple Slideshows
 // homepageSlider.on("transitionEnd", function (slide) {
 // 	var slideIndex = slide.index();
 // 	console.log("slide changed", slideIndex);

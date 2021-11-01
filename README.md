@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.2.7
+##### Version 3.3.0
 
 '''''''''''''''''
 
@@ -18,6 +18,7 @@ Features:
 
 Change Log:
 
+-   3.3.0 - Added transitionStart and transitionEnd events
 -   3.2.7 - Many QOL improvements; buttons will auto-pause slideshow while click/swipe will not
 -   3.2.6 - Fixed prev/next button selector
 -   3.2.5 - Loop false works again
@@ -44,10 +45,10 @@ Change Log:
 
 To Do:
 
--   [ ] Add callback functions
 -   [ ] Support for video
 -   [ ] Use JS bind() function instead of using "\_this" variable
 -   [ ] Better way to manage multiple slideshows
+-   [x] Add callback functions
 -   [x] Make sure slideshow initializes when not using data-src or data-srcset
 -   [x] Fix - clicking too soon after start skips slide transition for the first two slides
 -   [x] Add first image loaded callback
@@ -57,8 +58,7 @@ To Do:
 -   [x] Swipe to advance
 -   [x] Manually advancing a slide should transition quicker (or a custom time)
 -   [x] Wait until first image load to start timer
--   [ ] Remove Class format?
 
 '''''''''''''''
 
-#### Last Updated: October 30, 2021
+#### Last Updated: November 1, 2021

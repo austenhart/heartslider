@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.3.0
+##### Version 3.3.1
 
 '''''''''''''''''
 
@@ -18,6 +18,7 @@ Features:
 
 Change Log:
 
+-   3.3.1 - Fixed issue with custom Events
 -   3.3.0 - Added transitionStart and transitionEnd events
 -   3.2.7 - Many QOL improvements; buttons will auto-pause slideshow while click/swipe will not
 -   3.2.6 - Fixed prev/next button selector
@@ -61,4 +62,4 @@ To Do:
 
 '''''''''''''''
 
-#### Last Updated: November 1, 2021
+#### Last Updated: November 3, 2021

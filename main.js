@@ -3,21 +3,23 @@ var homepageSlider = new HeartSlider({
 	slideshow: ".heart-slideshow",
 	slides: ".heart-slide",
 	transition: 3000,
+	manualTransition: 200,
 	delay: 1000,
 	loop: true,
 	randomize: false,
 	paused: false,
 	effect: "fadeOut",
-	buttons: false,
+	buttons: true,
 	swipe: true,
 	clickToAdvance: true,
 	pauseOnInactiveWindow: true,
 });
 
 // Events
+/* Optional */
 homepageSlider.on("transitionStart", function (slideshow, slideshowElement, currentSlide) {
 	console.log("transitionStart");
-	console.log(slideshow, slideshowElement, currentSlide);
+	// console.log({ slideshow }, { slideshowElement }, { currentSlide });
 });
 homepageSlider.on("transitionEnd", function (slideshow, slideshowElement, currentSlide) {
 	console.log("transitionEnd");

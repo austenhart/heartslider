@@ -1,6 +1,6 @@
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.3.0 ❤
+❤ Version 3.3.1 ❤
 
 === Steps to Push New Version ===
 1) https://babeljs.io/repl#?browsers=defaults
@@ -10,6 +10,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.3.1 - Fixed issue with custom Events
 3.3.0 - Added transitionStart and transitionEnd events
 3.2.7 - Many QOL improvements; buttons will auto-pause slideshow while click/swipe will not
 3.2.6 - Fixed prev/next button selector
@@ -37,6 +38,7 @@ class HeartSlider {
 			delay: 1000,
 			effect: "fadeOut",
 			loop: true,
+			manualTransition: 400,
 			paused: false,
 			pauseOnInactiveWindow: false,
 			progressive: true,
@@ -107,24 +109,6 @@ class HeartSlider {
 
 		if (this.slides.length < 2) return false;
 
-		// _this.kickstart = function () {
-		// 	if (_this.settings.progressive) {
-		// 		_this.slideshowSelector.classList.add("first-image-loaded");
-
-		// 		var startProgressiveLoad = function startProgressiveLoad() {
-		// 			setTimeout(function () {
-		// 				_this.progressiveLoad((_this.firstIndex + 1 + _this.total) % _this.total);
-		// 			}, _this.settings.delay);
-		// 		};
-
-		// 		window.requestAnimationFrame(startProgressiveLoad);
-		// 	}
-		// 	if (!_this.settings.paused) {
-		// 		setTimeout(function () {
-		// 			_this.resume();
-		// 		}, _this.settings.delay * 0.5 + _this.settings.transition);
-		// 	}
-		// };
 		if (!_this.settings.progressive) {
 			setTimeout(function () {
 				_this.slideshowSelector.classList.add("progressive-loading-disabled");
@@ -155,7 +139,7 @@ class HeartSlider {
 					_this.next(_this, true, false, true);
 					throttleClick = setTimeout(function () {
 						throttleClick = undefined;
-					}, 400);
+					}, _this.settings.manualTransition);
 					if (!_this.originallyPaused) {
 						if (throttleClickResume) clearTimeout(throttleClickResume);
 						throttleClickResume = setTimeout(function () {
@@ -229,8 +213,9 @@ class HeartSlider {
 			window.requestAnimationFrame(startProgressiveLoad);
 		}
 		if (!_this.settings.paused) {
-			setTimeout(function () {
+			_this.kickoffTimer = setTimeout(function () {
 				_this.resume();
+				_this.kickoffTimer = undefined;
 			}, _this.settings.delay * 0.5 + _this.settings.transition);
 		}
 	}
@@ -264,38 +249,6 @@ class HeartSlider {
 		} else {
 			console.warn("\x22" + type + "\x22 is not a valid event. Try one of these:", supportedEvents);
 		}
-	}
-	prevNextHandler(targetIndex, indexToProgressiveLoad, isManuallyCalled) {
-		const _this = this;
-		if (_this.transitioning === true) {
-			if (isManuallyCalled === true) {
-				/* This triggers if a manual transition is called during an automatic one*/
-				if (_this.manualTimeout) clearTimeout(_this.manualTimeout);
-				if (!_this.originallyPaused) {
-					_this.manualTimeout = setTimeout(_this.resume(), _this.settings.transition + _this.settings.delay);
-				}
-				_this.progressiveLoad(indexToProgressiveLoad);
-				var skipDefaultTransition = true;
-				_this.goToSlide(_this.index, isManuallyCalled, false, skipDefaultTransition);
-				return;
-			} else {
-				/* prevNext triggered automatically */
-				return;
-			}
-		}
-
-		if (isManuallyCalled === true) {
-			_this.progressiveLoad(indexToProgressiveLoad);
-		}
-
-		_this.goToSlide(targetIndex, isManuallyCalled, false, false);
-
-		setTimeout(
-			function () {
-				_this.transitioning = false;
-			},
-			isManuallyCalled ? 400 : _this.settings.transition
-		);
 	}
 
 	swipeHandler(_this) {
@@ -383,7 +336,7 @@ class HeartSlider {
 		this.currentSlide = this.slides[newTargetIndex];
 
 		/* Fade duration */
-		var duration = isManuallyCalled || isFirstSlide || skipDefaultTransition ? 400 : _this.settings.transition;
+		var duration = isManuallyCalled || isFirstSlide || skipDefaultTransition ? _this.settings.manualTransition : _this.settings.transition;
 
 		this.index = newTargetIndex;
 
@@ -430,7 +383,9 @@ class HeartSlider {
 
 			/* Should this be called on first slide, or not? */
 			// if (!isFirstSlide) {
-			_this.transitionStart(_this);
+			if (_this.transitionStart) {
+				_this.transitionStart(_this);
+			}
 			// }
 
 			_this.transitionEndTimer = setTimeout(function () {
@@ -439,7 +394,9 @@ class HeartSlider {
 				if (!isFirstSlide) {
 					_this.previousSlide.setAttribute("aria-hidden", "true");
 					_this.previousSlide.setAttribute("tab-index", "-1");
-					_this.transitionEnd(_this);
+					if (_this.transitionEnd) {
+						_this.transitionEnd(_this);
+					}
 				}
 				_this.transitioning = false;
 				_this.transitionEndTimer = undefined;
@@ -484,6 +441,38 @@ class HeartSlider {
 			});
 		}
 	}
+	prevNextHandler(targetIndex, indexToProgressiveLoad, isManuallyCalled) {
+		const _this = this;
+		if (_this.transitioning === true) {
+			if (isManuallyCalled === true) {
+				/* This triggers if a manual transition is called during an automatic one*/
+				if (_this.manualTimeout) clearTimeout(_this.manualTimeout);
+				if (!_this.originallyPaused) {
+					_this.manualTimeout = setTimeout(_this.resume(), _this.settings.transition + _this.settings.delay);
+				}
+				_this.progressiveLoad(indexToProgressiveLoad);
+				var skipDefaultTransition = true;
+				_this.goToSlide(_this.index, isManuallyCalled, false, false, skipDefaultTransition);
+				return;
+			} else {
+				/* prevNext triggered automatically */
+				return;
+			}
+		}
+
+		if (isManuallyCalled === true) {
+			_this.progressiveLoad(indexToProgressiveLoad);
+		}
+
+		_this.goToSlide(targetIndex, isManuallyCalled, false, false);
+
+		setTimeout(
+			function () {
+				_this.transitioning = false;
+			},
+			isManuallyCalled ? _this.settings.manualTransition : _this.settings.transition
+		);
+	}
 	next = function (_this = this, isManuallyCalled = false) {
 		var nextIndex = (_this.index + 1 + _this.total) % _this.total;
 		var indexToProgressiveLoad = (nextIndex + 1 + _this.total) % _this.total;
@@ -520,12 +509,15 @@ class HeartSlider {
 		if (!_this.settings.paused) {
 			_this.settings.paused = true;
 			clearTimeout(this.manualTimeout);
+			clearTimeout(this.kickoffTimer);
 			clearInterval(this.slideInterval);
 		}
 	};
 }
 /* TO DO */
-/* [ ] Re-arrange public vs private methods
+/* [ ] Implement bundler and minification
+ * [ ] Fix issue with previous button during transition
+ * [ ] Re-arrange public vs private methods
  * [ ] Use JS bind() function instead of using "_this" variable
  * [–] Make sure slideshow initializes when not using data-src or data-srcset
  * [–] Optimize paint/render time — reduce number of active layers with display none

@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.3.1
+##### Version 3.3.2
 
 '''''''''''''''''
 

@@ -9,20 +9,22 @@ var homepageSlider = new HeartSlider({
 	randomize: false,
 	paused: false,
 	effect: "fadeOut",
-	buttons: true,
+	// buttons: true,
 	swipe: true,
 	clickToAdvance: true,
-	pauseOnInactiveWindow: true,
+	pauseOnInactiveWindow: false,
 });
 
 // Events
 /* Optional */
 homepageSlider.on("transitionStart", function (slideshow, slideshowElement, currentSlide) {
-	console.log("transitionStart");
+	// console.log("transitionStart");
 	// console.log({ slideshow }, { slideshowElement }, { currentSlide });
+	// console.log(slideshow.index);
 });
 homepageSlider.on("transitionEnd", function (slideshow, slideshowElement, currentSlide) {
-	console.log("transitionEnd");
+	// console.log("transitionEnd");
+	// console.log({ slideshow }, { slideshowElement }, { currentSlide });
 });
 
 // Multiple Slideshows

@@ -1,24 +1,30 @@
 {
-  "name": "heartslider",
-  "version": "3.2.6",
-  "description": "A Minimalist JavaScript Slideshow",
-  "main": "heartslider.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/austenhart/heartslider.git"
-  },
-  "keywords": [
-    "slideshow",
-    "javascript",
-    "minimalist"
-  ],
-  "author": "Austen Hart",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/austenhart/heartslider/issues"
-  },
-  "homepage": "https://github.com/austenhart/heartslider#readme"
+	"name": "heartslider",
+	"version": "3.3.2",
+	"description": "An Elegant Slideshow",
+	"main": "heartslider.js",
+	"style": "heartslider.css",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/austenhart/heartslider.git"
+	},
+	"keywords": [
+		"slideshow",
+		"javascript",
+		"minimalist"
+	],
+	"author": "Austen Hart",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/austenhart/heartslider/issues"
+	},
+	"homepage": "https://github.com/austenhart/heartslider#readme",
+	"exports": {
+		".": {
+			"import": "./dist/heartslider.min.js"
+		}
+	}
 }

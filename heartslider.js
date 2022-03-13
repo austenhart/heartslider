@@ -1,11 +1,11 @@
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.3.1 ❤
+❤ Version 3.3.2 ❤
 
 === Steps to Push New Version ===
 1) https://babeljs.io/repl#?browsers=defaults
 2) https://javascript-minifier.com
-3) Update Changelog and version number in .js, min.js, .css and readme.md
+3) Update Changelog and version number in .js, min.js, .css, readme.md, and package.json
 
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
@@ -312,6 +312,8 @@ class HeartSlider {
 		}
 	}
 	goToSlide(targetIndex, isManuallyCalled = false, isFirstSlide = false, skipDefaultTransition = false) {
+		// Trying to figure out why my skipDefaultTransition isn't working anymore. If statements??
+		// console.log({ targetIndex }, { isManuallyCalled }, { isFirstSlide }, { skipDefaultTransition });
 		// console.log("goToSlide", targetIndex, "isManuallyCalled: ", isManuallyCalled, "isFirstSlide: ", isFirstSlide, "skipDefaultTransition: ", skipDefaultTransition);
 		/* Check if slides are animating, if so, don't run this again. */
 		if (this.transitioning && !skipDefaultTransition) return false;
@@ -452,7 +454,10 @@ class HeartSlider {
 				}
 				_this.progressiveLoad(indexToProgressiveLoad);
 				var skipDefaultTransition = true;
-				_this.goToSlide(_this.index, isManuallyCalled, false, false, skipDefaultTransition);
+
+				let isFirstSlide = false; // ?
+				_this.goToSlide(_this.index, isManuallyCalled, isFirstSlide, skipDefaultTransition);
+				// _this.goToSlide(_this.index, isManuallyCalled, false, false, skipDefaultTransition);
 				return;
 			} else {
 				/* prevNext triggered automatically */
@@ -464,7 +469,8 @@ class HeartSlider {
 			_this.progressiveLoad(indexToProgressiveLoad);
 		}
 
-		_this.goToSlide(targetIndex, isManuallyCalled, false, false);
+		// console.log("calling goToSlide on 472");
+		_this.goToSlide(targetIndex, isManuallyCalled, false, skipDefaultTransition);
 
 		setTimeout(
 			function () {

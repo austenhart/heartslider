@@ -46,6 +46,9 @@ Change Log:
 
 To Do:
 
+-   [ ] Add support for the <picture> element with multiple sources
+-   [ ] Remove delay when setting slideshows to paused
+-   [ ] Fix stutter issue when changing tabs
 -   [ ] Support for video
 -   [ ] Use JS bind() function instead of using "\_this" variable
 -   [ ] Better way to manage multiple slideshows

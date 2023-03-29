@@ -46,12 +46,13 @@ Change Log:
 
 To Do:
 
+-   [ ] Add progress indicator options (dots or dashes, with fill)
 -   [ ] Add support for the <picture> element with multiple sources
 -   [ ] Remove delay when setting slideshows to paused
 -   [ ] Fix stutter issue when changing tabs
 -   [ ] Support for video
 -   [ ] Use JS bind() function instead of using "\_this" variable
--   [ ] Better way to manage multiple slideshows
+-   [x] Better way to manage multiple slideshows
 -   [x] Add callback functions
 -   [x] Make sure slideshow initializes when not using data-src or data-srcset
 -   [x] Fix - clicking too soon after start skips slide transition for the first two slides
@@ -65,4 +66,4 @@ To Do:
 
 '''''''''''''''
 
-#### Last Updated: November 3, 2021
+#### Last Updated: March, 29 2023

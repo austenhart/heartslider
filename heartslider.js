@@ -47,6 +47,7 @@ class HeartSlider {
 			slides: ".heart-slide",
 			swipe: true,
 			transition: 3000,
+			progressIndicators: false,
 		};
 
 		/* Overwrite defaults with user-defined settings */
@@ -133,8 +134,8 @@ class HeartSlider {
 			var throttleClickResume;
 			_this.slideshowSelector.addEventListener(
 				"click",
-				function () {
-					if (throttleClick) return;
+				function (event) {
+					if (throttleClick || event.target.nodeName === "BUTTON") return;
 					_this.pause();
 					_this.next(_this, true, false, true);
 					throttleClick = setTimeout(function () {
@@ -149,6 +150,24 @@ class HeartSlider {
 				},
 				false
 			);
+		}
+
+		/* Progress Indicators */
+		if (this.settings.progressIndicators) {
+			// create the indicator containing div
+			const progressContainer = document.createElement("div");
+			progressContainer.classList.add("progress-container");
+			const type = this.settings.progressIndicators.type || "dash";
+			progressContainer.classList.add("type-" + type);
+			const indicatorType = this.settings.progressIndicators.clickable ? "button" : "div";
+			// fill it with the appropriate number of markers
+			for (let index = 0; index < this.total; index++) {
+				const indicator = document.createElement(indicatorType);
+				indicator.classList.add("indicator");
+				indicator.setAttribute("data-index", index);
+				progressContainer.appendChild(indicator);
+			}
+			this.slideshowSelector.appendChild(progressContainer);
 		}
 
 		/* Slideshow Buttons */

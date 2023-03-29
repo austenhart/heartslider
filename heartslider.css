@@ -137,3 +137,15 @@
 .heart-next {
 	left: 50%;
 }
+
+.progress-container {
+	position: absolute;
+	top: auto;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 50;
+	margin: 0 auto;
+	padding: 1%;
+	text-align: center;
+}

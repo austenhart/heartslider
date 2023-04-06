@@ -11,14 +11,16 @@ var homepageSlider = new HeartSlider({
 	effect: "fadeOut",
 	buttons: false,
 	swipe: true,
-	clickToAdvance: true,
+	clickToAdvance: false,
 	pauseOnInactiveWindow: true,
+	// shuffle: true, // maybe it's finally time for a real 'randomize'?
 	// NEW
 	// progressIndicators: false,
 	progressIndicators: {
 		type: "dash", // or "dot"
-		showProgress: true,
+		showProgress: false,
 		clickable: true,
+		color: "#fff",
 	},
 });
 

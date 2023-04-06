@@ -1,6 +1,6 @@
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.3.2 ❤
+❤ Version 3.4.0 ❤
 
 === Steps to Push New Version ===
 1) https://babeljs.io/repl#?browsers=defaults
@@ -10,6 +10,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.4.0 - Added progress indicators
 3.3.1 - Fixed issue with custom Events
 3.3.0 - Added transitionStart and transitionEnd events
 3.2.7 - Many QOL improvements; buttons will auto-pause slideshow while click/swipe will not
@@ -157,17 +158,45 @@ class HeartSlider {
 			// create the indicator containing div
 			const progressContainer = document.createElement("div");
 			progressContainer.classList.add("progress-container");
+			// Give it either a Dash or Dot style
 			const type = this.settings.progressIndicators.type || "dash";
 			progressContainer.classList.add("type-" + type);
+			// Show progress or not
+			const showProgress = this.settings.progressIndicators.showProgress;
+			if (showProgress) {
+				progressContainer.classList.add("show-progress");
+			}
+			// progressContainer.classList.add("type-" + type);
+			// Create CSS variable for custom color
+			const indicatorColor = this.settings.progressIndicators.color || "#fff";
+			if (indicatorColor !== "#fff" || indicatorColor !== "#ffffff" || indicatorColor !== "white" || indicatorColor !== "rgb(255, 255, 255)" || indicatorColor !== "rgba(255, 255, 255, 1)") {
+				progressContainer.style.setProperty("--indicator-color", indicatorColor);
+			}
+			// Clickable? Then create a button. Otherwise, just a div.
 			const indicatorType = this.settings.progressIndicators.clickable ? "button" : "div";
 			// fill it with the appropriate number of markers
 			for (let index = 0; index < this.total; index++) {
 				const indicator = document.createElement(indicatorType);
 				indicator.classList.add("indicator");
+				// if (index === _this.firstIndex) {
+				// 	indicator.classList.add("active");
+				// }
 				indicator.setAttribute("data-index", index);
+				indicator.addEventListener("click", (event) => {
+					_this.pause();
+					_this.goToSlide(index, true, false, true);
+					// setTimeout(() => {
+					// 	_this.resume();
+					// }, 4000);
+				});
 				progressContainer.appendChild(indicator);
 			}
 			this.slideshowSelector.appendChild(progressContainer);
+			this.progressContainerSelector = progressContainer;
+			this.progressIndicators = progressContainer.querySelectorAll(".indicator");
+			window.requestAnimationFrame(() => {
+				this.progressIndicators[this.firstIndex].classList.add("active", "first");
+			});
 		}
 
 		/* Slideshow Buttons */
@@ -355,6 +384,19 @@ class HeartSlider {
 		this.previousSlide = this.slides[this.index];
 		var newTargetIndex = (targetIndex + this.total) % this.total;
 		this.currentSlide = this.slides[newTargetIndex];
+
+		/* Update Progress Indicators */
+		const progressContainerSelector = this.progressContainerSelector;
+		const progressIndicators = this.progressIndicators;
+
+		if (progressContainerSelector !== undefined && progressIndicators.length > 0) {
+			const activeIndicator = progressIndicators[newTargetIndex];
+			const alreadyActiveIndicators = progressContainerSelector.querySelectorAll(".active");
+			for (const activeIndicator of alreadyActiveIndicators) {
+				activeIndicator.classList.remove("active", "first");
+			}
+			activeIndicator.classList.add("active");
+		}
 
 		/* Fade duration */
 		var duration = isManuallyCalled || isFirstSlide || skipDefaultTransition ? _this.settings.manualTransition : _this.settings.transition;

@@ -15,7 +15,7 @@
 }
 
 .heart-slideshow.progressive-loading-disabled,
-.heart-slideshow.first-image-loaded {
+.heart-slideshow.first-heart-image-loaded {
 	opacity: 1;
 	-webkit-transition: opacity 1s ease;
 	transition: opacity 1s ease;
@@ -71,7 +71,7 @@
 }
 
 .heart-slideshow.progressive-loading-disabled img,
-.heart-slide img.image-loaded {
+.heart-slide img.heart-image-loaded {
 	opacity: 1;
 }
 

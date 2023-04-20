@@ -266,7 +266,7 @@ class HeartSlider {
 	kickstart() {
 		const _this = this;
 		if (_this.settings.progressive) {
-			_this.slideshowSelector.classList.add("first-image-loaded");
+			_this.slideshowSelector.classList.add("first-heart-image-loaded");
 
 			var startProgressiveLoad = function startProgressiveLoad() {
 				setTimeout(function () {
@@ -487,16 +487,16 @@ class HeartSlider {
 		var currentImages = Array.prototype.slice.call(this.slides[target].querySelectorAll("img"));
 		if (currentImages.length > 0) {
 			currentImages.forEach((currentImage, index) => {
-				if (currentImage == undefined || currentImage.classList.contains("image-loaded") || currentImage.classList.contains("image-loading") || currentImage.currentSrc === null) {
+				if (currentImage == undefined || currentImage.classList.contains("heart-image-loaded") || currentImage.classList.contains("heart-image-loading") || currentImage.currentSrc === null) {
 					// console.log("%cSkip loading: " + target, "font-style: italic; font-size: 0.9em; color: red; padding: 0.2em;");
 					return;
 				} else {
 					// console.log("%cStart loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
-					currentImage.classList.add("image-loading");
+					currentImage.classList.add("heart-image-loading");
 
 					function loadHandler() {
-						this.classList.add("image-loaded");
-						this.classList.remove("image-loading");
+						this.classList.add("heart-image-loaded");
+						this.classList.remove("heart-image-loading");
 						// console.log("%cFinished loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
 						if (isFirstSlide && index == 0) {
 							/* Start slideshow when finished loading first image */
@@ -517,6 +517,12 @@ class HeartSlider {
 						});
 					}
 				}
+			});
+		}
+		var currentVideos = Array.prototype.slice.call(this.slides[target].querySelectorAll("video"));
+		if (currentVideos.length > 0) {
+			currentVideos.forEach((currentVideo, index) => {
+				console.log(currentVideo);
 			});
 		}
 	}

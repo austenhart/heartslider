@@ -6,16 +6,14 @@ var homepageSlider = new HeartSlider({
 	manualTransition: 200,
 	delay: 1000,
 	loop: true,
-	randomize: true, // Change to randomStart
+	randomize: false, // give option for "start" and "all"
 	paused: false,
 	effect: "fadeOut",
 	buttons: false,
 	swipe: true,
 	clickToAdvance: false,
 	pauseOnInactiveWindow: true,
-	// shuffle: true, // maybe it's finally time for a real 'randomize'?
 	// NEW
-	// progressIndicators: false,
 	progressIndicators: {
 		type: "dash", // or "dot"
 		showProgress: false,

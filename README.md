@@ -46,12 +46,22 @@ Change Log:
 
 To Do:
 
+-   [ ] Fix onTransitionEnd function timing
+-   [ ] Expose a goTo function, add index and skip animation option
+-   [ ] Delay start
+-   [ ] Add ability to navigate with arrow keys
+-   [ ] Make randomize a string with 'start' and 'all' options
+-   [ ] Destroy function (including all event listeners and timers)
+-   [ ] Restore transition animation options (crossfade vs fadeout)
+-   [ ] Add counter (with custom separator, place inside heart-slideshow?)
+-   [ ] Potentially add inner-container to house buttons and counter
 -   [ ] Add progress indicator options (dots or dashes, with fill)
--   [ ] Add support for the <picture> element with multiple sources
--   [ ] Remove delay when setting slideshows to paused
+-   [ ] Support for <video>
+-   [ ] Add support for the <picture> and elements with multiple sources
 -   [ ] Fix stutter issue when changing tabs
--   [ ] Support for video
+-   [ ] Live swipe transition progress
 -   [ ] Use JS bind() function instead of using "\_this" variable
+-   [x] Remove delay when setting slideshows to paused
 -   [x] Better way to manage multiple slideshows
 -   [x] Add callback functions
 -   [x] Make sure slideshow initializes when not using data-src or data-srcset
@@ -66,4 +76,4 @@ To Do:
 
 '''''''''''''''
 
-#### Last Updated: March, 29 2023
+#### Last Updated: April, 6 2023

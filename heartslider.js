@@ -48,13 +48,29 @@ class HeartSlider {
 			slides: ".heart-slide",
 			swipe: true,
 			transition: 3000,
-			progressIndicators: false,
+			progressIndicators: {
+				type: "dash", // or "dot"
+				showProgress: false,
+				clickable: true,
+				color: "#fff",
+			},
 		};
 
 		/* Overwrite defaults with user-defined settings */
 		for (var prop in userSettings) {
 			if (this.settings.hasOwnProperty(prop)) {
-				this.settings[prop] = userSettings[prop];
+				if (typeof userSettings[prop] === "object") {
+					// Loop through each sub-property
+					for (const subProp in userSettings[prop]) {
+						// Re-assign defaults based on user settings
+						const value = userSettings[prop][subProp];
+						if (this.settings[prop].hasOwnProperty(subProp)) {
+							this.settings[prop][subProp] = value;
+						}
+					}
+				} else {
+					this.settings[prop] = userSettings[prop];
+				}
 			}
 		}
 

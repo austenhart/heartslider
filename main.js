@@ -6,7 +6,7 @@ var homepageSlider = new HeartSlider({
 	manualTransition: 200,
 	delay: 1000,
 	loop: true,
-	randomize: true,
+	randomize: true, // Change to randomStart
 	paused: false,
 	effect: "fadeOut",
 	buttons: false,
@@ -21,6 +21,7 @@ var homepageSlider = new HeartSlider({
 		showProgress: false,
 		clickable: true,
 		color: "#fff",
+		test: false,
 	},
 });
 

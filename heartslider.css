@@ -15,7 +15,7 @@
 }
 
 .heart-slideshow.progressive-loading-disabled,
-.heart-slideshow.first-heart-image-loaded {
+.heart-slideshow.first-heart-loaded {
 	opacity: 1;
 	-webkit-transition: opacity 1s ease;
 	transition: opacity 1s ease;
@@ -70,8 +70,25 @@
 	font-family: "object-fit: cover;";
 }
 
+.heart-slide video {
+	display: block;
+	position: absolute;
+	opacity: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	will-change: contents;
+	width: 100%;
+	height: 100%;
+	-o-object-fit: cover;
+	object-fit: cover;
+	z-index: 3;
+}
+
+.heart-slide video.heart-loading,
 .heart-slideshow.progressive-loading-disabled img,
-.heart-slide img.heart-image-loaded {
+.heart-slide .heart-loaded {
 	opacity: 1;
 }
 

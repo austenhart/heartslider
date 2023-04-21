@@ -30,6 +30,9 @@ CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 class HeartSlider {
 	constructor(userSettings) {
+		this.reset(userSettings);
+	}
+	reset(userSettings) {
 		var _this = this;
 
 		/* HeartSlider default settings */
@@ -172,7 +175,7 @@ class HeartSlider {
 		/* Progress Indicators */
 		if (this.settings.progressIndicators) {
 			// create the indicator containing div
-			const progressContainer = document.createElement("div");
+			const progressContainer = this.slideshowSelector.querySelector(".progress-container") ?? document.createElement("div");
 			progressContainer.classList.add("progress-container");
 			// Give it either a Dash or Dot style
 			const type = this.settings.progressIndicators.type || "dash";
@@ -201,9 +204,11 @@ class HeartSlider {
 				indicator.addEventListener("click", (event) => {
 					_this.pause();
 					_this.goToSlide(index, true, false, true);
-					// setTimeout(() => {
-					// 	_this.resume();
-					// }, 4000);
+					setTimeout(() => {
+						if ((_this.settings.paused = true)) {
+							_this.resume();
+						}
+					}, 4000);
 				});
 				progressContainer.appendChild(indicator);
 			}
@@ -266,8 +271,7 @@ class HeartSlider {
 	kickstart() {
 		const _this = this;
 		if (_this.settings.progressive) {
-			_this.slideshowSelector.classList.add("first-heart-image-loaded");
-
+			_this.slideshowSelector.classList.add("first-heart-loaded");
 			var startProgressiveLoad = function startProgressiveLoad() {
 				setTimeout(function () {
 					_this.progressiveLoad((_this.firstIndex + 1 + _this.total) % _this.total);
@@ -419,7 +423,9 @@ class HeartSlider {
 
 		this.index = newTargetIndex;
 
-		this.progressiveLoad(newTargetIndex);
+		if (!isFirstSlide) {
+			this.progressiveLoad(newTargetIndex);
+		}
 		this.progressiveLoad((newTargetIndex + 1 + _this.total) % _this.total);
 
 		function changeSlides() {
@@ -456,6 +462,12 @@ class HeartSlider {
 			_this.currentSlide.removeAttribute("tab-index");
 			_this.currentSlide.classList.add("active");
 
+			const videoElement = _this.currentSlide.querySelector("video");
+			if (videoElement !== null) {
+				videoElement.currentTime = 0;
+				videoElement.play();
+			}
+
 			if (_this.transitionEndTimer) {
 				clearTimeout(_this.transitionEndTimer);
 			}
@@ -476,6 +488,10 @@ class HeartSlider {
 					if (_this.transitionEnd) {
 						_this.transitionEnd(_this);
 					}
+					const videoElement = _this.previousSlide.querySelector("video");
+					if (videoElement !== null) {
+						videoElement.pause();
+					}
 				}
 				_this.transitioning = false;
 				_this.transitionEndTimer = undefined;
@@ -487,16 +503,16 @@ class HeartSlider {
 		var currentImages = Array.prototype.slice.call(this.slides[target].querySelectorAll("img"));
 		if (currentImages.length > 0) {
 			currentImages.forEach((currentImage, index) => {
-				if (currentImage == undefined || currentImage.classList.contains("heart-image-loaded") || currentImage.classList.contains("heart-image-loading") || currentImage.currentSrc === null) {
+				if (currentImage == undefined || currentImage.classList.contains("heart-loaded") || currentImage.classList.contains("heart-loading") || currentImage.currentSrc === null) {
 					// console.log("%cSkip loading: " + target, "font-style: italic; font-size: 0.9em; color: red; padding: 0.2em;");
 					return;
 				} else {
 					// console.log("%cStart loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
-					currentImage.classList.add("heart-image-loading");
+					currentImage.classList.add("heart-loading");
 
 					function loadHandler() {
-						this.classList.add("heart-image-loaded");
-						this.classList.remove("heart-image-loading");
+						this.classList.add("heart-loaded");
+						this.classList.remove("heart-loading");
 						// console.log("%cFinished loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
 						if (isFirstSlide && index == 0) {
 							/* Start slideshow when finished loading first image */
@@ -522,8 +538,73 @@ class HeartSlider {
 		var currentVideos = Array.prototype.slice.call(this.slides[target].querySelectorAll("video"));
 		if (currentVideos.length > 0) {
 			currentVideos.forEach((currentVideo, index) => {
-				console.log(currentVideo);
+				if (currentVideo == undefined || currentVideo.classList.contains("heart-loaded") || currentVideo.classList.contains("heart-loading")) {
+					// console.log(currentVideo.classList.contains("heart-loading"));
+					return;
+				} else {
+					currentVideo.classList.add("heart-loading");
+					const mustHaveAttributes = ["loop", "muted", "playsinline", "disablepictureinpicture", "disableremoteplayback", "preload"];
+					mustHaveAttributes.forEach((attr) => {
+						if (!currentVideo.getAttribute(attr)) {
+							let value = "";
+							if (attr === "preload") {
+								value = "metadata";
+							}
+							currentVideo.setAttribute(attr, value);
+						}
+					});
+
+					currentVideo.onloadstart = () => {
+						// When the video begins to load
+						currentVideo.classList.add("heart-loading");
+					};
+
+					function loadHandler() {
+						// Happens when the video has enough loaded to play through smoothly
+						currentVideo.classList.add("heart-loaded");
+						currentVideo.classList.remove("heart-loading");
+						if (isFirstSlide && index == 0) {
+							_this.kickstart();
+						}
+						// console.log("%cFinished loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
+					}
+
+					currentVideo.oncanplaythrough = loadHandler.bind(currentVideo);
+
+					if (currentVideo.src == "" && currentVideo.getAttribute("data-src") !== null) {
+						currentVideo.src = currentVideo.getAttribute("data-src");
+						currentVideo.removeAttribute("data-src");
+					}
+					if (currentVideo.querySelectorAll("source").length > 0) {
+						const sources = currentVideo.querySelectorAll("source");
+						let errorCount = 0;
+						for (const source of sources) {
+							if (source.src == "" && source.getAttribute("data-src") !== null) {
+								source.src = source.getAttribute("data-src");
+								source.removeAttribute("data-src");
+							}
+							source.onerror = () => {
+								errorCount++;
+								this.removeEmptySlideAndReinit(target, errorCount, sources.length);
+							};
+						}
+					}
+					currentVideo.load();
+				}
 			});
+		}
+	}
+	removeEmptySlideAndReinit(target, errorCount, totalNumberOfSources) {
+		const currentSlide = this.slides[target];
+		const _this = this;
+		if (errorCount === totalNumberOfSources) {
+			this.slideshowSelector.removeChild(currentSlide);
+			console.log("removed", currentSlide);
+			console.log(this.settings);
+			this.reset(this.settings);
+			if (target === 0) {
+				this.slideshowSelector.classList.add("first-heart-loaded");
+			}
 		}
 	}
 	prevNextHandler(targetIndex, indexToProgressiveLoad, isManuallyCalled) {

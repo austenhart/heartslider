@@ -180,20 +180,28 @@ class HeartSlider {
 			// Give it either a Dash or Dot style
 			const type = this.settings.progressIndicators.type || "dash";
 			progressContainer.classList.add("type-" + type);
+
 			// Show progress or not
-			const showProgress = this.settings.progressIndicators.showProgress;
-			if (showProgress) {
-				progressContainer.classList.add("show-progress");
-			}
-			// progressContainer.classList.add("type-" + type);
+			// const showProgress = this.settings.progressIndicators.showProgress;
+			// if (showProgress) {
+			// 	progressContainer.classList.add("show-progress");
+			// }
+
 			// Create CSS variable for custom color
 			const indicatorColor = this.settings.progressIndicators.color || "#fff";
 			if (indicatorColor !== "#fff" || indicatorColor !== "#ffffff" || indicatorColor !== "white" || indicatorColor !== "rgb(255, 255, 255)" || indicatorColor !== "rgba(255, 255, 255, 1)") {
 				progressContainer.style.setProperty("--indicator-color", indicatorColor);
 			}
+
 			// Clickable? Then create a button. Otherwise, just a div.
 			const indicatorType = this.settings.progressIndicators.clickable ? "button" : "div";
+
+			progressContainer.style.setProperty("--total", this.total);
+
 			// fill it with the appropriate number of markers
+			if (progressContainer.childElementCount > 0) {
+				progressContainer.innerHTML = "";
+			}
 			for (let index = 0; index < this.total; index++) {
 				const indicator = document.createElement(indicatorType);
 				indicator.classList.add("indicator");
@@ -203,7 +211,8 @@ class HeartSlider {
 				indicator.setAttribute("data-index", index);
 				indicator.addEventListener("click", (event) => {
 					_this.pause();
-					_this.goToSlide(index, true, false, true);
+					// _this.goToSlide(index, true, false, true);
+					_this.prevNextHandler(index, index + 1, true);
 					setTimeout(() => {
 						if ((_this.settings.paused = true)) {
 							_this.resume();
@@ -466,6 +475,9 @@ class HeartSlider {
 			if (videoElement !== null) {
 				videoElement.currentTime = 0;
 				videoElement.play();
+				if (typeof videoElement.duration === "number") {
+					console.log(videoElement.duration * 1000, _this.transitionEndTimer);
+				}
 			}
 
 			if (_this.transitionEndTimer) {
@@ -543,7 +555,8 @@ class HeartSlider {
 					return;
 				} else {
 					currentVideo.classList.add("heart-loading");
-					const mustHaveAttributes = ["loop", "muted", "playsinline", "disablepictureinpicture", "disableremoteplayback", "preload"];
+					currentVideo.muted = "muted";
+					const mustHaveAttributes = ["loop", "playsinline", "disablepictureinpicture", "disableremoteplayback", "preload"];
 					mustHaveAttributes.forEach((attr) => {
 						if (!currentVideo.getAttribute(attr)) {
 							let value = "";
@@ -596,11 +609,11 @@ class HeartSlider {
 	}
 	removeEmptySlideAndReinit(target, errorCount, totalNumberOfSources) {
 		const currentSlide = this.slides[target];
-		const _this = this;
+
 		if (errorCount === totalNumberOfSources) {
 			this.slideshowSelector.removeChild(currentSlide);
-			console.log("removed", currentSlide);
-			console.log(this.settings);
+			console.warn("removed slide based on error loading source:", currentSlide);
+
 			this.reset(this.settings);
 			if (target === 0) {
 				this.slideshowSelector.classList.add("first-heart-loaded");

@@ -46,6 +46,7 @@ Change Log:
 
 To Do:
 
+-   [ ] Add fadeRight or fadeLeft effect
 -   [ ] Fix onTransitionEnd function timing
 -   [ ] Expose a goTo function, add index and skip animation option
 -   [ ] Delay start

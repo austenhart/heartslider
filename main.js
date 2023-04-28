@@ -4,7 +4,7 @@ var homepageSlider = new HeartSlider({
 	slides: ".heart-slide",
 	transition: 3000,
 	manualTransition: 200,
-	delay: 5600,
+	delay: 1000,
 	loop: true,
 	randomize: false, // give option for "start" and "all"
 	paused: false,
@@ -16,9 +16,7 @@ var homepageSlider = new HeartSlider({
 	// NEW
 	progressIndicators: {
 		type: "dash", // or "dot"
-		// size: "small",
-		// showProgress: false,
-		// clickable: true,
+		clickable: true,
 		color: "#fff",
 	},
 });

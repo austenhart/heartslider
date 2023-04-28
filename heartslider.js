@@ -10,7 +10,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
-3.4.0 - Added progress indicators
+3.4.0 - Added progress indicators and support for video
 3.3.1 - Fixed issue with custom Events
 3.3.0 - Added transitionStart and transitionEnd events
 3.2.7 - Many QOL improvements; buttons will auto-pause slideshow while click/swipe will not
@@ -52,10 +52,13 @@ class HeartSlider {
 			swipe: true,
 			transition: 3000,
 			progressIndicators: {
-				type: "dash", // or "dot"
-				showProgress: false,
+				type: "dash",
 				clickable: true,
 				color: "#fff",
+				// possible options:
+				// type: "dot"
+				// size: "small",
+				// showProgress: true,
 			},
 		};
 
@@ -151,7 +154,7 @@ class HeartSlider {
 
 		if (_this.settings.clickToAdvance) {
 			var throttleClick;
-			var throttleClickResume;
+			// var _this.throttleClickResume;
 			_this.slideshowSelector.addEventListener(
 				"click",
 				function (event) {
@@ -162,8 +165,8 @@ class HeartSlider {
 						throttleClick = undefined;
 					}, _this.settings.manualTransition);
 					if (!_this.originallyPaused) {
-						if (throttleClickResume) clearTimeout(throttleClickResume);
-						throttleClickResume = setTimeout(function () {
+						if (_this.throttleClickResume) clearTimeout(_this.throttleClickResume);
+						_this.throttleClickResume = setTimeout(function () {
 							_this.resume();
 						}, _this.settings.transition + _this.settings.delay * 1.25);
 					}
@@ -205,19 +208,26 @@ class HeartSlider {
 			for (let index = 0; index < this.total; index++) {
 				const indicator = document.createElement(indicatorType);
 				indicator.classList.add("indicator");
-				// if (index === _this.firstIndex) {
-				// 	indicator.classList.add("active");
-				// }
 				indicator.setAttribute("data-index", index);
 				indicator.addEventListener("click", (event) => {
+					if (index === this.index) return;
+
 					_this.pause();
-					// _this.goToSlide(index, true, false, true);
-					_this.prevNextHandler(index, index + 1, true);
-					setTimeout(() => {
-						if ((_this.settings.paused = true)) {
+					const isManuallyCalled = true;
+					const isFirstSlide = false;
+					const skipDefaultTransition = true;
+					_this.goToSlide(index, isManuallyCalled, isFirstSlide, skipDefaultTransition);
+
+					throttleClick = setTimeout(function () {
+						throttleClick = undefined;
+					}, _this.settings.manualTransition);
+
+					if (!_this.originallyPaused) {
+						if (_this.throttleClickResume) clearTimeout(_this.throttleClickResume);
+						_this.throttleClickResume = setTimeout(function () {
 							_this.resume();
-						}
-					}, 4000);
+						}, _this.settings.transition + _this.settings.delay * 1);
+					}
 				});
 				progressContainer.appendChild(indicator);
 			}
@@ -389,9 +399,6 @@ class HeartSlider {
 		}
 	}
 	goToSlide(targetIndex, isManuallyCalled = false, isFirstSlide = false, skipDefaultTransition = false) {
-		// Trying to figure out why my skipDefaultTransition isn't working anymore. If statements??
-		// console.log({ targetIndex }, { isManuallyCalled }, { isFirstSlide }, { skipDefaultTransition });
-		// console.log("goToSlide", targetIndex, "isManuallyCalled: ", isManuallyCalled, "isFirstSlide: ", isFirstSlide, "skipDefaultTransition: ", skipDefaultTransition);
 		/* Check if slides are animating, if so, don't run this again. */
 		if (this.transitioning && !skipDefaultTransition) return false;
 
@@ -403,6 +410,10 @@ class HeartSlider {
 
 		/* Set transitioning to true */
 		this.transitioning = true;
+
+		// this.pause();
+		this.clearAllTimers();
+		// this.settings.paused = false;
 
 		/* 
 		1) Remove the old active class
@@ -463,6 +474,36 @@ class HeartSlider {
 				_this.previousSlide.style.transitionDuration = 0 + "ms";
 				_this.previousSlide.classList.remove("active");
 			}
+			/* Check for video elements */
+			const videoElement = _this.currentSlide.querySelector("video");
+			if (videoElement !== null) {
+				videoElement.currentTime = 0;
+				videoElement.play();
+
+				/* If the video metadata is already loaded, then calculate slide duration */
+				/* Otherwise, wait for that info to load */
+				if (videoElement.duration && typeof videoElement.duration === "number") {
+					adjustSlideTime(videoElement);
+				} else {
+					videoElement.onloadedmetadata = function () {
+						adjustSlideTime(videoElement);
+					};
+				}
+				/* Changes the duration of the given slide to make sure the video plays through */
+				function adjustSlideTime(videoElement) {
+					const totalDuration = _this.settings.delay + _this.settings.transition * 2;
+					const videoSlideDuration = videoElement.duration * 1000 - totalDuration;
+					if (videoSlideDuration > 0) {
+						_this.pause();
+						if (_this.videoSlideTimer) {
+							clearTimeout(_this.videoSlideTimer);
+						}
+						_this.videoSlideTimer = setTimeout(function () {
+							_this.resume();
+						}, videoSlideDuration + _this.settings.transition);
+					}
+				}
+			}
 
 			/* add styles to new slide */
 			_this.currentSlide.style.transitionDelay = 0 + "ms";
@@ -471,25 +512,13 @@ class HeartSlider {
 			_this.currentSlide.removeAttribute("tab-index");
 			_this.currentSlide.classList.add("active");
 
-			const videoElement = _this.currentSlide.querySelector("video");
-			if (videoElement !== null) {
-				videoElement.currentTime = 0;
-				videoElement.play();
-				if (typeof videoElement.duration === "number") {
-					console.log(videoElement.duration * 1000, _this.transitionEndTimer);
-				}
-			}
-
 			if (_this.transitionEndTimer) {
 				clearTimeout(_this.transitionEndTimer);
 			}
 
-			/* Should this be called on first slide, or not? */
-			// if (!isFirstSlide) {
 			if (_this.transitionStart) {
 				_this.transitionStart(_this);
 			}
-			// }
 
 			_this.transitionEndTimer = setTimeout(function () {
 				_this.previousSlide.style.transitionDelay = 0 + "ms";
@@ -503,6 +532,7 @@ class HeartSlider {
 					const videoElement = _this.previousSlide.querySelector("video");
 					if (videoElement !== null) {
 						videoElement.pause();
+						videoElement.currentTime = 0;
 					}
 				}
 				_this.transitioning = false;
@@ -513,7 +543,7 @@ class HeartSlider {
 	}
 	progressiveLoad(target, isFirstSlide = false, _this) {
 		var currentImages = Array.prototype.slice.call(this.slides[target].querySelectorAll("img"));
-		if (currentImages.length > 0) {
+		if (!!currentImages && currentImages.length > 0) {
 			currentImages.forEach((currentImage, index) => {
 				if (currentImage == undefined || currentImage.classList.contains("heart-loaded") || currentImage.classList.contains("heart-loading") || currentImage.currentSrc === null) {
 					// console.log("%cSkip loading: " + target, "font-style: italic; font-size: 0.9em; color: red; padding: 0.2em;");
@@ -548,7 +578,7 @@ class HeartSlider {
 			});
 		}
 		var currentVideos = Array.prototype.slice.call(this.slides[target].querySelectorAll("video"));
-		if (currentVideos.length > 0) {
+		if (currentVideos && currentVideos.length > 0) {
 			currentVideos.forEach((currentVideo, index) => {
 				if (currentVideo == undefined || currentVideo.classList.contains("heart-loaded") || currentVideo.classList.contains("heart-loading")) {
 					// console.log(currentVideo.classList.contains("heart-loading"));
@@ -625,16 +655,17 @@ class HeartSlider {
 		if (_this.transitioning === true) {
 			if (isManuallyCalled === true) {
 				/* This triggers if a manual transition is called during an automatic one*/
-				if (_this.manualTimeout) clearTimeout(_this.manualTimeout);
+				if (_this.manualTimeout) {
+					clearTimeout(_this.manualTimeout);
+				}
 				if (!_this.originallyPaused) {
 					_this.manualTimeout = setTimeout(_this.resume(), _this.settings.transition + _this.settings.delay);
 				}
 				_this.progressiveLoad(indexToProgressiveLoad);
 				var skipDefaultTransition = true;
 
-				let isFirstSlide = false; // ?
+				let isFirstSlide = false;
 				_this.goToSlide(_this.index, isManuallyCalled, isFirstSlide, skipDefaultTransition);
-				// _this.goToSlide(_this.index, isManuallyCalled, false, false, skipDefaultTransition);
 				return;
 			} else {
 				/* prevNext triggered automatically */
@@ -646,7 +677,6 @@ class HeartSlider {
 			_this.progressiveLoad(indexToProgressiveLoad);
 		}
 
-		// console.log("calling goToSlide on 472");
 		_this.goToSlide(targetIndex, isManuallyCalled, false, skipDefaultTransition);
 
 		setTimeout(
@@ -655,6 +685,13 @@ class HeartSlider {
 			},
 			isManuallyCalled ? _this.settings.manualTransition : _this.settings.transition
 		);
+	}
+	clearAllTimers() {
+		clearTimeout(this.manualTimeout);
+		clearTimeout(this.kickoffTimer);
+		clearTimeout(this.throttleClickResume);
+		clearTimeout(this.videoSlideTimer);
+		clearInterval(this.slideInterval);
 	}
 	next = function (_this = this, isManuallyCalled = false) {
 		var nextIndex = (_this.index + 1 + _this.total) % _this.total;
@@ -687,25 +724,10 @@ class HeartSlider {
 			_this.next(_this, false);
 		}, _this.settings.delay + _this.settings.transition);
 	};
-	/* Move to public functions */
 	pause = function (_this = this) {
 		if (!_this.settings.paused) {
 			_this.settings.paused = true;
-			clearTimeout(this.manualTimeout);
-			clearTimeout(this.kickoffTimer);
-			clearInterval(this.slideInterval);
+			this.clearAllTimers();
 		}
 	};
 }
-/* TO DO */
-/* [ ] Implement bundler and minification
- * [ ] Fix issue with previous button during transition
- * [ ] Re-arrange public vs private methods
- * [ ] Use JS bind() function instead of using "_this" variable
- * [–] Make sure slideshow initializes when not using data-src or data-srcset
- * [–] Optimize paint/render time — reduce number of active layers with display none
- * [–] Add prev/next callback
- * [–] Add first image loaded callback
- * [-] Remove Class format?
- * [-] Better way to manage multiple slideshows
- */

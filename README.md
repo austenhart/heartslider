@@ -13,11 +13,12 @@ Features:
 -   No dependancies
 -   Custom user settings
 -   Small and lightweight
--   Progressive loading for multiple sourceset images
+-   Progressive loading for multiple sourceset images and video
 -   Optional swipe and click to advance
 
 Change Log:
 
+-   3.4.0 - Added progress indicators and support for video
 -   3.3.1 - Fixed issue with custom Events
 -   3.3.0 - Added transitionStart and transitionEnd events
 -   3.2.7 - Many QOL improvements; buttons will auto-pause slideshow while click/swipe will not
@@ -46,6 +47,7 @@ Change Log:
 
 To Do:
 
+-   [ ] Add type: "dot" option to indicators
 -   [ ] Add fadeRight or fadeLeft effect
 -   [ ] Fix onTransitionEnd function timing
 -   [ ] Expose a goTo function, add index and skip animation option
@@ -57,11 +59,11 @@ To Do:
 -   [ ] Add counter (with custom separator, place inside heart-slideshow?)
 -   [ ] Potentially add inner-container to house buttons and counter
 -   [ ] Add progress indicator options (dots or dashes, with fill)
--   [ ] Support for <video>
 -   [ ] Add support for the <picture> and elements with multiple sources
 -   [ ] Fix stutter issue when changing tabs
 -   [ ] Live swipe transition progress
 -   [ ] Use JS bind() function instead of using "\_this" variable
+-   [x] Support for <video>
 -   [x] Remove delay when setting slideshows to paused
 -   [x] Better way to manage multiple slideshows
 -   [x] Add callback functions

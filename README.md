@@ -47,6 +47,7 @@ Change Log:
 
 To Do:
 
+-   [ ] If video is not long enough, slow it down at the end to prevent abrupt stop
 -   [ ] Add type: "dot" option to indicators
 -   [ ] Add fadeRight or fadeLeft effect
 -   [ ] Fix onTransitionEnd function timing

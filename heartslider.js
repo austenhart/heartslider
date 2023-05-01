@@ -492,8 +492,9 @@ class HeartSlider {
 				/* Changes the duration of the given slide to make sure the video plays through */
 				function adjustSlideTime(videoElement) {
 					const totalDuration = _this.settings.delay + _this.settings.transition * 2;
-					const videoSlideDuration = videoElement.duration * 1000 - totalDuration;
-					if (videoSlideDuration > 0) {
+					const videoSlideDuration = Math.max(videoElement.duration * 1000 - totalDuration, 0);
+					// TODO: If video is not long enough, progressively slow down the last half second so it comes to a gentle stop
+					if (videoSlideDuration >= 0) {
 						_this.pause();
 						if (_this.videoSlideTimer) {
 							clearTimeout(_this.videoSlideTimer);
@@ -586,7 +587,8 @@ class HeartSlider {
 				} else {
 					currentVideo.classList.add("heart-loading");
 					currentVideo.muted = "muted";
-					const mustHaveAttributes = ["loop", "playsinline", "disablepictureinpicture", "disableremoteplayback", "preload"];
+					currentVideo.removeAttribute("loop");
+					const mustHaveAttributes = ["playsinline", "disablepictureinpicture", "disableremoteplayback", "preload"];
 					mustHaveAttributes.forEach((attr) => {
 						if (!currentVideo.getAttribute(attr)) {
 							let value = "";

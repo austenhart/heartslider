@@ -47,19 +47,19 @@ Change Log:
 
 To Do:
 
+-   [ ] Destroy function (including all event listeners, timers, classnames and attributes)
 -   [ ] If video is not long enough, slow it down at the end to prevent abrupt stop
 -   [ ] Add type: "dot" option to indicators
+-   [ ] Add progress indicator options (dots or dashes, with fill)
 -   [ ] Add fadeRight or fadeLeft effect
 -   [ ] Fix onTransitionEnd function timing
 -   [ ] Expose a goTo function, add index and skip animation option
 -   [ ] Delay start
 -   [ ] Add ability to navigate with arrow keys
 -   [ ] Make randomize a string with 'start' and 'all' options
--   [ ] Destroy function (including all event listeners and timers)
 -   [ ] Restore transition animation options (crossfade vs fadeout)
 -   [ ] Add counter (with custom separator, place inside heart-slideshow?)
 -   [ ] Potentially add inner-container to house buttons and counter
--   [ ] Add progress indicator options (dots or dashes, with fill)
 -   [ ] Add support for the <picture> and elements with multiple sources
 -   [ ] Fix stutter issue when changing tabs
 -   [ ] Live swipe transition progress

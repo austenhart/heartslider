@@ -542,101 +542,119 @@ class HeartSlider {
 		}
 		window.requestAnimationFrame(changeSlides);
 	}
-	progressiveLoad(target, isFirstSlide = false, _this) {
-		var currentImages = Array.prototype.slice.call(this.slides[target].querySelectorAll("img"));
-		if (!!currentImages && currentImages.length > 0) {
-			currentImages.forEach((currentImage, index) => {
-				if (currentImage == undefined || currentImage.classList.contains("heart-loaded") || currentImage.classList.contains("heart-loading") || currentImage.currentSrc === null) {
-					// console.log("%cSkip loading: " + target, "font-style: italic; font-size: 0.9em; color: red; padding: 0.2em;");
-					return;
-				} else {
-					// console.log("%cStart loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
-					currentImage.classList.add("heart-loading");
+	progressiveLoad(target, isFirstSlide = false, _this = this) {
+		const targetSlide = this.slides[target];
+		if (targetSlide !== null) {
+			var currentImages = Array.prototype.slice.call(targetSlide.querySelectorAll("img"));
+			if (!!currentImages && currentImages.length > 0) {
+				currentImages.forEach((currentImage, index) => {
+					if (currentImage == undefined || currentImage.classList.contains("heart-loaded") || currentImage.classList.contains("heart-loading") || currentImage.currentSrc === null) {
+						// console.log("%cSkip loading: " + target, "font-style: italic; font-size: 0.9em; color: red; padding: 0.2em;");
+						return;
+					} else {
+						// console.log("%cStart loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
+						currentImage.classList.add("heart-loading");
 
-					function loadHandler() {
-						this.classList.add("heart-loaded");
-						this.classList.remove("heart-loading");
-						// console.log("%cFinished loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
-						if (isFirstSlide && index == 0) {
-							/* Start slideshow when finished loading first image */
-							_this.kickstart();
+						function loadHandler() {
+							this.classList.add("heart-loaded");
+							this.classList.remove("heart-loading");
+							// console.log("%cFinished loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
+							if (isFirstSlide && index == 0) {
+								/* Start slideshow when finished loading first image */
+								_this.kickstart();
+							}
+						}
+						if (currentImage.complete && currentImage.naturalWidth > 0) {
+							loadHandler.bind(currentImage)();
+						} else {
+							currentImage.onload = loadHandler.bind(currentImage);
+							var atts = ["sizes", "srcset", "src"];
+							atts.forEach(function (attribute) {
+								var targetAtt = currentImage.getAttribute("data-" + attribute);
+								if (targetAtt && currentImage.getAttribute(attribute) == null) {
+									currentImage.setAttribute(attribute, targetAtt);
+									currentImage.setAttribute("data-" + attribute, "");
+								}
+							});
 						}
 					}
-					if (currentImage.complete && currentImage.naturalWidth > 0) {
-						loadHandler.bind(currentImage)();
+				});
+			}
+
+			var currentVideos = Array.prototype.slice.call(targetSlide.querySelectorAll("video"));
+			if (currentVideos && currentVideos.length > 0) {
+				currentVideos.forEach((currentVideo, index) => {
+					if (currentVideo == undefined || currentVideo.classList.contains("heart-loaded") || currentVideo.classList.contains("heart-loading")) {
+						// console.log(currentVideo.classList.contains("heart-loading"));
+						return;
 					} else {
-						currentImage.onload = loadHandler.bind(currentImage);
-						var atts = ["sizes", "srcset", "src"];
-						atts.forEach(function (attribute) {
-							var targetAtt = currentImage.getAttribute("data-" + attribute);
-							if (targetAtt && currentImage.getAttribute(attribute) == null) {
-								currentImage.setAttribute(attribute, targetAtt);
-								currentImage.setAttribute("data-" + attribute, "");
+						// currentVideo.classList.add("heart-loading");
+						currentVideo.muted = "muted";
+						currentVideo.removeAttribute("loop");
+						const mustHaveAttributes = ["playsinline", "disablepictureinpicture", "disableremoteplayback", "preload"];
+						mustHaveAttributes.forEach((attr) => {
+							if (!currentVideo.getAttribute(attr)) {
+								let value = "";
+								if (attr === "preload") {
+									// value = "metadata"; // metatdata will load only the video meta
+									value = "auto"; // auto will attempt to load the entire video file
+								}
+								currentVideo.setAttribute(attr, value);
 							}
 						});
-					}
-				}
-			});
-		}
-		var currentVideos = Array.prototype.slice.call(this.slides[target].querySelectorAll("video"));
-		if (currentVideos && currentVideos.length > 0) {
-			currentVideos.forEach((currentVideo, index) => {
-				if (currentVideo == undefined || currentVideo.classList.contains("heart-loaded") || currentVideo.classList.contains("heart-loading")) {
-					// console.log(currentVideo.classList.contains("heart-loading"));
-					return;
-				} else {
-					currentVideo.classList.add("heart-loading");
-					currentVideo.muted = "muted";
-					currentVideo.removeAttribute("loop");
-					const mustHaveAttributes = ["playsinline", "disablepictureinpicture", "disableremoteplayback", "preload"];
-					mustHaveAttributes.forEach((attr) => {
-						if (!currentVideo.getAttribute(attr)) {
-							let value = "";
-							if (attr === "preload") {
-								value = "metadata";
+
+						currentVideo.onloadstart = () => {
+							// When the video begins to load
+							currentVideo.classList.add("heart-loading");
+						};
+
+						function loadHandler() {
+							// Happens when the video has enough loaded to play through smoothly
+							currentVideo.classList.add("heart-loaded");
+							currentVideo.classList.remove("heart-loading");
+							if (isFirstSlide && index == 0) {
+								_this.kickstart();
 							}
-							currentVideo.setAttribute(attr, value);
-						}
-					});
-
-					currentVideo.onloadstart = () => {
-						// When the video begins to load
-						currentVideo.classList.add("heart-loading");
-					};
-
-					function loadHandler() {
-						// Happens when the video has enough loaded to play through smoothly
-						currentVideo.classList.add("heart-loaded");
-						currentVideo.classList.remove("heart-loading");
-						if (isFirstSlide && index == 0) {
-							_this.kickstart();
-						}
-						// console.log("%cFinished loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
-					}
-
-					currentVideo.oncanplaythrough = loadHandler.bind(currentVideo);
-
-					if (currentVideo.src == "" && currentVideo.getAttribute("data-src") !== null) {
-						currentVideo.src = currentVideo.getAttribute("data-src");
-						currentVideo.removeAttribute("data-src");
-					}
-					if (currentVideo.querySelectorAll("source").length > 0) {
-						const sources = currentVideo.querySelectorAll("source");
-						let errorCount = 0;
-						for (const source of sources) {
-							if (source.src == "" && source.getAttribute("data-src") !== null) {
-								source.src = source.getAttribute("data-src");
-								source.removeAttribute("data-src");
+							console.log("%cFinished loading index: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
+							if (_this.settings.randomize == false || _this.settings.randomize !== "all") {
+								const allVideos = Array.from(_this.slideshowSelector.querySelectorAll("video"));
+								const currentIndex = allVideos.indexOf(currentVideo);
+								// If the current video is the last one, return null
+								if (currentIndex === allVideos.length - 1) {
+									return null;
+								}
+								const nextVideoSlide = allVideos[currentIndex + 1].closest(".heart-slide");
+								if (nextVideoSlide !== null) {
+									const nextVideoSlideIndex = Array.from(_this.slides).indexOf(nextVideoSlide);
+									_this.progressiveLoad(nextVideoSlideIndex);
+								}
 							}
-							source.onerror = () => {
-								errorCount++;
-								this.removeEmptySlideAndReinit(target, errorCount, sources.length);
-							};
 						}
+
+						currentVideo.oncanplaythrough = loadHandler.bind(currentVideo);
+
+						if (currentVideo.src == "" && currentVideo.getAttribute("data-src") !== null) {
+							currentVideo.src = currentVideo.getAttribute("data-src");
+							currentVideo.removeAttribute("data-src");
+						}
+						if (currentVideo.querySelectorAll("source").length > 0) {
+							const sources = currentVideo.querySelectorAll("source");
+							let errorCount = 0;
+							for (const source of sources) {
+								if (source.src == "" && source.getAttribute("data-src") !== null) {
+									source.src = source.getAttribute("data-src");
+									source.removeAttribute("data-src");
+								}
+								source.onerror = () => {
+									errorCount++;
+									this.removeEmptySlideAndReinit(target, errorCount, sources.length);
+								};
+							}
+						}
+						currentVideo.load();
 					}
-					currentVideo.load();
-				}
-			});
+				});
+			}
 		}
 	}
 	removeEmptySlideAndReinit(target, errorCount, totalNumberOfSources) {
@@ -695,6 +713,14 @@ class HeartSlider {
 		clearTimeout(this.videoSlideTimer);
 		clearInterval(this.slideInterval);
 	}
+	// destroy = function() {
+	// TODO
+	/* 
+		clear all timers
+		remove all event listeners
+		reset state of all elements, including classnames and attributes
+		*/
+	// }
 	next = function (_this = this, isManuallyCalled = false) {
 		var nextIndex = (_this.index + 1 + _this.total) % _this.total;
 		var indexToProgressiveLoad = (nextIndex + 1 + _this.total) % _this.total;

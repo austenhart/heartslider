@@ -15,7 +15,7 @@ var homepageSlider = new HeartSlider({
 	pauseOnInactiveWindow: true,
 	// NEW
 	progressIndicators: {
-		type: "dash", // or "dot"
+		// type: "dash", // or "dot"
 		clickable: true,
 		color: "#fff",
 	},

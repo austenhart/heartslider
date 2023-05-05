@@ -67,6 +67,7 @@ class HeartSlider {
 		for (var prop in userSettings) {
 			if (this.settings.hasOwnProperty(prop)) {
 				if (typeof userSettings[prop] === "object") {
+					// Enables the setting, while keeping the default to false
 					userSettings[prop].enable = true;
 					// Loop through each sub-property
 					for (const subProp in userSettings[prop]) {

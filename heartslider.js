@@ -52,6 +52,7 @@ class HeartSlider {
 			swipe: true,
 			transition: 3000,
 			progressIndicators: {
+				enable: false,
 				type: "dash",
 				clickable: true,
 				color: "#fff",
@@ -66,6 +67,7 @@ class HeartSlider {
 		for (var prop in userSettings) {
 			if (this.settings.hasOwnProperty(prop)) {
 				if (typeof userSettings[prop] === "object") {
+					userSettings[prop].enable = true;
 					// Loop through each sub-property
 					for (const subProp in userSettings[prop]) {
 						// Re-assign defaults based on user settings
@@ -176,7 +178,7 @@ class HeartSlider {
 		}
 
 		/* Progress Indicators */
-		if (this.settings.progressIndicators) {
+		if (this.settings.progressIndicators && this.settings.progressIndicators.enable) {
 			// create the indicator containing div
 			const progressContainer = this.slideshowSelector.querySelector(".progress-container") ?? document.createElement("div");
 			progressContainer.classList.add("progress-container");
@@ -412,7 +414,9 @@ class HeartSlider {
 		this.transitioning = true;
 
 		// this.pause();
-		this.clearAllTimers();
+		if (this.slides[targetIndex] !== null && this.slides[targetIndex].querySelector("video")) {
+			this.clearAllTimers();
+		}
 		// this.settings.paused = false;
 
 		/* 

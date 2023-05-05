@@ -6,13 +6,19 @@ var homepageSlider = new HeartSlider({
 	manualTransition: 200,
 	delay: 1000,
 	loop: true,
-	randomize: false,
+	randomize: false, // give option for "start" and "all"
 	paused: false,
 	effect: "fadeOut",
-	// buttons: true,
+	buttons: false,
 	swipe: true,
-	clickToAdvance: true,
-	pauseOnInactiveWindow: false,
+	clickToAdvance: false,
+	pauseOnInactiveWindow: true,
+	// NEW
+	progressIndicators: {
+		// type: "dash", // or "dot"
+		clickable: true,
+		color: "#fff",
+	},
 });
 
 // Events

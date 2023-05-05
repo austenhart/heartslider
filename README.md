@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.3.2
+##### Version 3.4.0
 
 '''''''''''''''''
 
@@ -13,11 +13,12 @@ Features:
 -   No dependancies
 -   Custom user settings
 -   Small and lightweight
--   Progressive loading for multiple sourceset images
+-   Progressive loading for multiple sourceset images and video
 -   Optional swipe and click to advance
 
 Change Log:
 
+-   3.4.0 - Added progress indicators and support for video
 -   3.3.1 - Fixed issue with custom Events
 -   3.3.0 - Added transitionStart and transitionEnd events
 -   3.2.7 - Many QOL improvements; buttons will auto-pause slideshow while click/swipe will not
@@ -46,12 +47,26 @@ Change Log:
 
 To Do:
 
--   [ ] Add support for the <picture> element with multiple sources
--   [ ] Remove delay when setting slideshows to paused
+-   [ ] Destroy function (including all event listeners, timers, classnames and attributes)
+-   [ ] If video is not long enough, slow it down at the end to prevent abrupt stop
+-   [ ] Add type: "dot" option to indicators
+-   [ ] Add progress indicator options (dots or dashes, with fill)
+-   [ ] Add fadeRight or fadeLeft effect
+-   [ ] Fix onTransitionEnd function timing
+-   [ ] Expose a goTo function, add index and skip animation option
+-   [ ] Delay start
+-   [ ] Add ability to navigate with arrow keys
+-   [ ] Make randomize a string with 'start' and 'all' options
+-   [ ] Restore transition animation options (crossfade vs fadeout)
+-   [ ] Add counter (with custom separator, place inside heart-slideshow?)
+-   [ ] Potentially add inner-container to house buttons and counter
+-   [ ] Add support for the <picture> and elements with multiple sources
 -   [ ] Fix stutter issue when changing tabs
--   [ ] Support for video
+-   [ ] Live swipe transition progress
 -   [ ] Use JS bind() function instead of using "\_this" variable
--   [ ] Better way to manage multiple slideshows
+-   [x] Support for <video>
+-   [x] Remove delay when setting slideshows to paused
+-   [x] Better way to manage multiple slideshows
 -   [x] Add callback functions
 -   [x] Make sure slideshow initializes when not using data-src or data-srcset
 -   [x] Fix - clicking too soon after start skips slide transition for the first two slides
@@ -65,4 +80,4 @@ To Do:
 
 '''''''''''''''
 
-#### Last Updated: November 3, 2021
+#### Last Updated: April, 6 2023

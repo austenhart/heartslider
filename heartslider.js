@@ -66,7 +66,7 @@ class HeartSlider {
 		/* Overwrite defaults with user-defined settings */
 		for (var prop in userSettings) {
 			if (this.settings.hasOwnProperty(prop)) {
-				if (typeof userSettings[prop] === "object") {
+				if (typeof userSettings[prop] === "object" && prop !== "slideshow") {
 					// Enables the setting, while keeping the default to false
 					userSettings[prop].enable = true;
 					// Loop through each sub-property

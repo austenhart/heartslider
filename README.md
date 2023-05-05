@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.4.0
+##### Version 3.4.1
 
 '''''''''''''''''
 
@@ -18,6 +18,7 @@ Features:
 
 Change Log:
 
+-   3.4.1 - Fixed issue with initing multiple slideshows
 -   3.4.0 - Added progress indicators and support for video
 -   3.3.1 - Fixed issue with custom Events
 -   3.3.0 - Added transitionStart and transitionEnd events
@@ -80,4 +81,4 @@ To Do:
 
 '''''''''''''''
 
-#### Last Updated: April, 6 2023
+#### Last Updated: May, 5 2023

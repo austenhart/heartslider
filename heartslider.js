@@ -1,6 +1,6 @@
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.4.0 ❤
+❤ Version 3.4.2 ❤
 
 === Steps to Push New Version ===
 1) https://babeljs.io/repl#?browsers=defaults
@@ -10,6 +10,8 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.4.2 - Reverted 'first-image-loaded' class
+3.4.1 - Fixed issue with initing multiple slideshows
 3.4.0 - Added progress indicators and support for video
 3.3.1 - Fixed issue with custom Events
 3.3.0 - Added transitionStart and transitionEnd events
@@ -293,7 +295,7 @@ class HeartSlider {
 	kickstart() {
 		const _this = this;
 		if (_this.settings.progressive) {
-			_this.slideshowSelector.classList.add("first-heart-loaded");
+			_this.slideshowSelector.classList.add("first-image-loaded");
 			var startProgressiveLoad = function startProgressiveLoad() {
 				setTimeout(function () {
 					_this.progressiveLoad((_this.firstIndex + 1 + _this.total) % _this.total);
@@ -671,7 +673,7 @@ class HeartSlider {
 
 			this.reset(this.settings);
 			if (target === 0) {
-				this.slideshowSelector.classList.add("first-heart-loaded");
+				this.slideshowSelector.classList.add("first-image-loaded");
 			}
 		}
 	}

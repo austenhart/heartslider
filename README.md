@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.4.1
+##### Version 3.4.2
 
 '''''''''''''''''
 
@@ -18,6 +18,7 @@ Features:
 
 Change Log:
 
+-   3.4.2 - Reverted 'first-image-loaded' class
 -   3.4.1 - Fixed issue with initing multiple slideshows
 -   3.4.0 - Added progress indicators and support for video
 -   3.3.1 - Fixed issue with custom Events

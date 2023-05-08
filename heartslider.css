@@ -1,4 +1,4 @@
-/* HeartSlider Styles — 3.4.0 */
+/* HeartSlider Styles — 3.4.2 */
 .heart-slideshow {
 	position: relative;
 	top: 0;
@@ -15,6 +15,7 @@
 }
 
 .heart-slideshow.progressive-loading-disabled,
+.heart-slideshow.first-image-loaded,
 .heart-slideshow.first-heart-loaded {
 	opacity: 1;
 	-webkit-transition: opacity 1s ease;

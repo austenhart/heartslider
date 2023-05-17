@@ -6,7 +6,9 @@
 		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 		<title>HeartSlider.js</title>
 		<link rel="icon" href="favicon.ico" sizes="16x16" type="image/ico" />
-		<link rel="stylesheet" href="heartslider.css" />
+		<link rel="stylesheet" href="src/heartslider.css" />
+		<script defer src="src/heartslider.js"></script>
+		<script defer src="main.js"></script>
 		<style>
 			body {
 				margin: 0;
@@ -17,286 +19,96 @@
 		<div class="heart-slideshow">
 			<!-- <div class="heart-slide">
 				<video>
-					<source data-src="video/heartslider-video-01.mp4" type="video/mp4" />
-					<source data-src="video/heartslider-video-01.webm" type="video/webm" />
+					<source data-src="./video/heartslider-video-01.mp4" type="video/mp4" />
+					<source data-src="./video/heartslider-video-01.webm" type="video/webm" />
 				</video>
 			</div> -->
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-06.jpg" alt="" />
+					<img data-sizes="100vw" data-src="./img/image-06.jpg" alt="" />
 				</figure>
 			</div>
 			<!-- <div class="heart-slide">
 				<video>
-					<source data-src="video/heartslider-video-02.mp4" type="video/mp4" />
-					<source data-src="video/heartslider-video-02.webm" type="video/webm" />
+					<source data-src="./video/heartslider-video-02.mp4" type="video/mp4" />
+					<source data-src="./video/heartslider-video-02.webm" type="video/webm" />
 				</video>
 			</div> -->
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="img/image-05.jpg" alt="" />
+					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="./img/image-05.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-04.jpg" alt="" />
+					<img data-sizes="100vw" data-src="./img/image-04.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="img/image-05.jpg" alt="" />
+					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="./img/image-05.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-07.jpg" alt="" />
+					<img data-sizes="100vw" data-src="./img/image-07.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="img/image-08.jpg" alt="" />
+					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="./img/image-08.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img style="object-position: 50% 75%" data-sizes="100vw" data-src="img/image-09.jpg" alt="" />
+					<img style="object-position: 50% 75%" data-sizes="100vw" data-src="./img/image-09.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-06.jpg" alt="" />
+					<img data-sizes="100vw" data-src="./img/image-06.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-07.jpg" alt="" />
+					<img data-sizes="100vw" data-src="./img/image-07.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="img/image-08.jpg" alt="" />
+					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="./img/image-08.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img style="object-position: 50% 75%" data-sizes="100vw" data-src="img/image-09.jpg" alt="" />
+					<img style="object-position: 50% 75%" data-sizes="100vw" data-src="./img/image-09.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-06.jpg" alt="" />
+					<img data-sizes="100vw" data-src="./img/image-06.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-07.jpg" alt="" />
+					<img data-sizes="100vw" data-src="./img/image-07.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="img/image-08.jpg" alt="" />
+					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="./img/image-08.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img style="object-position: 50% 75%" data-sizes="100vw" data-src="img/image-09.jpg" alt="" />
+					<img style="object-position: 50% 75%" data-sizes="100vw" data-src="./img/image-09.jpg" alt="" />
 				</figure>
 			</div>
 			<div class="heart-slide">
 				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-10.jpg" alt="" />
+					<img data-sizes="100vw" data-src="./img/image-10.jpg" alt="" />
 				</figure>
 			</div>
 		</div>
-		<div class="heart-slideshow">
-			<!-- <div class="heart-slide">
-				<video>
-					<source data-src="video/heartslider-video-01.mp4" type="video/mp4" />
-					<source data-src="video/heartslider-video-01.webm" type="video/webm" />
-				</video>
-			</div> -->
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-06.jpg" alt="" />
-				</figure>
-			</div>
-			<!-- <div class="heart-slide">
-				<video>
-					<source data-src="video/heartslider-video-02.mp4" type="video/mp4" />
-					<source data-src="video/heartslider-video-02.webm" type="video/webm" />
-				</video>
-			</div> -->
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="img/image-05.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-04.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="img/image-05.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-07.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="img/image-08.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 75%" data-sizes="100vw" data-src="img/image-09.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-06.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-07.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="img/image-08.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 75%" data-sizes="100vw" data-src="img/image-09.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-06.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-07.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="img/image-08.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 75%" data-sizes="100vw" data-src="img/image-09.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-10.jpg" alt="" />
-				</figure>
-			</div>
-		</div>
-		<div class="heart-slideshow">
-			<!-- <div class="heart-slide">
-				<video>
-					<source data-src="video/heartslider-video-01.mp4" type="video/mp4" />
-					<source data-src="video/heartslider-video-01.webm" type="video/webm" />
-				</video>
-			</div> -->
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-06.jpg" alt="" />
-				</figure>
-			</div>
-			<!-- <div class="heart-slide">
-				<video>
-					<source data-src="video/heartslider-video-02.mp4" type="video/mp4" />
-					<source data-src="video/heartslider-video-02.webm" type="video/webm" />
-				</video>
-			</div> -->
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="img/image-05.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-04.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="img/image-05.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-07.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="img/image-08.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 75%" data-sizes="100vw" data-src="img/image-09.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-06.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-07.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="img/image-08.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 75%" data-sizes="100vw" data-src="img/image-09.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-06.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-07.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="img/image-08.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 75%" data-sizes="100vw" data-src="img/image-09.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="img/image-10.jpg" alt="" />
-				</figure>
-			</div>
-		</div>
-		<script defer src="heartslider.js"></script>
-		<script defer src="main.js"></script>
 	</body>
 </html>

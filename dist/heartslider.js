@@ -10,7 +10,8 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
-3.4.3 - Reverted 'first-image-loaded' class
+3.4.3 - Added 'dots' for indicators and babel to workflow
+3.4.2 - Reverted 'first-image-loaded' class
 3.4.1 - Fixed issue with initing multiple slideshows
 3.4.0 - Added progress indicators and support for video
 3.3.1 - Fixed issue with custom Events
@@ -116,7 +117,6 @@ class HeartSlider {
 		/* Start */
 		if (this.settings.randomize) this.index = Math.floor(Math.random() * this.total);
 		if (this.settings.progressive) this.progressiveLoad(this.index, true, this);
-
 		this.firstIndex = this.index;
 
 		/* Loop through each slide  */
@@ -135,28 +135,27 @@ class HeartSlider {
 
 		/* add styles to new slide */
 		this.goToSlide(this.firstIndex, false, true);
-
 		if (this.slides.length < 2) return false;
-
 		if (!_this.settings.progressive) {
 			setTimeout(function () {
 				_this.slideshowSelector.classList.add("progressive-loading-disabled");
 				_this.kickstart();
 			}, 100);
 		}
-
 		var initVis = function initVis() {
 			return _this.heartVisibilityHandler(_this);
 		};
 		if (_this.settings.pauseOnInactiveWindow) {
 			document.addEventListener("visibilitychange", initVis, true);
 		}
-
 		if (_this.settings.swipe) {
-			_this.slideshowSelector.addEventListener("touchstart", _this.swipeHandler(_this).handleTouchStart, false);
-			_this.slideshowSelector.addEventListener("touchmove", _this.swipeHandler(_this).handleTouchMove, false);
+			_this.slideshowSelector.addEventListener("touchstart", _this.swipeHandler(_this).handleTouchStart, {
+				passive: true,
+			});
+			_this.slideshowSelector.addEventListener("touchmove", _this.swipeHandler(_this).handleTouchMove, {
+				passive: true,
+			});
 		}
-
 		if (_this.settings.clickToAdvance) {
 			var throttleClick;
 			// var _this.throttleClickResume;
@@ -183,7 +182,7 @@ class HeartSlider {
 		/* Progress Indicators */
 		if (this.settings.progressIndicators && this.settings.progressIndicators.enable) {
 			// create the indicator containing div
-			const progressContainer = this.slideshowSelector.querySelector(".progress-container") ?? document.createElement("div");
+			const progressContainer = this.slideshowSelector.querySelector(".progress-container") ? this.slideshowSelector.querySelector(".progress-container") : document.createElement("div");
 			progressContainer.classList.add("progress-container");
 			// Give it either a Dash or Dot style
 			const type = this.settings.progressIndicators.type || "dash";
@@ -203,7 +202,6 @@ class HeartSlider {
 
 			// Clickable? Then create a button. Otherwise, just a div.
 			const indicatorType = this.settings.progressIndicators.clickable ? "button" : "div";
-
 			progressContainer.style.setProperty("--total", this.total);
 
 			// fill it with the appropriate number of markers
@@ -216,17 +214,14 @@ class HeartSlider {
 				indicator.setAttribute("data-index", index);
 				indicator.addEventListener("click", (event) => {
 					if (index === this.index) return;
-
 					_this.pause();
 					const isManuallyCalled = true;
 					const isFirstSlide = false;
 					const skipDefaultTransition = true;
 					_this.goToSlide(index, isManuallyCalled, isFirstSlide, skipDefaultTransition);
-
 					throttleClick = setTimeout(function () {
 						throttleClick = undefined;
 					}, _this.settings.manualTransition);
-
 					if (!_this.originallyPaused) {
 						if (_this.throttleClickResume) clearTimeout(_this.throttleClickResume);
 						_this.throttleClickResume = setTimeout(function () {
@@ -296,12 +291,14 @@ class HeartSlider {
 		const _this = this;
 		if (_this.settings.progressive) {
 			_this.slideshowSelector.classList.add("first-image-loaded");
+			if (_this.firstImageLoaded) {
+				_this.firstImageLoaded(_this);
+			}
 			var startProgressiveLoad = function startProgressiveLoad() {
 				setTimeout(function () {
 					_this.progressiveLoad((_this.firstIndex + 1 + _this.total) % _this.total);
 				}, _this.settings.delay);
 			};
-
 			window.requestAnimationFrame(startProgressiveLoad);
 		}
 		if (!_this.settings.paused) {
@@ -313,7 +310,7 @@ class HeartSlider {
 	}
 	on(type, callback) {
 		const _this = this;
-		const supportedEvents = ["transitionStart", "transitionEnd"];
+		const supportedEvents = ["transitionStart", "transitionEnd", "firstImageLoaded"];
 		if (supportedEvents.includes(type)) {
 			if (typeof callback === "function") {
 				function callbackHandler(_this) {
@@ -335,6 +332,12 @@ class HeartSlider {
 						callbackHandler(_this);
 					};
 				}
+				if (type === "firstImageLoaded") {
+					_this.firstImageLoaded = function (_this) {
+						console.log("first image is loaded");
+						callbackHandler(_this);
+					};
+				}
 			} else {
 				console.warn("Your second argument for " + type + " must be a function.");
 			}
@@ -342,32 +345,25 @@ class HeartSlider {
 			console.warn("\x22" + type + "\x22 is not a valid event. Try one of these:", supportedEvents);
 		}
 	}
-
 	swipeHandler(_this) {
 		this.xDown = null;
 		this.yDown = null;
-
 		function getTouches(evt) {
 			return evt.touches || evt.originalEvent.touches;
 		}
-
 		function handleTouchStart(evt) {
 			const firstTouch = getTouches(evt)[0];
 			this.xDown = firstTouch.clientX;
 			this.yDown = firstTouch.clientY;
 		}
-
 		function handleTouchMove(evt) {
 			if (!this.xDown || !this.yDown) {
 				return;
 			}
-
 			var xUp = evt.touches[0].clientX;
 			var yUp = evt.touches[0].clientY;
-
 			var xDiff = this.xDown - xUp;
 			var yDiff = this.yDown - yUp;
-
 			if (Math.abs(xDiff) > Math.abs(yDiff)) {
 				if (xDiff > 0) {
 					evt.preventDefault();
@@ -392,8 +388,11 @@ class HeartSlider {
 		};
 	}
 	heartVisibilityHandler(_this) {
+		if (_this === void 0) {
+			_this = this;
+		}
 		/* Disables the slideshow when the window in not in view */
-		if (_this !== null && _this.settings.pauseOnInactiveWindow && document.querySelector(_this.settings.slideshow) !== null) {
+		if (_this !== null && _this.settings.pauseOnInactiveWindow && _this.settings.slideshow !== null) {
 			if (document.visibilityState == "hidden") {
 				console.log("%cWindow Lost Focus. HeartSlider is Paused.", "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
 				_this.pause();
@@ -403,7 +402,16 @@ class HeartSlider {
 			}
 		}
 	}
-	goToSlide(targetIndex, isManuallyCalled = false, isFirstSlide = false, skipDefaultTransition = false) {
+	goToSlide(targetIndex, isManuallyCalled, isFirstSlide, skipDefaultTransition) {
+		if (isManuallyCalled === void 0) {
+			isManuallyCalled = false;
+		}
+		if (isFirstSlide === void 0) {
+			isFirstSlide = false;
+		}
+		if (skipDefaultTransition === void 0) {
+			skipDefaultTransition = false;
+		}
 		/* Check if slides are animating, if so, don't run this again. */
 		if (this.transitioning && !skipDefaultTransition) return false;
 
@@ -423,10 +431,10 @@ class HeartSlider {
 		// this.settings.paused = false;
 
 		/* 
-		1) Remove the old active class
-		2) Find the new active slide
-		3) Add the new active class 
-		*/
+    1) Remove the old active class
+    2) Find the new active slide
+    3) Add the new active class 
+    */
 		var _this = this;
 		this.previousSlide = this.slides[this.index];
 		var newTargetIndex = (targetIndex + this.total) % this.total;
@@ -435,7 +443,6 @@ class HeartSlider {
 		/* Update Progress Indicators */
 		const progressContainerSelector = this.progressContainerSelector;
 		const progressIndicators = this.progressIndicators;
-
 		if (progressContainerSelector !== undefined && progressIndicators.length > 0) {
 			const activeIndicator = progressIndicators[newTargetIndex];
 			const alreadyActiveIndicators = progressContainerSelector.querySelectorAll(".active");
@@ -447,14 +454,11 @@ class HeartSlider {
 
 		/* Fade duration */
 		var duration = isManuallyCalled || isFirstSlide || skipDefaultTransition ? _this.settings.manualTransition : _this.settings.transition;
-
 		this.index = newTargetIndex;
-
 		if (!isFirstSlide) {
 			this.progressiveLoad(newTargetIndex);
 		}
 		this.progressiveLoad((newTargetIndex + 1 + _this.total) % _this.total);
-
 		function changeSlides() {
 			let prevSlideProgress = 1;
 			/* This part of the function smoothly transitions a skipped fade */
@@ -519,15 +523,12 @@ class HeartSlider {
 			_this.currentSlide.removeAttribute("aria-hidden");
 			_this.currentSlide.removeAttribute("tab-index");
 			_this.currentSlide.classList.add("active");
-
 			if (_this.transitionEndTimer) {
 				clearTimeout(_this.transitionEndTimer);
 			}
-
 			if (_this.transitionStart) {
 				_this.transitionStart(_this);
 			}
-
 			_this.transitionEndTimer = setTimeout(function () {
 				_this.previousSlide.style.transitionDelay = 0 + "ms";
 				_this.previousSlide.style.transitionDuration = 0 + "ms";
@@ -549,7 +550,13 @@ class HeartSlider {
 		}
 		window.requestAnimationFrame(changeSlides);
 	}
-	progressiveLoad(target, isFirstSlide = false, _this = this) {
+	progressiveLoad(target, isFirstSlide, _this) {
+		if (isFirstSlide === void 0) {
+			isFirstSlide = false;
+		}
+		if (_this === void 0) {
+			_this = this;
+		}
 		const targetSlide = this.slides[target];
 		if (targetSlide !== null) {
 			var currentImages = Array.prototype.slice.call(targetSlide.querySelectorAll("img"));
@@ -561,7 +568,6 @@ class HeartSlider {
 					} else {
 						// console.log("%cStart loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
 						currentImage.classList.add("heart-loading");
-
 						function loadHandler() {
 							this.classList.add("heart-loaded");
 							this.classList.remove("heart-loading");
@@ -587,7 +593,6 @@ class HeartSlider {
 					}
 				});
 			}
-
 			var currentVideos = Array.prototype.slice.call(targetSlide.querySelectorAll("video"));
 			if (currentVideos && currentVideos.length > 0) {
 				currentVideos.forEach((currentVideo, index) => {
@@ -606,15 +611,14 @@ class HeartSlider {
 									// value = "metadata"; // metatdata will load only the video meta
 									value = "auto"; // auto will attempt to load the entire video file
 								}
+
 								currentVideo.setAttribute(attr, value);
 							}
 						});
-
 						currentVideo.onloadstart = () => {
 							// When the video begins to load
 							currentVideo.classList.add("heart-loading");
 						};
-
 						function loadHandler() {
 							// Happens when the video has enough loaded to play through smoothly
 							currentVideo.classList.add("heart-loaded");
@@ -623,7 +627,7 @@ class HeartSlider {
 								_this.kickstart();
 							}
 							console.log("%cFinished loading index: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
-							if (_this.settings.randomize == false || _this.settings.randomize !== "all") {
+							if (_this.settings.randomize === false || _this.settings.randomize !== "all") {
 								const allVideos = Array.from(_this.slideshowSelector.querySelectorAll("video"));
 								const currentIndex = allVideos.indexOf(currentVideo);
 								// If the current video is the last one, return null
@@ -637,9 +641,7 @@ class HeartSlider {
 								}
 							}
 						}
-
 						currentVideo.oncanplaythrough = loadHandler.bind(currentVideo);
-
 						if (currentVideo.src == "" && currentVideo.getAttribute("data-src") !== null) {
 							currentVideo.src = currentVideo.getAttribute("data-src");
 							currentVideo.removeAttribute("data-src");
@@ -666,14 +668,15 @@ class HeartSlider {
 	}
 	removeEmptySlideAndReinit(target, errorCount, totalNumberOfSources) {
 		const currentSlide = this.slides[target];
-
 		if (errorCount === totalNumberOfSources) {
 			this.slideshowSelector.removeChild(currentSlide);
 			console.warn("removed slide based on error loading source:", currentSlide);
-
 			this.reset(this.settings);
 			if (target === 0) {
 				this.slideshowSelector.classList.add("first-image-loaded");
+				if (_this.firstImageLoaded) {
+					_this.firstImageLoaded(_this);
+				}
 			}
 		}
 	}
@@ -690,7 +693,6 @@ class HeartSlider {
 				}
 				_this.progressiveLoad(indexToProgressiveLoad);
 				var skipDefaultTransition = true;
-
 				let isFirstSlide = false;
 				_this.goToSlide(_this.index, isManuallyCalled, isFirstSlide, skipDefaultTransition);
 				return;
@@ -699,13 +701,10 @@ class HeartSlider {
 				return;
 			}
 		}
-
 		if (isManuallyCalled === true) {
 			_this.progressiveLoad(indexToProgressiveLoad);
 		}
-
 		_this.goToSlide(targetIndex, isManuallyCalled, false, skipDefaultTransition);
-
 		setTimeout(
 			function () {
 				_this.transitioning = false;
@@ -723,43 +722,55 @@ class HeartSlider {
 	// destroy = function() {
 	// TODO
 	/* 
-		clear all timers
-		remove all event listeners
-		reset state of all elements, including classnames and attributes
-		*/
+  	clear all timers
+  	remove all event listeners
+  	reset state of all elements, including classnames and attributes
+  	*/
 	// }
-	next = function (_this = this, isManuallyCalled = false) {
+	next = function (_this, isManuallyCalled) {
+		if (_this === void 0) {
+			_this = this;
+		}
+		if (isManuallyCalled === void 0) {
+			isManuallyCalled = false;
+		}
 		var nextIndex = (_this.index + 1 + _this.total) % _this.total;
 		var indexToProgressiveLoad = (nextIndex + 1 + _this.total) % _this.total;
-
 		_this.prevNextHandler(nextIndex, indexToProgressiveLoad, isManuallyCalled);
 	};
-	previous = function (_this = this, isManuallyCalled = false) {
+	previous = function (_this, isManuallyCalled) {
+		if (_this === void 0) {
+			_this = this;
+		}
+		if (isManuallyCalled === void 0) {
+			isManuallyCalled = false;
+		}
 		var previousIndex = (_this.index - 1 + _this.total) % _this.total;
 		var indexToProgressiveLoad = previousIndex;
-
 		_this.prevNextHandler(previousIndex, indexToProgressiveLoad, isManuallyCalled);
 	};
-	resume = function (_this = this) {
+	resume = function (_this) {
+		if (_this === void 0) {
+			_this = this;
+		}
 		if (_this.settings.paused) {
 			_this.settings.paused = false;
 		}
-
 		var nextSlideIndex = (_this.index + 1 + _this.total) % _this.total;
-
 		if (_this.settings.progressive) {
 			setTimeout(function () {
 				_this.progressiveLoad((nextSlideIndex + 1 + _this.total) % _this.total);
 			}, _this.settings.delay);
 		}
-
 		_this.goToSlide(nextSlideIndex);
-
 		this.slideInterval = setInterval(function () {
 			_this.next(_this, false);
 		}, _this.settings.delay + _this.settings.transition);
 	};
-	pause = function (_this = this) {
+	pause = function (_this) {
+		if (_this === void 0) {
+			_this = this;
+		}
 		if (!_this.settings.paused) {
 			_this.settings.paused = true;
 			this.clearAllTimers();

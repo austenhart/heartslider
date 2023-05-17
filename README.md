@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.4.2
+##### Version 3.4.3
 
 '''''''''''''''''
 
@@ -18,6 +18,7 @@ Features:
 
 Change Log:
 
+-   3.4.3 - Added 'dots' for indicators and babel to workflow
 -   3.4.2 - Reverted 'first-image-loaded' class
 -   3.4.1 - Fixed issue with initing multiple slideshows
 -   3.4.0 - Added progress indicators and support for video
@@ -49,6 +50,7 @@ Change Log:
 
 To Do:
 
+-   [ ] Add firstImageLoaded callback
 -   [ ] Destroy function (including all event listeners, timers, classnames and attributes)
 -   [ ] If video is not long enough, slow it down at the end to prevent abrupt stop
 -   [ ] Add type: "dot" option to indicators

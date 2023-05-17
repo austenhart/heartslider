@@ -17,7 +17,7 @@ for (const slideshow of allSlideshows) {
 		pauseOnInactiveWindow: true,
 		// NEW
 		progressIndicators: {
-			// type: "dash", // or "dot"
+			type: "dot", // "dash" is default
 			clickable: true,
 			color: "#fff",
 		},
@@ -32,6 +32,10 @@ for (const slideshow of allSlideshows) {
 	});
 	homepageSlider.on("transitionEnd", function (slideshow, slideshowElement, currentSlide) {
 		// console.log("transitionEnd");
+		// console.log({ slideshow }, { slideshowElement }, { currentSlide });
+	});
+	homepageSlider.on("firstImageLoaded", function (slideshow, slideshowElement, currentSlide) {
+		console.log(currentSlide);
 		// console.log({ slideshow }, { slideshowElement }, { currentSlide });
 	});
 }

@@ -10,7 +10,8 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
-3.4.3 - Reverted 'first-image-loaded' class
+3.4.3 - Added 'dots' for indicators and babel to workflow
+3.4.2 - Reverted 'first-image-loaded' class
 3.4.1 - Fixed issue with initing multiple slideshows
 3.4.0 - Added progress indicators and support for video
 3.3.1 - Fixed issue with custom Events
@@ -153,8 +154,8 @@ class HeartSlider {
 		}
 
 		if (_this.settings.swipe) {
-			_this.slideshowSelector.addEventListener("touchstart", _this.swipeHandler(_this).handleTouchStart, false);
-			_this.slideshowSelector.addEventListener("touchmove", _this.swipeHandler(_this).handleTouchMove, false);
+			_this.slideshowSelector.addEventListener("touchstart", _this.swipeHandler(_this).handleTouchStart, { passive: true });
+			_this.slideshowSelector.addEventListener("touchmove", _this.swipeHandler(_this).handleTouchMove, { passive: true });
 		}
 
 		if (_this.settings.clickToAdvance) {
@@ -183,7 +184,7 @@ class HeartSlider {
 		/* Progress Indicators */
 		if (this.settings.progressIndicators && this.settings.progressIndicators.enable) {
 			// create the indicator containing div
-			const progressContainer = this.slideshowSelector.querySelector(".progress-container") ?? document.createElement("div");
+			const progressContainer = this.slideshowSelector.querySelector(".progress-container") ? this.slideshowSelector.querySelector(".progress-container") : document.createElement("div");
 			progressContainer.classList.add("progress-container");
 			// Give it either a Dash or Dot style
 			const type = this.settings.progressIndicators.type || "dash";
@@ -296,6 +297,9 @@ class HeartSlider {
 		const _this = this;
 		if (_this.settings.progressive) {
 			_this.slideshowSelector.classList.add("first-image-loaded");
+			if (_this.firstImageLoaded) {
+				_this.firstImageLoaded(_this);
+			}
 			var startProgressiveLoad = function startProgressiveLoad() {
 				setTimeout(function () {
 					_this.progressiveLoad((_this.firstIndex + 1 + _this.total) % _this.total);
@@ -313,7 +317,7 @@ class HeartSlider {
 	}
 	on(type, callback) {
 		const _this = this;
-		const supportedEvents = ["transitionStart", "transitionEnd"];
+		const supportedEvents = ["transitionStart", "transitionEnd", "firstImageLoaded"];
 		if (supportedEvents.includes(type)) {
 			if (typeof callback === "function") {
 				function callbackHandler(_this) {
@@ -332,6 +336,12 @@ class HeartSlider {
 				}
 				if (type === "transitionEnd") {
 					_this.transitionEnd = function (_this) {
+						callbackHandler(_this);
+					};
+				}
+				if (type === "firstImageLoaded") {
+					_this.firstImageLoaded = function (_this) {
+						console.log("first image is loaded");
 						callbackHandler(_this);
 					};
 				}
@@ -391,9 +401,9 @@ class HeartSlider {
 			handleTouchMove: handleTouchMove,
 		};
 	}
-	heartVisibilityHandler(_this) {
+	heartVisibilityHandler(_this = this) {
 		/* Disables the slideshow when the window in not in view */
-		if (_this !== null && _this.settings.pauseOnInactiveWindow && document.querySelector(_this.settings.slideshow) !== null) {
+		if (_this !== null && _this.settings.pauseOnInactiveWindow && _this.settings.slideshow !== null) {
 			if (document.visibilityState == "hidden") {
 				console.log("%cWindow Lost Focus. HeartSlider is Paused.", "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
 				_this.pause();
@@ -623,7 +633,7 @@ class HeartSlider {
 								_this.kickstart();
 							}
 							console.log("%cFinished loading index: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
-							if (_this.settings.randomize == false || _this.settings.randomize !== "all") {
+							if (_this.settings.randomize === false || _this.settings.randomize !== "all") {
 								const allVideos = Array.from(_this.slideshowSelector.querySelectorAll("video"));
 								const currentIndex = allVideos.indexOf(currentVideo);
 								// If the current video is the last one, return null
@@ -674,6 +684,9 @@ class HeartSlider {
 			this.reset(this.settings);
 			if (target === 0) {
 				this.slideshowSelector.classList.add("first-image-loaded");
+				if (_this.firstImageLoaded) {
+					_this.firstImageLoaded(_this);
+				}
 			}
 		}
 	}

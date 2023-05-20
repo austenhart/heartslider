@@ -415,7 +415,7 @@ class HeartSlider {
 				_this.previousSlide.style.opacity = "";
 				console.log("%cRegained Focus. Resumed HeartSlider.", "font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;");
 				_this.currentSlide.transitionDuration = 0;
-				console.log(`resuming in ${_this.settings.delay * 0.75}ms`);
+				// console.log(`resuming in ${_this.settings.delay * 0.75}ms`);
 				_this.visResumeTimer = setTimeout(_this.resume.bind(_this), _this.settings.delay * 0.75);
 				// _this.resume();
 			}
@@ -487,12 +487,12 @@ class HeartSlider {
 				/* MUST set transition to none in order to override the css transition */
 				_this.previousSlide.style.transition = "none";
 				/* A moment later (1/60th of a second), give the slide the quick transition durations */
-				setTimeout(function () {
-					_this.previousSlide.style.transition = "opacity";
-					_this.previousSlide.style.transitionDelay = 0 + "ms";
-					_this.previousSlide.style.transitionDuration = duration * prevSlideProgress + "ms";
-					_this.previousSlide.style.opacity = null;
-				}, 16.6667);
+				// setTimeout(function () {
+				// _this.previousSlide.style.transition = "opacity";
+				// _this.previousSlide.style.transitionDelay = 0 + "ms";
+				// _this.previousSlide.style.transitionDuration = duration * prevSlideProgress + "ms";
+				// _this.previousSlide.style.opacity = "";
+				// }, 16.6667);
 			} else if (_this.previousSlide !== _this.currentSlide) {
 				/* remove styles from old slide */
 				_this.previousSlide.style.transitionDelay = duration + "ms";
@@ -763,7 +763,6 @@ class HeartSlider {
 		_this.prevNextHandler(previousIndex, indexToProgressiveLoad, isManuallyCalled);
 	};
 	resume = function (_this = this) {
-		console.log("resumed");
 		if (_this.settings.paused) {
 			_this.settings.paused = false;
 		}

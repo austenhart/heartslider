@@ -158,12 +158,14 @@
 
 .progress-container.type-dot {
 	--dot-size: 6px;
-	--gutter: 0;
+	--gutter: 2%;
+	--gutter: calc(50% / calc(var(--total) * 2));
 }
 
 @media screen and (min-width: 1024px) {
 	.progress-container.type-dot {
-		--gutter: calc(15vw / var(--total));
+		/* --gutter: calc(15vw / var(--total)); */
+		--gutter: calc(15vw / calc(var(--total) * 3));
 	}
 }
 

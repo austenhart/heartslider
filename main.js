@@ -24,19 +24,15 @@ for (const slideshow of allSlideshows) {
 	});
 
 	// Events
-	/* Optional */
-	homepageSlider.on("transitionStart", function (slideshow, slideshowElement, currentSlide) {
-		// console.log("transitionStart");
-		// console.log({ slideshow }, { slideshowElement }, { currentSlide });
-		// console.log(slideshow.index);
-	});
-	homepageSlider.on("transitionEnd", function (slideshow, slideshowElement, currentSlide) {
-		// console.log("transitionEnd");
-		// console.log({ slideshow }, { slideshowElement }, { currentSlide });
-	});
-	homepageSlider.on("firstImageLoaded", function (slideshow, slideshowElement, currentSlide) {
-		console.log(currentSlide);
-		// console.log({ slideshow }, { slideshowElement }, { currentSlide });
+	// homepageSlider.on("transitionStart", function (slideshow, slideshowElement, currentSlide) {
+	// 	/* Code that runs on the START of each new slide goes here */
+	// 	// console.log({ slideshow }, { slideshowElement }, { currentSlide });
+	// });
+	// homepageSlider.on("transitionEnd", function (slideshow, slideshowElement, currentSlide) {
+	// 	/* Code that runs at the END of each transition goes here */
+	// });
+	homepageSlider.on("firstImageLoad", function (slideshow, slideshowElement, currentSlide) {
+		document.body.classList.add("remove-intro");
 	});
 }
 

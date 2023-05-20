@@ -1,15 +1,15 @@
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.4.3 ❤
+❤ Version 3.4.4 ❤
 
 === Steps to Push New Version ===
-1) https://babeljs.io/repl#?browsers=defaults
-2) https://javascript-minifier.com
-3) Update Changelog and version number in .js, min.js, .css, readme.md, and package.json
+1) Update Changelog and version number in .js, .css, readme.md, and package.json
+2) npm run build (will babelfy and minify js and css)
 
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.4.4 - Made dots look less awful. Added 'firstImageLoad' callback.
 3.4.3 - Added 'dots' for indicators and babel to workflow
 3.4.2 - Reverted 'first-image-loaded' class
 3.4.1 - Fixed issue with initing multiple slideshows
@@ -297,8 +297,8 @@ class HeartSlider {
 		const _this = this;
 		if (_this.settings.progressive) {
 			_this.slideshowSelector.classList.add("first-image-loaded");
-			if (_this.firstImageLoaded) {
-				_this.firstImageLoaded(_this);
+			if (_this.firstImageLoad) {
+				_this.firstImageLoad(_this);
 			}
 			var startProgressiveLoad = function startProgressiveLoad() {
 				setTimeout(function () {
@@ -317,7 +317,7 @@ class HeartSlider {
 	}
 	on(type, callback) {
 		const _this = this;
-		const supportedEvents = ["transitionStart", "transitionEnd", "firstImageLoaded"];
+		const supportedEvents = ["transitionStart", "transitionEnd", "firstImageLoad"];
 		if (supportedEvents.includes(type)) {
 			if (typeof callback === "function") {
 				function callbackHandler(_this) {
@@ -339,9 +339,8 @@ class HeartSlider {
 						callbackHandler(_this);
 					};
 				}
-				if (type === "firstImageLoaded") {
-					_this.firstImageLoaded = function (_this) {
-						console.log("first image is loaded");
+				if (type === "firstImageLoad") {
+					_this.firstImageLoad = function (_this) {
 						callbackHandler(_this);
 					};
 				}
@@ -407,9 +406,18 @@ class HeartSlider {
 			if (document.visibilityState == "hidden") {
 				console.log("%cWindow Lost Focus. HeartSlider is Paused.", "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
 				_this.pause();
+				let prevSlideOpacity = window.getComputedStyle(_this.previousSlide).opacity;
+				// const prevSlideProgress = 1 - prevSlideOpacity;
+				_this.previousSlide.style.opacity = prevSlideOpacity;
+				/* MUST set transition to none in order to override the css transition */
+				_this.previousSlide.style.transitionDuration = "0";
 			} else {
+				_this.previousSlide.style.opacity = "";
 				console.log("%cRegained Focus. Resumed HeartSlider.", "font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;");
-				_this.resume();
+				_this.currentSlide.transitionDuration = 0;
+				console.log(`resuming in ${_this.settings.delay * 0.75}ms`);
+				_this.visResumeTimer = setTimeout(_this.resume.bind(_this), _this.settings.delay * 0.75);
+				// _this.resume();
 			}
 		}
 	}
@@ -684,8 +692,8 @@ class HeartSlider {
 			this.reset(this.settings);
 			if (target === 0) {
 				this.slideshowSelector.classList.add("first-image-loaded");
-				if (_this.firstImageLoaded) {
-					_this.firstImageLoaded(_this);
+				if (_this.firstImageLoad) {
+					_this.firstImageLoad(_this);
 				}
 			}
 		}
@@ -727,11 +735,12 @@ class HeartSlider {
 		);
 	}
 	clearAllTimers() {
+		clearInterval(this.slideInterval);
 		clearTimeout(this.manualTimeout);
 		clearTimeout(this.kickoffTimer);
 		clearTimeout(this.throttleClickResume);
 		clearTimeout(this.videoSlideTimer);
-		clearInterval(this.slideInterval);
+		clearTimeout(this.visResumeTimer);
 	}
 	// destroy = function() {
 	// TODO
@@ -754,6 +763,7 @@ class HeartSlider {
 		_this.prevNextHandler(previousIndex, indexToProgressiveLoad, isManuallyCalled);
 	};
 	resume = function (_this = this) {
+		console.log("resumed");
 		if (_this.settings.paused) {
 			_this.settings.paused = false;
 		}

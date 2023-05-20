@@ -1,4 +1,4 @@
-/* HeartSlider Styles — 3.4.3 */
+/* HeartSlider Styles — 3.4.4 */
 .heart-slideshow {
 	position: relative;
 	top: 0;
@@ -156,12 +156,28 @@
 	left: 50%;
 }
 
+.progress-container.type-dot {
+	--dot-size: 6px;
+	--gutter: 0;
+}
+
+@media screen and (min-width: 1024px) {
+	.progress-container.type-dot {
+		--gutter: calc(15vw / var(--total));
+	}
+}
+
+.progress-container.type-dash {
+	--gutter: 1%;
+}
+
 .progress-container {
 	--max-container-width: 100vw;
 	position: absolute;
 	top: auto;
 	right: 0;
 	bottom: 0;
+	bottom: env(safe-area-inset-bottom);
 	left: 0;
 	z-index: 50;
 	margin: 0 auto;
@@ -173,11 +189,6 @@
 	width: 100%;
 	width: calc(var(--max-container-width, 100vw) / calc(5 + var(--total)) * var(--total));
 	max-width: calc(4rem * var(--total));
-}
-
-.progress-container.type-dot {
-	--dot-size: 10px;
-	--gutter: 8px;
 	gap: var(--gutter, 0);
 }
 
@@ -197,12 +208,19 @@
 
 .type-dot .indicator {
 	box-sizing: content-box;
-	height: calc(var(--dot-size, 10px) + 4px);
-	width: calc(var(--dot-size, 10px) + 10px);
-	/* max-width: 20px; */
-	/* max-width: calc(var(--dot-size, 10px) * 2); */
-	padding: 8px;
+	height: calc(var(--dot-size, 10px) * 2);
+	/* width: calc(var(--dot-size, 10px) + 10px); */
+	width: calc(var(--dot-size, 10px) * 2);
+	/* min-width: calc(var(--dot-size, 10px) * 2); */
+	max-width: calc(var(--total) / 100 * 1%);
+	padding: 6px;
 	padding: calc(var(--dot-size, 10px) / 2);
+}
+
+@media screen and (min-width: 1024px) {
+	.type-dot .indicator {
+		min-width: calc(var(--dot-size, 10px) * 2);
+	}
 }
 
 .progress-container button {
@@ -213,8 +231,8 @@
 .indicator::before {
 	content: "";
 	position: absolute;
-	left: 5px;
-	right: 5px;
+	left: 0;
+	right: 0;
 	margin: 0 auto;
 	height: inherit;
 	width: auto;
@@ -224,18 +242,27 @@
 }
 
 .type-dot .indicator::before {
-	left: 5px;
+	/* left: 5px;
 	left: calc(var(--dot-size, 10px) / 2);
 	right: 5px;
-	right: calc(var(--dot-size, 10px) / 2);
-	top: calc(var(--dot-size, 10px) / 2 + 2px);
+	right: calc(var(--dot-size, 10px) / 2); */
+	/* top: calc(var(--dot-size, 10px) / 2 + 2px);
 	height: calc(var(--dot-size, 10px) - 4px);
-	width: calc(var(--dot-size, 10px) - 4px);
-	border: 1px solid var(--indicator-color, #fff);
+	width: calc(var(--dot-size, 10px) - 4px); */
+	/* border: 1px solid var(--indicator-color, #fff); */
+	aspect-ratio: 1 / 1;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	height: auto;
+	width: 30%;
+	min-width: var(--dot-size);
+	margin: auto;
 	border-radius: 50%;
 }
 
-.type-dot .indicator::after {
+/* .type-dot .indicator::after {
 	content: "";
 	position: absolute;
 	left: 0;
@@ -247,7 +274,7 @@
 	border: 1px solid var(--indicator-color, #fff);
 	opacity: 0.35;
 	border-radius: 50%;
-}
+} */
 
 /* .indicator.active::after {
 	opacity: 0;

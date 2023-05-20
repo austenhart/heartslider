@@ -18,6 +18,7 @@ Features:
 
 Change Log:
 
+-   3.4.4 - Made dots look less awful. Added 'firstImageLoad' callback.
 -   3.4.3 - Added 'dots' for indicators and babel to workflow
 -   3.4.2 - Reverted 'first-image-loaded' class
 -   3.4.1 - Fixed issue with initing multiple slideshows
@@ -50,11 +51,8 @@ Change Log:
 
 To Do:
 
--   [ ] Add firstImageLoaded callback
 -   [ ] Destroy function (including all event listeners, timers, classnames and attributes)
 -   [ ] If video is not long enough, slow it down at the end to prevent abrupt stop
--   [ ] Add type: "dot" option to indicators
--   [ ] Add progress indicator options (dots or dashes, with fill)
 -   [ ] Add fadeRight or fadeLeft effect
 -   [ ] Fix onTransitionEnd function timing
 -   [ ] Expose a goTo function, add index and skip animation option
@@ -65,9 +63,12 @@ To Do:
 -   [ ] Add counter (with custom separator, place inside heart-slideshow?)
 -   [ ] Potentially add inner-container to house buttons and counter
 -   [ ] Add support for the <picture> and elements with multiple sources
--   [ ] Fix stutter issue when changing tabs
 -   [ ] Live swipe transition progress
 -   [ ] Use JS bind() function instead of using "\_this" variable
+-   [x] Fix stutter issue when changing tabs
+-   [x] Add type: "dot" option to indicators
+-   [x] Add firstImageLoaded callback
+-   [x] Add progress indicator options (dots or dashes, with fill)
 -   [x] Support for <video>
 -   [x] Remove delay when setting slideshows to paused
 -   [x] Better way to manage multiple slideshows
@@ -84,4 +85,4 @@ To Do:
 
 '''''''''''''''
 
-#### Last Updated: May, 5 2023
+#### Last Updated: May, 20 2023

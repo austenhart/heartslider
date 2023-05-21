@@ -8,16 +8,16 @@ for (const slideshow of allSlideshows) {
 		manualTransition: 200,
 		delay: 1000,
 		loop: true,
-		randomize: false, // give option for "start" and "all"
+		randomize: true, // give option for "start" and "all"
 		paused: false,
 		effect: "fadeOut",
 		buttons: false,
 		swipe: true,
-		clickToAdvance: false,
+		clickToAdvance: true,
 		pauseOnInactiveWindow: true,
 		// NEW
 		progressIndicators: {
-			type: "dot", // "dash" is default
+			type: "dash", // "dash" is default
 			clickable: true,
 			color: "#fff",
 		},

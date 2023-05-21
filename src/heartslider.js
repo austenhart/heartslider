@@ -1,6 +1,6 @@
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.4.4 ❤
+❤ Version 3.4.5 ❤
 
 === Steps to Push New Version ===
 1) Update Changelog and version number in .js, .css, readme.md, and package.json
@@ -9,6 +9,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.4.5 - Fixed gap with dash, smoother visibilityHandler animations
 3.4.4 - Made dots look less awful. Added 'firstImageLoad' callback.
 3.4.3 - Added 'dots' for indicators and babel to workflow
 3.4.2 - Reverted 'first-image-loaded' class
@@ -140,7 +141,7 @@ class HeartSlider {
 		if (this.slides.length < 2) return false;
 
 		if (!_this.settings.progressive) {
-			setTimeout(function () {
+			setTimeout(() => {
 				_this.slideshowSelector.classList.add("progressive-loading-disabled");
 				_this.kickstart();
 			}, 100);
@@ -160,19 +161,18 @@ class HeartSlider {
 
 		if (_this.settings.clickToAdvance) {
 			var throttleClick;
-			// var _this.throttleClickResume;
 			_this.slideshowSelector.addEventListener(
 				"click",
 				function (event) {
 					if (throttleClick || event.target.nodeName === "BUTTON") return;
 					_this.pause();
 					_this.next(_this, true, false, true);
-					throttleClick = setTimeout(function () {
+					throttleClick = setTimeout(() => {
 						throttleClick = undefined;
 					}, _this.settings.manualTransition);
 					if (!_this.originallyPaused) {
 						if (_this.throttleClickResume) clearTimeout(_this.throttleClickResume);
-						_this.throttleClickResume = setTimeout(function () {
+						_this.throttleClickResume = setTimeout(() => {
 							_this.resume();
 						}, _this.settings.transition + _this.settings.delay * 1.25);
 					}
@@ -224,13 +224,13 @@ class HeartSlider {
 					const skipDefaultTransition = true;
 					_this.goToSlide(index, isManuallyCalled, isFirstSlide, skipDefaultTransition);
 
-					throttleClick = setTimeout(function () {
+					throttleClick = setTimeout(() => {
 						throttleClick = undefined;
 					}, _this.settings.manualTransition);
 
 					if (!_this.originallyPaused) {
 						if (_this.throttleClickResume) clearTimeout(_this.throttleClickResume);
-						_this.throttleClickResume = setTimeout(function () {
+						_this.throttleClickResume = setTimeout(() => {
 							_this.resume();
 						}, _this.settings.transition + _this.settings.delay * 1);
 					}
@@ -256,7 +256,7 @@ class HeartSlider {
 				} else if (button.classList.contains("heart-prev")) {
 					_this.previous(_this, true, false, true);
 				}
-				throttleClick = setTimeout(function () {
+				throttleClick = setTimeout(() => {
 					throttleClick = undefined;
 				}, 200);
 			}
@@ -301,7 +301,7 @@ class HeartSlider {
 				_this.firstImageLoad(_this);
 			}
 			var startProgressiveLoad = function startProgressiveLoad() {
-				setTimeout(function () {
+				setTimeout(() => {
 					_this.progressiveLoad((_this.firstIndex + 1 + _this.total) % _this.total);
 				}, _this.settings.delay);
 			};
@@ -309,7 +309,7 @@ class HeartSlider {
 			window.requestAnimationFrame(startProgressiveLoad);
 		}
 		if (!_this.settings.paused) {
-			_this.kickoffTimer = setTimeout(function () {
+			_this.kickoffTimer = setTimeout(() => {
 				_this.resume();
 				_this.kickoffTimer = undefined;
 			}, _this.settings.delay * 0.5 + _this.settings.transition);
@@ -401,23 +401,41 @@ class HeartSlider {
 		};
 	}
 	heartVisibilityHandler(_this = this) {
+		let targetSlide = _this.currentSlide;
+		let prevSlide = _this.previousSlide;
+		_this.currentSlideProgress = _this.currentSlideProgress || 0;
 		/* Disables the slideshow when the window in not in view */
 		if (_this !== null && _this.settings.pauseOnInactiveWindow && _this.settings.slideshow !== null) {
 			if (document.visibilityState == "hidden") {
 				console.log("%cWindow Lost Focus. HeartSlider is Paused.", "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
 				_this.pause();
-				let prevSlideOpacity = window.getComputedStyle(_this.previousSlide).opacity;
-				// const prevSlideProgress = 1 - prevSlideOpacity;
-				_this.previousSlide.style.opacity = prevSlideOpacity;
-				/* MUST set transition to none in order to override the css transition */
-				_this.previousSlide.style.transitionDuration = "0";
+				let currentSlideOpacity = window.getComputedStyle(targetSlide).opacity;
+				_this.currentSlideProgress = 1 - currentSlideOpacity;
+				if (_this.currentSlideProgress > 0) {
+					targetSlide.style.opacity = _this.currentSlideProgress;
+					prevSlide.style.opacity = 1;
+				}
 			} else {
-				_this.previousSlide.style.opacity = "";
 				console.log("%cRegained Focus. Resumed HeartSlider.", "font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;");
-				_this.currentSlide.transitionDuration = 0;
+				if (_this.currentSlideProgress > 0) {
+					targetSlide.style.transitionDuration = _this.settings.transition * _this.currentSlideProgress + "ms";
+					targetSlide.style.transitionTimingFunction = "ease-out";
+				}
+				targetSlide.style.opacity = "";
+				prevSlide.style.opacity = "";
 				// console.log(`resuming in ${_this.settings.delay * 0.75}ms`);
-				_this.visResumeTimer = setTimeout(_this.resume.bind(_this), _this.settings.delay * 0.75);
-				// _this.resume();
+				if (!_this.originallyPaused) {
+					if (_this.visResumeTimer) clearTimeout(_this.visResumeTimer);
+					const timeToResume = _this.settings.transition * _this.currentSlideProgress + _this.settings.delay;
+					_this.visResumeTimer = setTimeout(() => {
+						// resumeAfterVisChange(_this);
+						console.log("time to resume");
+						targetSlide.style.transitionDuration = "0ms";
+						targetSlide.style.transitionTimingFunction = "";
+						_this.resume();
+					}, timeToResume);
+				}
+				// return;
 			}
 		}
 	}
@@ -476,28 +494,32 @@ class HeartSlider {
 		function changeSlides() {
 			let prevSlideProgress = 1;
 			/* This part of the function smoothly transitions a skipped fade */
-			if (_this.previousSlide === _this.currentSlide && skipDefaultTransition) {
+			const prevSlide = _this.previousSlide;
+			if (prevSlide === _this.currentSlide && skipDefaultTransition) {
 				/* Clear any timeouts that were running */
 				clearTimeout(_this.manualTimeout);
 				clearInterval(_this.slideInterval);
 				/* Get the current opacity and apply it as an inline-style */
-				const prevSlideOpacity = window.getComputedStyle(_this.previousSlide).opacity;
+				const prevSlideOpacity = window.getComputedStyle(prevSlide).opacity;
 				prevSlideProgress = 1 - prevSlideOpacity;
-				_this.previousSlide.style.opacity = prevSlideOpacity;
+				prevSlide.style.opacity = prevSlideOpacity;
+				console.log(prevSlideOpacity);
 				/* MUST set transition to none in order to override the css transition */
-				_this.previousSlide.style.transition = "none";
+				prevSlide.style.transition = "none";
 				/* A moment later (1/60th of a second), give the slide the quick transition durations */
-				// setTimeout(function () {
-				// _this.previousSlide.style.transition = "opacity";
-				// _this.previousSlide.style.transitionDelay = 0 + "ms";
-				// _this.previousSlide.style.transitionDuration = duration * prevSlideProgress + "ms";
-				// _this.previousSlide.style.opacity = "";
+				window.requestAnimationFrame(() => {
+					prevSlide.style.transition = "opacity";
+					prevSlide.style.transitionDelay = 0 + "ms";
+					prevSlide.style.transitionDuration = duration * prevSlideProgress + "ms";
+					prevSlide.style.opacity = "";
+				});
+				// setTimeout(() => {
 				// }, 16.6667);
-			} else if (_this.previousSlide !== _this.currentSlide) {
+			} else if (prevSlide !== _this.currentSlide) {
 				/* remove styles from old slide */
-				_this.previousSlide.style.transitionDelay = duration + "ms";
-				_this.previousSlide.style.transitionDuration = 0 + "ms";
-				_this.previousSlide.classList.remove("active");
+				prevSlide.style.transitionDelay = duration + "ms";
+				prevSlide.style.transitionDuration = 0 + "ms";
+				prevSlide.classList.remove("active");
 			}
 			/* Check for video elements */
 			const videoElement = _this.currentSlide.querySelector("video");
@@ -524,7 +546,7 @@ class HeartSlider {
 						if (_this.videoSlideTimer) {
 							clearTimeout(_this.videoSlideTimer);
 						}
-						_this.videoSlideTimer = setTimeout(function () {
+						_this.videoSlideTimer = setTimeout(() => {
 							_this.resume();
 						}, videoSlideDuration + _this.settings.transition);
 					}
@@ -546,16 +568,16 @@ class HeartSlider {
 				_this.transitionStart(_this);
 			}
 
-			_this.transitionEndTimer = setTimeout(function () {
-				_this.previousSlide.style.transitionDelay = 0 + "ms";
-				_this.previousSlide.style.transitionDuration = 0 + "ms";
+			_this.transitionEndTimer = setTimeout(() => {
+				prevSlide.style.transitionDelay = 0 + "ms";
+				prevSlide.style.transitionDuration = 0 + "ms";
 				if (!isFirstSlide) {
-					_this.previousSlide.setAttribute("aria-hidden", "true");
-					_this.previousSlide.setAttribute("tab-index", "-1");
+					prevSlide.setAttribute("aria-hidden", "true");
+					prevSlide.setAttribute("tab-index", "-1");
 					if (_this.transitionEnd) {
 						_this.transitionEnd(_this);
 					}
-					const videoElement = _this.previousSlide.querySelector("video");
+					const videoElement = prevSlide.querySelector("video");
 					if (videoElement !== null) {
 						videoElement.pause();
 						videoElement.currentTime = 0;
@@ -763,6 +785,7 @@ class HeartSlider {
 		_this.prevNextHandler(previousIndex, indexToProgressiveLoad, isManuallyCalled);
 	};
 	resume = function (_this = this) {
+		// console.log("%cStarted Playing", "font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;");
 		if (_this.settings.paused) {
 			_this.settings.paused = false;
 		}
@@ -770,7 +793,7 @@ class HeartSlider {
 		var nextSlideIndex = (_this.index + 1 + _this.total) % _this.total;
 
 		if (_this.settings.progressive) {
-			setTimeout(function () {
+			setTimeout(() => {
 				_this.progressiveLoad((nextSlideIndex + 1 + _this.total) % _this.total);
 			}, _this.settings.delay);
 		}

@@ -1,4 +1,4 @@
-/* HeartSlider Styles — 3.4.4 */
+/* HeartSlider Styles — 3.4.5 */
 .heart-slideshow {
 	position: relative;
 	top: 0;
@@ -171,6 +171,7 @@
 
 .progress-container.type-dash {
 	--gutter: 1%;
+	--gutter: calc(20vw / calc(var(--total) * 3));
 }
 
 .progress-container {

@@ -429,7 +429,6 @@ class HeartSlider {
 					const timeToResume = _this.settings.transition * _this.currentSlideProgress + _this.settings.delay;
 					_this.visResumeTimer = setTimeout(() => {
 						// resumeAfterVisChange(_this);
-						console.log("time to resume");
 						targetSlide.style.transitionDuration = "0ms";
 						targetSlide.style.transitionTimingFunction = "";
 						_this.resume();

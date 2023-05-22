@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.4.5
+##### Version 3.4.6
 
 '''''''''''''''''
 
@@ -18,6 +18,7 @@ Features:
 
 Change Log:
 
+-   3.4.6 - Fixed loadHandler error
 -   3.4.5 - Fixed gap with dash, smoother visibilityHandler animations
 -   3.4.4 - Made dots look less awful. Added 'firstImageLoad' callback.
 -   3.4.3 - Added 'dots' for indicators and babel to workflow

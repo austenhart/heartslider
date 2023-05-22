@@ -1,6 +1,6 @@
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.4.5 ❤
+❤ Version 3.4.6 ❤
 
 === Steps to Push New Version ===
 1) Update Changelog and version number in .js, .css, readme.md, and package.json
@@ -9,6 +9,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.4.6 - Fixed loadHandler error
 3.4.5 - Fixed gap with dash, smoother visibilityHandler animations
 3.4.4 - Made dots look less awful. Added 'firstImageLoad' callback.
 3.4.3 - Added 'dots' for indicators and babel to workflow
@@ -593,6 +594,15 @@ class HeartSlider {
 		if (targetSlide !== null) {
 			var currentImages = Array.prototype.slice.call(targetSlide.querySelectorAll("img"));
 			if (!!currentImages && currentImages.length > 0) {
+				function loadHandler(currentImage, index) {
+					currentImage.classList.add("heart-loaded");
+					currentImage.classList.remove("heart-loading");
+					// console.log("%cFinished loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
+					if (isFirstSlide && index == 0) {
+						/* Start slideshow when finished loading first image */
+						_this.kickstart();
+					}
+				}
 				currentImages.forEach((currentImage, index) => {
 					if (currentImage == undefined || currentImage.classList.contains("heart-loaded") || currentImage.classList.contains("heart-loading") || currentImage.currentSrc === null) {
 						// console.log("%cSkip loading: " + target, "font-style: italic; font-size: 0.9em; color: red; padding: 0.2em;");
@@ -601,19 +611,10 @@ class HeartSlider {
 						// console.log("%cStart loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
 						currentImage.classList.add("heart-loading");
 
-						function loadHandler() {
-							this.classList.add("heart-loaded");
-							this.classList.remove("heart-loading");
-							// console.log("%cFinished loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
-							if (isFirstSlide && index == 0) {
-								/* Start slideshow when finished loading first image */
-								_this.kickstart();
-							}
-						}
 						if (currentImage.complete && currentImage.naturalWidth > 0) {
-							loadHandler.bind(currentImage)();
+							loadHandler(currentImage, index);
 						} else {
-							currentImage.onload = loadHandler.bind(currentImage);
+							currentImage.onload = loadHandler(currentImage, index);
 							var atts = ["sizes", "srcset", "src"];
 							atts.forEach(function (attribute) {
 								var targetAtt = currentImage.getAttribute("data-" + attribute);

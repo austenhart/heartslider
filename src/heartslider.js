@@ -458,11 +458,15 @@ class HeartSlider {
 		}
 		// this.settings.paused = false;
 
+		/* If targetIndex is not a number, then convert */
+		if(typeof targetIndex !== "number") targetIndex = parseInt(targetIndex);
+		
 		/* 
 		1) Remove the old active class
 		2) Find the new active slide
 		3) Add the new active class 
 		*/
+		
 		var _this = this;
 		this.previousSlide = this.slides[this.index];
 		var newTargetIndex = (targetIndex + this.total) % this.total;

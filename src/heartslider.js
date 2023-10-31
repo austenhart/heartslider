@@ -913,7 +913,7 @@ class HeartSlider {
 			this.pause();
 			this.goToSlide(jumpToIndex);
 		} else {
-			console.warn("Attempting to go to a slide that does not exist. \nSlide requested: " + jumpToIndex + " of " + this.total);
+			console.warn("Attempting to go to a slide that does not exist.", "Slide requested: " + jumpToIndex + " of " + this.total);
 		}
 	};
 	next = function (_this = this, isManuallyCalled = false) {

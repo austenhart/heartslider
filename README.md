@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.4.7
+##### Version 3.4.8
 
 '''''''''''''''''
 
@@ -18,6 +18,7 @@ Features:
 
 Change Log:
 
+-   3.4.8 - Fixed minified file issue.
 -   3.4.7 - Added Destroy and GoTo functions. Restored FadeInOut option for transition effect.
 -   3.4.6 - Fixed loadHandler error
 -   3.4.5 - Fixed gap with dash, smoother visibilityHandler animations

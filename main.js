@@ -1,40 +1,41 @@
 // main.js
-const allSlideshows = document.querySelectorAll(".heart-slideshow");
-for (const slideshow of allSlideshows) {
-	const homepageSlider = new HeartSlider({
-		slideshow: slideshow,
-		slides: ".heart-slide",
-		transition: 3000,
-		manualTransition: 200,
-		delay: 1000,
-		loop: true,
-		randomize: true, // give option for "start" and "all"
-		paused: false,
-		effect: "fadeOut",
-		buttons: false,
-		swipe: true,
-		clickToAdvance: true,
-		pauseOnInactiveWindow: true,
-		// NEW
-		progressIndicators: {
-			type: "dash", // "dash" is default
-			clickable: true,
-			color: "#fff",
-		},
-	});
+// const allSlideshows = document.querySelectorAll(".heart-slideshow");
+// for (const slideshow of allSlideshows) {
+const homepageSlider = new HeartSlider({
+	// slideshow: slideshow,
+	slides: ".heart-slide",
+	transition: 1000,
+	manualTransition: 700,
+	delay: 3000,
+	loop: true,
+	randomize: true, // give option for "start" and "all"
+	paused: true,
+	effect: "fadeInOut", // "fadeOut" or "fadeInOut"
+	buttons: true,
+	swipe: true,
+	clickToAdvance: true,
+	pauseOnInactiveWindow: true,
+	// NEW
+	progressIndicators: {
+		type: "dot", // "dash" is default
+		clickable: true,
+		color: "#fff",
+	},
+});
 
-	// Events
-	// homepageSlider.on("transitionStart", function (slideshow, slideshowElement, currentSlide) {
-	// 	/* Code that runs on the START of each new slide goes here */
-	// 	// console.log({ slideshow }, { slideshowElement }, { currentSlide });
-	// });
-	// homepageSlider.on("transitionEnd", function (slideshow, slideshowElement, currentSlide) {
-	// 	/* Code that runs at the END of each transition goes here */
-	// });
-	homepageSlider.on("firstImageLoad", function (slideshow, slideshowElement, currentSlide) {
-		document.body.classList.add("remove-intro");
-	});
-}
+// Events
+// homepageSlider.on("transitionStart", function (slideshow, slideshowElement, currentSlide) {
+// 	/* Code that runs on the START of each new slide goes here */
+// 	console.log({ slideshow }, { slideshowElement }, { currentSlide });
+// });
+// homepageSlider.on("transitionEnd", function (slideshow, slideshowElement, currentSlide) {
+/* Code that runs at the END of each transition goes here */
+// console.log("NOW!");
+// });
+homepageSlider.on("firstImageLoad", function (slideshow, slideshowElement, currentSlide) {
+	document.body.classList.add("remove-intro");
+});
+// }
 
 // Multiple Slideshows
 // homepageSlider.on("transitionEnd", function (slide) {

@@ -1,4 +1,4 @@
-/* HeartSlider Styles — 3.4.6 */
+/* HeartSlider Styles — 3.4.7 */
 .heart-slideshow {
 	position: relative;
 	top: 0;
@@ -104,6 +104,15 @@
 	transition: opacity 3s cubic-bezier(0.455, 0.03, 0.515, 0.955);
 }
 
+.fade-in-out .heart-slide {
+	-webkit-transition-timing-function: cubic-bezier(0.43, 0, 0.27, 1);
+	transition-timing-function: cubic-bezier(0.43, 0, 0.27, 1);
+}
+.fade-in-out .heart-slide.active {
+	-webkit-transition-timing-function: cubic-bezier(0.27, 0, 0.43, 1);
+	transition-timing-function: cubic-bezier(0.27, 0, 0.43, 1);
+}
+
 .heart-prev,
 .heart-next {
 	cursor: pointer;
@@ -186,8 +195,15 @@
 	margin: 0 auto;
 	padding: 1%;
 	text-align: center;
+	display: -webkit-box;
+	display: -ms-flexbox;
 	display: flex;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
+	-ms-flex-flow: row nowrap;
 	flex-flow: row nowrap;
+	-webkit-box-pack: center;
+	-ms-flex-pack: center;
 	justify-content: center;
 	width: 100%;
 	width: calc(var(--max-container-width, 100vw) / calc(5 + var(--total)) * var(--total));
@@ -196,6 +212,7 @@
 }
 
 .indicator {
+	-webkit-box-sizing: border-box;
 	box-sizing: border-box;
 	position: relative;
 	border: 0;
@@ -210,6 +227,7 @@
 }
 
 .type-dot .indicator {
+	-webkit-box-sizing: content-box;
 	box-sizing: content-box;
 	height: calc(var(--dot-size, 10px) * 2);
 	/* width: calc(var(--dot-size, 10px) + 10px); */
@@ -241,6 +259,7 @@
 	width: auto;
 	background: var(--indicator-color, #fff);
 	opacity: 0.25;
+	-webkit-transition: opacity 0.15s 0.1s ease-out;
 	transition: opacity 0.15s 0.1s ease-out;
 }
 
@@ -287,11 +306,13 @@
 button.indicator:hover::before,
 button.indicator:active::before {
 	opacity: 0.55;
+	-webkit-transition: opacity 0.15s ease-out;
 	transition: opacity 0.15s ease-out;
 }
 
 .progress-container .indicator.active::before {
 	opacity: 0.8;
+	-webkit-transition: opacity 0.15s 0.2s ease-out;
 	transition: opacity 0.15s 0.2s ease-out;
 }
 

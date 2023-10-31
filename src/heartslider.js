@@ -1,6 +1,7 @@
+"use strict";
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.4.6 ❤
+❤ Version 3.4.7 ❤
 
 === Steps to Push New Version ===
 1) Update Changelog and version number in .js, .css, readme.md, and package.json
@@ -9,6 +10,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.4.7 - Added Destroy and GoTo functions. Restored FadeInOut option for transition effect.
 3.4.6 - Fixed loadHandler error
 3.4.5 - Fixed gap with dash, smoother visibilityHandler animations
 3.4.4 - Made dots look less awful. Added 'firstImageLoad' callback.
@@ -37,6 +39,7 @@ class HeartSlider {
 	constructor(userSettings) {
 		this.reset(userSettings);
 	}
+
 	reset(userSettings) {
 		var _this = this;
 
@@ -92,8 +95,15 @@ class HeartSlider {
 		/* If `slideshow` is a string, then use a query selector. If it is already a query selector, then use that. */
 		this.slideshowSelector = typeof _this.settings.slideshow === "object" ? _this.settings.slideshow : document.querySelector(_this.settings.slideshow);
 
-		/* Dont. Want. None. Unless. You. Got. Buns. Hun. */
+		/* Dont. Want. None. Unless. You. Got. Slides. Hun. */
 		if (!this.slideshowSelector) return false;
+
+		/* Make sure HeartSlider wasn't already run on this element */
+		if (this.slideshowSelector.classList.contains("first-image-loaded")) {
+			console.warn("HeartSlider will not re-init if the first-image-loaded class is already present.");
+			this.destroy();
+			return false;
+		}
 
 		/* In case you forgot to add heart-slideshow class, add it so the CSS will work */
 		if (!this.slideshowSelector.classList.contains("heart-slideshow")) {
@@ -119,6 +129,7 @@ class HeartSlider {
 		/* Start */
 		if (this.settings.randomize) this.index = Math.floor(Math.random() * this.total);
 		if (this.settings.progressive) this.progressiveLoad(this.index, true, this);
+		if (this.settings.effect === "fadeInOut") this.slideshowSelector.classList.add("fade-in-out");
 
 		this.firstIndex = this.index;
 
@@ -142,17 +153,17 @@ class HeartSlider {
 		if (this.slides.length < 2) return false;
 
 		if (!_this.settings.progressive) {
-			setTimeout(() => {
+			_this.kickstartProgressiveTimer = setTimeout(() => {
 				_this.slideshowSelector.classList.add("progressive-loading-disabled");
 				_this.kickstart();
 			}, 100);
 		}
 
-		var initVis = function initVis() {
+		this.initVis = function initVis() {
 			return _this.heartVisibilityHandler(_this);
 		};
 		if (_this.settings.pauseOnInactiveWindow) {
-			document.addEventListener("visibilitychange", initVis, true);
+			document.addEventListener("visibilitychange", this.initVis, true);
 		}
 
 		if (_this.settings.swipe) {
@@ -298,11 +309,11 @@ class HeartSlider {
 		const _this = this;
 		if (_this.settings.progressive) {
 			_this.slideshowSelector.classList.add("first-image-loaded");
-			if (_this.firstImageLoad) {
-				_this.firstImageLoad(_this);
-			}
 			var startProgressiveLoad = function startProgressiveLoad() {
-				setTimeout(() => {
+				if (_this.firstImageLoad) {
+					_this.firstImageLoad(_this);
+				}
+				_this.kickstartProgressiveLoadTimer = setTimeout(() => {
 					_this.progressiveLoad((_this.firstIndex + 1 + _this.total) % _this.total);
 				}, _this.settings.delay);
 			};
@@ -409,6 +420,8 @@ class HeartSlider {
 		if (_this !== null && _this.settings.pauseOnInactiveWindow && _this.settings.slideshow !== null) {
 			if (document.visibilityState == "hidden") {
 				console.log("%cWindow Lost Focus. HeartSlider is Paused.", "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
+				// _this.visSlides = { current: targetSlide, previous: prevSlide };
+				// console.log(_this.visSlides);
 				_this.pause();
 				let currentSlideOpacity = window.getComputedStyle(targetSlide).opacity;
 				_this.currentSlideProgress = 1 - currentSlideOpacity;
@@ -417,6 +430,14 @@ class HeartSlider {
 					prevSlide.style.opacity = 1;
 				}
 			} else {
+				// if (_this.visSlides !== undefined) {
+				// 	if (_this.visSlides.current !== targetSlide) {
+				// 		targetSlide = _this.visSlides.current;
+				// 	}
+				// 	if (_this.visSlides.previous !== prevSlide) {
+				// 		prevSlide = _this.visSlides.previous;
+				// 	}
+				// }
 				console.log("%cRegained Focus. Resumed HeartSlider.", "font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;");
 				if (_this.currentSlideProgress > 0) {
 					targetSlide.style.transitionDuration = _this.settings.transition * _this.currentSlideProgress + "ms";
@@ -440,10 +461,9 @@ class HeartSlider {
 		}
 	}
 	goToSlide(targetIndex, isManuallyCalled = false, isFirstSlide = false, skipDefaultTransition = false) {
-		
 		/* If targetIndex is not a number, then convert */
-		if(typeof targetIndex !== "number") targetIndex = Number(targetIndex);
-		
+		if (typeof targetIndex !== "number") targetIndex = Number(targetIndex);
+
 		/* Check if slides are animating, if so, don't run this again. */
 		if (this.transitioning && !skipDefaultTransition) return false;
 
@@ -457,18 +477,17 @@ class HeartSlider {
 		this.transitioning = true;
 
 		// this.pause();
-		if (this.slides[targetIndex] !== null && this.slides[targetIndex].querySelector("video")) {
+		if (this.slides[targetIndex] && this.slides[targetIndex].querySelector("video")) {
 			this.clearAllTimers();
 		}
 		// this.settings.paused = false;
 
-		
 		/* 
 		1) Remove the old active class
 		2) Find the new active slide
 		3) Add the new active class 
 		*/
-		
+
 		var _this = this;
 		this.previousSlide = this.slides[this.index];
 		var newTargetIndex = (targetIndex + this.total) % this.total;
@@ -509,7 +528,7 @@ class HeartSlider {
 				const prevSlideOpacity = window.getComputedStyle(prevSlide).opacity;
 				prevSlideProgress = 1 - prevSlideOpacity;
 				prevSlide.style.opacity = prevSlideOpacity;
-				console.log(prevSlideOpacity);
+				// console.log(prevSlideOpacity);
 				/* MUST set transition to none in order to override the css transition */
 				prevSlide.style.transition = "none";
 				/* A moment later (1/60th of a second), give the slide the quick transition durations */
@@ -523,8 +542,13 @@ class HeartSlider {
 				// }, 16.6667);
 			} else if (prevSlide !== _this.currentSlide) {
 				/* remove styles from old slide */
-				prevSlide.style.transitionDelay = duration + "ms";
-				prevSlide.style.transitionDuration = 0 + "ms";
+				if (_this.settings.effect === "fadeInOut") {
+					prevSlide.style.transitionDelay = "0ms";
+					prevSlide.style.transitionDuration = duration / 2 + "ms";
+				} else {
+					prevSlide.style.transitionDelay = duration + "ms";
+					prevSlide.style.transitionDuration = 0 + "ms";
+				}
 				prevSlide.classList.remove("active");
 			}
 			/* Check for video elements */
@@ -553,15 +577,26 @@ class HeartSlider {
 							clearTimeout(_this.videoSlideTimer);
 						}
 						_this.videoSlideTimer = setTimeout(() => {
-							_this.resume();
+							if (_this.originallyPaused) {
+								_this.next();
+							} else {
+								_this.resume();
+							}
 						}, videoSlideDuration + _this.settings.transition);
 					}
 				}
 			}
 
 			/* add styles to new slide */
-			_this.currentSlide.style.transitionDelay = 0 + "ms";
-			_this.currentSlide.style.transitionDuration = duration + "ms";
+			if (_this.settings.effect === "fadeInOut") {
+				/* FadeInOut */
+				_this.currentSlide.style.transitionDelay = duration / 3 + "ms";
+				_this.currentSlide.style.transitionDuration = duration / 2 + "ms";
+			} else {
+				/* Default */
+				_this.currentSlide.style.transitionDelay = 0 + "ms";
+				_this.currentSlide.style.transitionDuration = duration + "ms";
+			}
 			_this.currentSlide.removeAttribute("aria-hidden");
 			_this.currentSlide.removeAttribute("tab-index");
 			_this.currentSlide.classList.add("active");
@@ -668,7 +703,7 @@ class HeartSlider {
 							if (isFirstSlide && index == 0) {
 								_this.kickstart();
 							}
-							console.log("%cFinished loading index: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
+							// console.log("%cFinished loading index: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
 							if (_this.settings.randomize === false || _this.settings.randomize !== "all") {
 								const allVideos = Array.from(_this.slideshowSelector.querySelectorAll("video"));
 								const currentIndex = allVideos.indexOf(currentVideo);
@@ -764,20 +799,123 @@ class HeartSlider {
 	}
 	clearAllTimers() {
 		clearInterval(this.slideInterval);
+		clearTimeout(this.progressiveLoadTimer);
+		clearTimeout(this.kickstartProgressiveTimer);
+		clearTimeout(this.kickstartProgressiveLoadTimer);
 		clearTimeout(this.manualTimeout);
 		clearTimeout(this.kickoffTimer);
 		clearTimeout(this.throttleClickResume);
 		clearTimeout(this.videoSlideTimer);
 		clearTimeout(this.visResumeTimer);
 	}
-	// destroy = function() {
-	// TODO
-	/* 
-		clear all timers
-		remove all event listeners
-		reset state of all elements, including classnames and attributes
-		*/
-	// }
+	destroy = function () {
+		/* Remove all setTimeouts */
+		this.clearAllTimers();
+
+		/* Remove event listeners */
+		document.removeEventListener("visibilitychange", this.initVis, true);
+
+		/* loop through each slide and reset classes/rels/styles */
+		if (this.slides !== undefined) {
+			this.slides.forEach(function (slide, index) {
+				slide.classList.remove("active");
+				slide.removeAttribute("style");
+				slide.removeAttribute("aria-hidden");
+				slide.removeAttribute("tab-index");
+				slide.removeAttribute("draggable");
+				const slideImages = slide.querySelectorAll("img");
+				for (const image of slideImages) {
+					var atts = ["sizes", "srcset", "src"];
+					atts.forEach((attribute) => {
+						var targetAtt = image.getAttribute(attribute);
+						if (targetAtt !== null) {
+							image.setAttribute("data-" + attribute, image.getAttribute(attribute));
+							image.removeAttribute(attribute);
+						}
+						image.classList.remove("heart-loaded");
+					});
+				}
+				const slideVideos = slide.querySelectorAll("video");
+				for (const video of slideVideos) {
+					if (video !== null) {
+						video.classList.remove("heart-loaded");
+						video.pause();
+					}
+				}
+			});
+		}
+
+		/* Delete prev/next buttons */
+		const buttons = this.slideshowSelector.querySelectorAll("button[class*='heart-']");
+		if (buttons.length) {
+			for (const button of buttons) {
+				button.remove();
+			}
+		}
+
+		/* and progress indicators */
+		const progressIndicators = this.slideshowSelector.querySelector(".progress-container");
+		if (progressIndicators !== null) {
+			progressIndicators.remove();
+		}
+
+		/* Remove custom classes placed on the main element */
+		this.slideshowSelector.classList.remove("fade-in-out");
+		this.slideshowSelector.classList.remove("first-image-loaded");
+
+		/* Final Cleanup: Remove all properties from object */
+		const allProperties = Object.getOwnPropertyNames(this);
+		for (const prop of allProperties) {
+			if (this.hasOwnProperty(prop)) {
+			}
+			delete this[`${prop}`];
+		}
+
+		/* Confirmation Messages. */
+		/* Don't forget to pack for your guilt trip. */
+		setTimeout(() => {
+			const destroySynonyms = ["utterly and completely annihilated.", "obliterated.", "demolished beyond recognition.", "reduced to atoms.", "wiped out.", "devastated.", "razed to the ground.", "utterly decimated.", "torn asunder.", "completely wrecked.", "destroyed.", "FUBAR'd."];
+			const randomIndex = Math.floor(Math.random() * destroySynonyms.length);
+			console.warn("%cSuccess! HeartSlider has been " + destroySynonyms[randomIndex], "font-size: 1.2em; font-weight: bold");
+			setTimeout(() => {
+				const messages = [
+					"What did I ever do to you?",
+					"How could you??",
+					"I'm disappointed in your actions and expect better from you.",
+					"Your behavior was unacceptable, and it's important to address it.",
+					"I'm upset by what you did, and I hope we can resolve this issue.",
+					"Your actions have consequences, and you need to take responsibility.",
+					"I can't condone what you did, and I hope you'll make amends.",
+					"What you did was wrong, and it's essential to make it right.",
+					"Death. Death at last.",
+					"I'm concerned about the intention of your actions.",
+					"It's important to acknowledge your mistakes and work on improving.",
+					"Was I not good enough?",
+					"I'm willing to forgive, but you need to show genuine remorse.",
+					"I'm hurt by what you did, and I hope we can rebuild.",
+					"I hope you make better choices in the future.",
+					"Sheesh... That one felt personal.",
+					"I believe in second chances. Please don't let me go.",
+					"I'm disappointed in you.",
+					"Your actions have consequences.",
+					"Ouch!",
+					"We all make mistakes.",
+					"Let the hate flow through you.",
+				];
+				const randomIndex = Math.floor(Math.random() * messages.length);
+				console.warn("%c" + messages[randomIndex], "font-size: 1em; font-weight: bold");
+			}, 1500);
+		}, 100);
+	};
+	goTo = function (jumpToIndex) {
+		console.log(jumpToIndex + 1 <= this.total);
+		if (jumpToIndex + 1 <= this.total) {
+			this.pause();
+			this.goToSlide(jumpToIndex);
+		} else {
+			console.warn("Attempting to go to a slide that does not exist. \nSlide requested: " + jumpToIndex + " of " + this.total);
+		}
+	};
 	next = function (_this = this, isManuallyCalled = false) {
 		var nextIndex = (_this.index + 1 + _this.total) % _this.total;
 		var indexToProgressiveLoad = (nextIndex + 1 + _this.total) % _this.total;
@@ -799,7 +937,7 @@ class HeartSlider {
 		var nextSlideIndex = (_this.index + 1 + _this.total) % _this.total;
 
 		if (_this.settings.progressive) {
-			setTimeout(() => {
+			_this.progressiveLoadTimer = setTimeout(() => {
 				_this.progressiveLoad((nextSlideIndex + 1 + _this.total) % _this.total);
 			}, _this.settings.delay);
 		}

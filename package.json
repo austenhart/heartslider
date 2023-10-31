@@ -1,6 +1,6 @@
 {
 	"name": "heartslider",
-	"version": "3.4.8",
+	"version": "3.4.9",
 	"description": "An Elegant Slideshow",
 	"main": "heartslider.js",
 	"style": "heartslider.css",
@@ -8,7 +8,7 @@
 	"scripts": {
 		"babelfy": "babel src -d dist && minify dist/heartslider.js --out-file dist/heartslider.min.js --mangle false && rm dist/heartslider.js",
 		"version:extract": "cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]'",
-		"version:append": "echo /* ❤  HeartSlider v$(npm run version:extract --silent) ❤ */\r$(cat dist/heartslider.min.js) > dist/heartslider.min.js && echo /* ❤  HeartSlider Styles v$(npm run version:extract --silent) ❤ */\r$(cat dist/heartslider.min.css) > dist/heartslider.min.css",
+		"version:append": "echo '/* ❤ HeartSlider 'v$(npm run version:extract --silent)' ❤ */'\r$(cat dist/heartslider.min.js) > dist/heartslider.min.js && echo '/* ❤ HeartSlider Styles 'v$(npm run version:extract --silent)' ❤ */'\r$(cat dist/heartslider.min.css) > dist/heartslider.min.css",
 		"build": "npm run babelfy && postcss src/heartslider.css > dist/heartslider.min.css && npm run version:append"
 	},
 	"repository": {

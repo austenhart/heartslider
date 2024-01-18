@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.4.9
+##### Version 3.4.10
 
 '''''''''''''''''
 
@@ -18,6 +18,7 @@ Features:
 
 Change Log:
 
+-   3.4.10 - Added CSS to package.json.
 -   3.4.9 - Fixed package.json command.
 -   3.4.8 - Fixed minified file issue.
 -   3.4.7 - Added Destroy and GoTo functions. Restored FadeInOut option for transition effect.
@@ -90,4 +91,4 @@ To Do:
 
 '''''''''''''''
 
-#### Last Updated: Oct, 31 2023
+#### Last Updated: Jan, 18 2024

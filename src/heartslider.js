@@ -1,7 +1,7 @@
 "use strict";
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.4.9 ❤
+❤ Version 3.4.10 ❤
 
 === Steps to Push New Version ===
 1) Update Changelog and version number in .js, .css, readme.md, and package.json
@@ -10,6 +10,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.4.10 - Added CSS to package.json.
 3.4.9 - Fixed package.json command.
 3.4.8 - Fixed minified file issue.
 3.4.7 - Added Destroy and GoTo functions. Restored FadeInOut option for transition effect.

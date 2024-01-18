@@ -28,7 +28,12 @@
 	"homepage": "https://heartslider.com/",
 	"exports": {
 		".": {
-			"import": "./dist/heartslider.min.js"
+			"import": "./dist/heartslider.min.js",
+			"require": "./dist/heartslider.min.js"
+		},
+		"./dist/*.css": {
+			"import": "./dist/*.css",
+			"require": "./dist/*.css"
 		}
 	},
 	"devDependencies": {

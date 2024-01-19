@@ -1,6 +1,6 @@
 {
 	"name": "heartslider",
-	"version": "3.4.10",
+	"version": "3.4.11",
 	"description": "An Elegant Slideshow",
 	"main": "heartslider.js",
 	"style": "heartslider.css",

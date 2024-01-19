@@ -10,7 +10,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
-3.4.11 - Added export for NPM.
+3.4.11 - Added module file for NPM imports (mjs).
 3.4.10 - Added CSS to package.json.
 3.4.9 - Fixed package.json command.
 3.4.8 - Fixed minified file issue.
@@ -959,4 +959,3 @@ class HeartSlider {
 		}
 	};
 }
-export { HeartSlider };

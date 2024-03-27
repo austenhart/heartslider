@@ -1,4 +1,4 @@
-/* HeartSlider Styles — 3.4.11 */
+/* HeartSlider Styles — 3.4.12 */
 .heart-slideshow {
 	position: relative;
 	top: 0;
@@ -163,6 +163,9 @@
 
 .heart-next {
 	left: 50%;
+}
+.progress-container {
+	--total: 4; /* to be overridden by javascript */
 }
 
 .progress-container.type-dot {

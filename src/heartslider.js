@@ -1,7 +1,7 @@
 "use strict";
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.4.11 ❤
+❤ Version 3.4.12 ❤
 
 === Steps to Push New Version ===
 1) Update Changelog and version number in .js, .css, readme.md, and package.json
@@ -10,6 +10,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.4.12 - Fixed issue with duplicated active class.
 3.4.11 - Added module file for NPM imports (mjs).
 3.4.10 - Added CSS to package.json.
 3.4.9 - Fixed package.json command.
@@ -465,7 +466,7 @@ class HeartSlider {
 		}
 	}
 	goToSlide(targetIndex, isManuallyCalled = false, isFirstSlide = false, skipDefaultTransition = false) {
-		/* If targetIndex is not a number, then convert */
+		/* If targetIndex is not a number, then convert it */
 		if (typeof targetIndex !== "number") targetIndex = Number(targetIndex);
 
 		/* Check if slides are animating, if so, don't run this again. */
@@ -601,6 +602,27 @@ class HeartSlider {
 				_this.currentSlide.style.transitionDelay = 0 + "ms";
 				_this.currentSlide.style.transitionDuration = duration + "ms";
 			}
+
+			/* Broad fix for bug that causes duplicate active slides */
+			/*
+			 * Some issues/questions that may arise...
+			 * 1) How do we know definitely which "active" is correct?
+			 * 2) Will the previous slide ever misalign?
+			 * 3) Can this section be more function or promise-based, with less dependency on timers?
+			 * 4) Instead of looping through all of them, is there a more targeted way to figure out which slide shouldn't have "active"?
+			 */
+			if (_this.slides.length) {
+				for (const slide of _this.slides) {
+					if (slide.classList.contains("active")) {
+						slide.classList.remove("active");
+						slide.style.transitionDelay = 0 + "ms";
+						slide.style.transitionDuration = 0 + "ms";
+					}
+				}
+			}
+			/* End fix */
+
+			/* Add active state to current slide */
 			_this.currentSlide.removeAttribute("aria-hidden");
 			_this.currentSlide.removeAttribute("tab-index");
 			_this.currentSlide.classList.add("active");

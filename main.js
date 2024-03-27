@@ -9,15 +9,15 @@ const homepageSlider = new HeartSlider({
 	delay: 3000,
 	loop: true,
 	randomize: true, // give option for "start" and "all"
-	paused: true,
-	effect: "fadeInOut", // "fadeOut" or "fadeInOut"
-	buttons: true,
+	paused: false,
+	effect: "fadeOut", // "fadeOut" or "fadeInOut"
+	buttons: false,
 	swipe: true,
 	clickToAdvance: true,
-	pauseOnInactiveWindow: true,
+	pauseOnInactiveWindow: false,
 	// NEW
 	progressIndicators: {
-		type: "dot", // "dash" is default
+		// type: "dot", // "dash" is default
 		clickable: true,
 		color: "#fff",
 	},

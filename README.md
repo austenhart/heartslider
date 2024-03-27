@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.4.11
+##### Version 3.4.12
 
 '''''''''''''''''
 
@@ -18,6 +18,7 @@ Features:
 
 Change Log:
 
+-   3.4.12 - Fixed issue with duplicated active class.
 -   3.4.11 - Added module file for NPM imports (mjs).
 -   3.4.10 - Added CSS to package.json.
 -   3.4.9 - Fixed package.json command.
@@ -92,4 +93,4 @@ To Do:
 
 '''''''''''''''
 
-#### Last Updated: Jan, 19 2024
+#### Last Updated: March, 27 2024

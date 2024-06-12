@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.4.12
+##### Version 3.4.13
 
 '''''''''''''''''
 
@@ -18,6 +18,7 @@ Features:
 
 Change Log:
 
+-   3.4.13 - Prevented videos from auto-playing paused slideshows.
 -   3.4.12 - Fixed issue with duplicated active class.
 -   3.4.11 - Added module file for NPM imports (mjs).
 -   3.4.10 - Added CSS to package.json.

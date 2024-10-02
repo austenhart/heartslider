@@ -419,6 +419,8 @@ class HeartSlider {
 		function handleMouseDown(evt) {
 			/* Variables */
 			let xDown = evt.clientX;
+			let deltaX = 0;
+			_this.previousSwipeTarget = _this.index;
 			_this.swipeTarget = _this.index;
 			// const currentIndex = _this.index;
 			// console.log(currentIndex);
@@ -431,14 +433,18 @@ class HeartSlider {
 			// let yDown = evt.clientY;
 
 			/* End / Cleanup */
-			const endMove = function () {
-				xDown = null;
+			const endMove = function (evt) {
 				// yDown = null;
 
 				/* Eventually this will need to either transition back to
 				 * the current slide, or animate over to the next one */
+				// console.log(_this.swipeTarget);
+				console.log(_this.previousSwipeTarget);
+				// console.log(deltaX);
+				// _this.goTo(_this.previousSwipeTarget);
 
 				/* Remove Events */
+				xDown = null;
 				window.removeEventListener("mousemove", handleMouseMove);
 				window.removeEventListener("mouseup", endMove);
 			};
@@ -447,12 +453,11 @@ class HeartSlider {
 			function handleMouseMove(evt) {
 				// console.log(evt);
 				const x = evt.clientX;
-				const speed = Math.abs(evt.movementX);
 				// const y = evt.clientY;
-				const deltaX = xDown - x;
+				deltaX = xDown - x;
 				// console.log(xDown, x);
 				// console.log(deltaX);
-				_this.liveProgress(deltaX, speed);
+				_this.liveProgress(deltaX);
 				/* Add in threshold for accidental click and drags */
 			}
 
@@ -468,22 +473,33 @@ class HeartSlider {
 			handleTouchMove: handleTouchMove,
 		};
 	}
-	liveProgress(delta, speed) {
+	liveProgress(delta) {
 		// console.log(delta < 0);
-		const direction = delta > 0 ? 1 : -1;
-		const distanceToNextSlide = 200;
-		// const speedModifier = speed * 10;
-		// console.log(speedModifier);
-		// const deltaInDec = delta / (distanceToNextSlide + speedModifier);
+		// const direction = delta > 0 ? 1 : -1;
+		// const distanceToNextSlide = 200;
+
+		/* What this does: Allows each slide take progressively longer to swipe to */
+		const increaseDistanceOnSwipe = Math.abs(delta) / 5 ?? 0;
+		const distanceToNextSlide = 100 + increaseDistanceOnSwipe;
+
+		/* Converts the change in mouse position to a percentage (decimal) of the distanceToNextSlide */
 		const deltaInDec = delta / distanceToNextSlide;
 
-		const slideSelector = delta > 0 ? Math.ceil(deltaInDec) : Math.floor(deltaInDec);
+		/* Identifies which slide we're trying to change */
+		const updatedSlideIndex = delta > 0 ? Math.ceil(deltaInDec) : Math.floor(deltaInDec);
+		const nextActiveSlideIndex = (updatedSlideIndex + this.total) % this.total;
 
-		const nextActiveSlideIndex = (this.index + slideSelector + this.total) % this.total;
 		if (this.swipeTarget !== nextActiveSlideIndex) {
 			// if (this.slides[this.swipeTarget] !== null) {
 			// 	this.slides[this.swipeTarget].style = "opacity: 1";
 			// }
+			// console.log(nextActiveSlideIndex);
+			// console.log("before", this.previousSwipeTarget);
+
+			// this.slides[this.previousSwipeTarget].style = "";
+			this.previousSwipeTarget = this.swipeTarget;
+			this.goTo(this.previousSwipeTarget);
+			// console.log("after", this.previousSwipeTarget);
 			this.progressiveLoad(nextActiveSlideIndex);
 			this.swipeTarget = nextActiveSlideIndex;
 		}
@@ -497,11 +513,14 @@ class HeartSlider {
 		}
 		// const deltaInPerc = Math.abs(delta * 0.005);
 		// console.log(deltaInPerc);
-		// console.log(deltaInDec - slideSelector);
-		const normalizedChange = 1 - easeInOutQuad(deltaInDec - slideSelector);
+		// console.log(deltaInDec - updatedSlideIndex);
+
+		/* Ease the change in slide transition to make it feel more gradual.
+		 * Subtracts the updatedSlideIndex to get a number between 0 and 1.  */
+		const normalizedChange = 1 - easeInOutQuad(deltaInDec - updatedSlideIndex);
 
 		// console.log(normalizedChange);
-		this.slides[nextActiveSlideIndex].style.zIndex = 30 + Math.abs(slideSelector);
+		this.slides[nextActiveSlideIndex].style.zIndex = 30 + Math.abs(updatedSlideIndex);
 		this.slides[nextActiveSlideIndex].style.visibility = "visible";
 		this.slides[nextActiveSlideIndex].style.transition = "none";
 		this.slides[nextActiveSlideIndex].style.opacity = normalizedChange;
@@ -519,7 +538,9 @@ class HeartSlider {
 		/* Disables the slideshow when the window in not in view */
 		if (_this !== null && _this.settings.pauseOnInactiveWindow && _this.settings.slideshow !== null) {
 			if (document.visibilityState == "hidden") {
-				console.log("%cWindow Lost Focus. HeartSlider is Paused.", "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
+				if (_this.settings.debug) {
+					console.log("%cWindow Lost Focus. HeartSlider is Paused.", "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
+				}
 				// _this.visSlides = { current: targetSlide, previous: prevSlide };
 				// console.log(_this.visSlides);
 				_this.pause();
@@ -538,7 +559,9 @@ class HeartSlider {
 				// 		prevSlide = _this.visSlides.previous;
 				// 	}
 				// }
-				console.log("%cRegained Focus. Resumed HeartSlider.", "font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;");
+				if (_this.settings.debug) {
+					console.log("%cRegained Focus. Resumed HeartSlider.", "font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;");
+				}
 				if (_this.currentSlideProgress > 0) {
 					targetSlide.style.transitionDuration = _this.settings.transition * _this.currentSlideProgress + "ms";
 					targetSlide.style.transitionTimingFunction = "ease-out";

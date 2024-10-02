@@ -60,38 +60,21 @@ Change Log:
 
 To Do:
 
--   [ ] If video is not long enough, slow it down at the end to prevent abrupt stop
--   [ ] Add fadeRight or fadeLeft effect
 -   [ ] Delay start
+-   [ ] Make randomize a string with 'start' and 'all' options – change to "random"
+-   [ ] If video is not long enough, slow it down at the end to prevent abrupt stop
+-   [ ] Add default slide effects [directional fades, or built-in Ken Burns]
 -   [ ] Add ability to navigate with arrow keys
--   [ ] Make randomize a string with 'start' and 'all' options
--   [ ] Add counter (with custom separator, place inside heart-slideshow?)
--   [ ] Add support for the <picture> and elements with multiple sources
 -   [ ] Live swipe transition progress
+-   [ ] Add counter (with custom separator)
+-   [ ] Add debugging option
 -   [ ] Use JS bind() function instead of using "\_this" variable
+-   [ ] Add support for <picture> and elements with multiple sources
 -   [x] Potentially add inner-container to house buttons and counter
 -   [x] Expose a goTo function, add index and skip animation option
 -   [x] Restore transition animation options (crossfade vs fadeout)
 -   [x] Destroy function (including all event listeners, timers, classnames and attributes)
--   [x] Fix onTransitionEnd function timing
--   [x] Fix stutter issue when changing tabs
--   [x] Add type: "dot" option to indicators
--   [x] Add firstImageLoaded callback
--   [x] Add progress indicator options (dots or dashes, with fill)
--   [x] Support for <video>
--   [x] Remove delay when setting slideshows to paused
--   [x] Better way to manage multiple slideshows
--   [x] Add callback functions
--   [x] Make sure slideshow initializes when not using data-src or data-srcset
--   [x] Fix - clicking too soon after start skips slide transition for the first two slides
--   [x] Add first image loaded callback
--   [x] Add native support for prev/next buttons
--   [x] Fix pause not working
--   [x] Fix jump to second slide on click when slideshow is paused
--   [x] Swipe to advance
--   [x] Manually advancing a slide should transition quicker (or a custom time)
--   [x] Wait until first image load to start timer
 
 '''''''''''''''
 
-#### Last Updated: March, 27 2024
+#### Last Updated: August 16, 2024

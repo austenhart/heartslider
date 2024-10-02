@@ -8,12 +8,12 @@ const homepageSlider = new HeartSlider({
 	manualTransition: 700,
 	delay: 3000,
 	loop: true,
-	randomize: true, // give option for "start" and "all"
-	paused: false,
+	randomize: false, // give option for "start" and "all"
+	paused: true,
 	effect: "fadeOut", // "fadeOut" or "fadeInOut"
 	buttons: false,
 	swipe: true,
-	clickToAdvance: true,
+	clickToAdvance: false,
 	pauseOnInactiveWindow: false,
 	// NEW
 	progressIndicators: {
@@ -32,9 +32,9 @@ const homepageSlider = new HeartSlider({
 /* Code that runs at the END of each transition goes here */
 // console.log("NOW!");
 // });
-homepageSlider.on("firstImageLoad", function (slideshow, slideshowElement, currentSlide) {
-	document.body.classList.add("remove-intro");
-});
+// homepageSlider.on("firstImageLoad", function (slideshow, slideshowElement, currentSlide) {
+// 	document.body.classList.add("remove-intro");
+// });
 // }
 
 // Multiple Slideshows

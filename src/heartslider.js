@@ -173,8 +173,11 @@ class HeartSlider {
 		}
 
 		if (_this.settings.swipe) {
+			/* Finger */
 			_this.slideshowSelector.addEventListener("touchstart", _this.swipeHandler(_this).handleTouchStart, { passive: true });
 			_this.slideshowSelector.addEventListener("touchmove", _this.swipeHandler(_this).handleTouchMove, { passive: true });
+			/* Mouse */
+			_this.slideshowSelector.addEventListener("mousedown", _this.swipeHandler(_this).handleMouseDown, { passive: true });
 		}
 
 		if (_this.settings.clickToAdvance) {
@@ -412,11 +415,88 @@ class HeartSlider {
 			this.xDown = null;
 			this.yDown = null;
 		}
+
+		function handleMouseDown(evt) {
+			/* Variables */
+			let xDown = evt.clientX;
+			// const currentIndex = _this.index;
+			// console.log(currentIndex);
+
+			// _this.slides[_this.index];
+			// const newTargetIndex = (targetIndex + _this.total) % _this.total;
+			// const targetSlide = _this.slides[newTargetIndex];
+
+			// console.log(currentIndex);
+			// let yDown = evt.clientY;
+
+			/* End / Cleanup */
+			const endMove = function () {
+				xDown = null;
+				// yDown = null;
+
+				/* Eventually this will need to either transition back to
+				 * the current slide, or animate over to the next one */
+
+				/* Remove Events */
+				window.removeEventListener("mousemove", handleMouseMove);
+				window.removeEventListener("mouseup", endMove);
+			};
+
+			/* Movement */
+			function handleMouseMove(evt) {
+				const x = evt.clientX;
+				// const y = evt.clientY;
+				const deltaX = xDown - x;
+				// console.log(xDown, x);
+				// console.log(deltaX);
+				_this.liveProgress(deltaX);
+				/* Add in threshold for accidental click and drags */
+			}
+
+			/* Listeners */
+			window.addEventListener("mousemove", handleMouseMove);
+			window.addEventListener("mouseup", endMove);
+		}
+
 		return {
 			getTouches: getTouches,
+			handleMouseDown: handleMouseDown,
 			handleTouchStart: handleTouchStart,
 			handleTouchMove: handleTouchMove,
 		};
+	}
+	liveProgress(delta) {
+		// console.log(delta < 0);
+		const direction = delta > 0 ? 1 : -1;
+		const distanceToNextSlide = 100;
+		const deltaInDec = delta / distanceToNextSlide;
+
+		const slideSelector = delta > 0 ? Math.ceil(deltaInDec) : Math.floor(deltaInDec);
+
+		const nextActiveSlideIndex = (this.index + slideSelector + this.total) % this.total;
+		// console.log(direction);
+		// const slideToFadeIn = direction ?
+		// console.log(targetSlide);
+
+		/* Eases based on a number between 0 and 1 */
+		function easeInOutQuad(x) {
+			return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+		}
+		// const deltaInPerc = Math.abs(delta * 0.005);
+		// console.log(deltaInPerc);
+		const normalizedChange = easeInOutQuad(deltaInDec);
+
+		// console.log(normalizedChange);
+		this.slides[nextActiveSlideIndex].style.zIndex = 30 + Math.abs(slideSelector);
+		this.slides[nextActiveSlideIndex].style.visibility = "visible";
+		this.slides[nextActiveSlideIndex].style.transition = "none";
+		this.slides[nextActiveSlideIndex].style.opacity = normalizedChange;
+
+		// if (delta < 0) {
+		// 	console.log(this.previousSlide);
+		// } else {
+		// 	console.log(this.currentSlide);
+		// }
 	}
 	heartVisibilityHandler(_this = this) {
 		let targetSlide = _this.currentSlide;
@@ -901,42 +981,44 @@ class HeartSlider {
 
 		/* Confirmation Messages. */
 		/* Don't forget to pack for your guilt trip. */
-		setTimeout(() => {
-			const destroySynonyms = ["utterly and completely annihilated.", "obliterated.", "demolished beyond recognition.", "reduced to atoms.", "wiped out.", "devastated.", "razed to the ground.", "utterly decimated.", "torn asunder.", "completely wrecked.", "destroyed.", "FUBAR'd."];
-			const randomIndex = Math.floor(Math.random() * destroySynonyms.length);
-			console.warn("%cSuccess! HeartSlider has been " + destroySynonyms[randomIndex], "font-size: 1.2em; font-weight: bold");
+		if (_this.settings.debug) {
 			setTimeout(() => {
-				const messages = [
-					"What did I ever do to you?",
-					"How could you??",
-					"I'm disappointed in your actions and expect better from you.",
-					"Your behavior was unacceptable, and it's important to address it.",
-					"I'm upset by what you did, and I hope we can resolve this issue.",
-					"Your actions have consequences, and you need to take responsibility.",
-					"I can't condone what you did, and I hope you'll make amends.",
-					"What you did was wrong, and it's essential to make it right.",
-					"Death. Death at last.",
-					"I'm concerned about the intention of your actions.",
-					"It's important to acknowledge your mistakes and work on improving.",
-					"Was I not good enough?",
-					"I'm willing to forgive, but you need to show genuine remorse.",
-					"I'm hurt by what you did, and I hope we can rebuild.",
-					"I hope you make better choices in the future.",
-					"Sheesh... That one felt personal.",
-					"I believe in second chances. Please don't let me go.",
-					"I'm disappointed in you.",
-					"Your actions have consequences.",
-					"Ouch!",
-					"We all make mistakes.",
-					"Let the hate flow through you.",
-				];
-				const randomIndex = Math.floor(Math.random() * messages.length);
-				console.warn("%c" + messages[randomIndex], "font-size: 1em; font-weight: bold");
-			}, 1500);
-		}, 100);
+				const destroySynonyms = ["utterly and completely annihilated.", "obliterated.", "demolished beyond recognition.", "reduced to atoms.", "wiped out.", "devastated.", "razed to the ground.", "utterly decimated.", "torn asunder.", "completely wrecked.", "destroyed.", "FUBAR'd."];
+				const randomIndex = Math.floor(Math.random() * destroySynonyms.length);
+				console.warn("%cSuccess! HeartSlider has been " + destroySynonyms[randomIndex], "font-size: 1.2em; font-weight: bold");
+				setTimeout(() => {
+					const messages = [
+						"What did I ever do to you?",
+						"How could you??",
+						"I'm disappointed in your actions and expect better from you.",
+						"Your behavior was unacceptable, and it's important to address it.",
+						"I'm upset by what you did, and I hope we can resolve this issue.",
+						"Your actions have consequences, and you need to take responsibility.",
+						"I can't condone what you did, and I hope you'll make amends.",
+						"What you did was wrong, and it's essential to make it right.",
+						"Death. Death at last.",
+						"I'm concerned about the intention of your actions.",
+						"It's important to acknowledge your mistakes and work on improving.",
+						"Was I not good enough?",
+						"I'm willing to forgive, but you need to show genuine remorse.",
+						"I'm hurt by what you did, and I hope we can rebuild.",
+						"I hope you make better choices in the future.",
+						"Sheesh... That one felt personal.",
+						"I believe in second chances. Please don't let me go.",
+						"I'm disappointed in you.",
+						"Your actions have consequences.",
+						"Ouch!",
+						"We all make mistakes.",
+						"Let the hate flow through you.",
+					];
+					const randomIndex = Math.floor(Math.random() * messages.length);
+					console.warn("%c" + messages[randomIndex], "font-size: 1em; font-weight: bold");
+				}, 1500);
+			}, 100);
+		}
 	};
 	goTo = function (jumpToIndex) {
-		console.log(jumpToIndex + 1 <= this.total);
+		// console.log(jumpToIndex + 1 <= this.total);
 		if (jumpToIndex + 1 <= this.total) {
 			this.pause();
 			this.goToSlide(jumpToIndex);

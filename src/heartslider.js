@@ -419,6 +419,7 @@ class HeartSlider {
 		function handleMouseDown(evt) {
 			/* Variables */
 			let xDown = evt.clientX;
+			_this.swipeTarget = _this.index;
 			// const currentIndex = _this.index;
 			// console.log(currentIndex);
 
@@ -444,12 +445,14 @@ class HeartSlider {
 
 			/* Movement */
 			function handleMouseMove(evt) {
+				// console.log(evt);
 				const x = evt.clientX;
+				const speed = Math.abs(evt.movementX);
 				// const y = evt.clientY;
 				const deltaX = xDown - x;
 				// console.log(xDown, x);
 				// console.log(deltaX);
-				_this.liveProgress(deltaX);
+				_this.liveProgress(deltaX, speed);
 				/* Add in threshold for accidental click and drags */
 			}
 
@@ -465,15 +468,25 @@ class HeartSlider {
 			handleTouchMove: handleTouchMove,
 		};
 	}
-	liveProgress(delta) {
+	liveProgress(delta, speed) {
 		// console.log(delta < 0);
 		const direction = delta > 0 ? 1 : -1;
-		const distanceToNextSlide = 100;
+		const distanceToNextSlide = 200;
+		// const speedModifier = speed * 10;
+		// console.log(speedModifier);
+		// const deltaInDec = delta / (distanceToNextSlide + speedModifier);
 		const deltaInDec = delta / distanceToNextSlide;
 
 		const slideSelector = delta > 0 ? Math.ceil(deltaInDec) : Math.floor(deltaInDec);
 
 		const nextActiveSlideIndex = (this.index + slideSelector + this.total) % this.total;
+		if (this.swipeTarget !== nextActiveSlideIndex) {
+			// if (this.slides[this.swipeTarget] !== null) {
+			// 	this.slides[this.swipeTarget].style = "opacity: 1";
+			// }
+			this.progressiveLoad(nextActiveSlideIndex);
+			this.swipeTarget = nextActiveSlideIndex;
+		}
 		// console.log(direction);
 		// const slideToFadeIn = direction ?
 		// console.log(targetSlide);
@@ -484,7 +497,8 @@ class HeartSlider {
 		}
 		// const deltaInPerc = Math.abs(delta * 0.005);
 		// console.log(deltaInPerc);
-		const normalizedChange = easeInOutQuad(deltaInDec);
+		// console.log(deltaInDec - slideSelector);
+		const normalizedChange = 1 - easeInOutQuad(deltaInDec - slideSelector);
 
 		// console.log(normalizedChange);
 		this.slides[nextActiveSlideIndex].style.zIndex = 30 + Math.abs(slideSelector);

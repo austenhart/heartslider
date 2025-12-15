@@ -1,7 +1,7 @@
 "use strict";
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.4.13 ❤
+❤ Version 3.4.14 ❤
 
 === Steps to Push New Version ===
 1) Update Changelog and version number in .js, .css, readme.md, and package.json
@@ -10,6 +10,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.4.14 - Removed line that was stripping out loop attribute on videos.
 3.4.13 - Prevented videos from auto-playing paused slideshows.
 3.4.12 - Fixed issue with duplicated active class.
 3.4.11 - Added module file for NPM imports (mjs).
@@ -706,7 +707,7 @@ class HeartSlider {
 					} else {
 						// currentVideo.classList.add("heart-loading");
 						currentVideo.muted = "muted";
-						currentVideo.removeAttribute("loop");
+						// currentVideo.removeAttribute("loop"); // Looping can be optional
 						const mustHaveAttributes = ["playsinline", "disablepictureinpicture", "disableremoteplayback", "preload"];
 						mustHaveAttributes.forEach((attr) => {
 							if (!currentVideo.getAttribute(attr)) {

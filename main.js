@@ -4,14 +4,14 @@
 const homepageSlider = new HeartSlider({
 	// slideshow: slideshow,
 	slides: ".heart-slide",
-	transition: 1000,
-	manualTransition: 700,
-	delay: 3000,
+	transition: 200,
+	manualTransition: 200,
+	delay: 200,
 	loop: true,
-	randomize: true, // give option for "start" and "all"
-	paused: false,
+	randomize: false, // give option for "start" and "all"
+	paused: true,
 	effect: "fadeOut", // "fadeOut" or "fadeInOut"
-	buttons: false,
+	buttons: true,
 	swipe: true,
 	clickToAdvance: true,
 	pauseOnInactiveWindow: false,

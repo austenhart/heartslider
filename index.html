@@ -1,91 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
-		<title>HeartSlider.js</title>
-		<link rel="icon" href="favicon.ico" sizes="16x16" type="image/ico" />
-		<link rel="stylesheet" href="src/heartslider.css" />
-		<script defer src="src/heartslider.js"></script>
-		<!-- <script defer src="dist/heartslider.min.js"></script> -->
-		<script defer src="main.js"></script>
-		<style>
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+	<title>HeartSlider.js</title>
+	<link rel="icon" href="favicon.ico" sizes="16x16" type="image/ico" />
+	<link rel="stylesheet" href="src/heartslider.css" />
+	<script defer src="src/heartslider.js"></script>
+	<!-- <script defer src="dist/heartslider.min.js"></script> -->
+	<script defer src="main.js"></script>
+	<style>
+		body {
+			margin: 0;
+		}
+	</style>
+</head>
+
+<body>
+	<style>
+		@media screen and (prefers-color-scheme: dark) {
+
+			html,
 			body {
-				margin: 0;
+				background-color: #0e0f0f;
 			}
-		</style>
-	</head>
-	<body>
-		<style>
-			@media screen and (prefers-color-scheme: dark) {
-				html,
-				body {
-					background-color: #0e0f0f;
-				}
-			}
-			.heart-slideshow.fade-in-out img {
-				padding: 3.5rem;
-				height: 100%;
-				width: 100%;
-				box-sizing: border-box;
-				object-fit: contain !important;
-			}
-		</style>
-		<div class="heart-slideshow">
-			<div class="heart-slide">
+		}
+
+		.heart-slideshow.fade-in-out img {
+			padding: 3.5rem;
+			height: 100%;
+			width: 100%;
+			box-sizing: border-box;
+			object-fit: contain !important;
+		}
+	</style>
+	<div class="heart-slideshow">
+		<!-- <div class="heart-slide">
 				<video>
 					<source data-src="./video/heartslider-video-01.mp4" type="video/mp4" />
 					<source data-src="./video/heartslider-video-01.webm" type="video/webm" />
 				</video>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="./img/image-06.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
+			</div> -->
+		<div class="heart-slide">
+			<figure class="image-holder">
+				<img data-sizes="100vw" data-src="./img/image-06.jpg" alt="" />
+			</figure>
+		</div>
+		<!-- <div class="heart-slide">
 				<video>
 					<source data-src="./video/heartslider-video-02.mp4" type="video/mp4" />
 					<source data-src="./video/heartslider-video-02.webm" type="video/webm" />
 				</video>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="./img/image-05.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="./img/image-04.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="./img/image-05.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img data-sizes="100vw" data-src="./img/image-07.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 95%" data-sizes="100vw" data-src="./img/image-08.jpg" alt="" />
-				</figure>
-			</div>
-			<div class="heart-slide">
-				<figure class="image-holder">
-					<img style="object-position: 50% 75%" data-sizes="100vw" data-src="./img/image-09.jpg" alt="" />
-				</figure>
-			</div>
-			<!-- <div class="heart-slide">
+			</div> -->
+		<div class="heart-slide">
+			<figure class="image-holder">
+				<img style="object-position: 50% 95%" data-sizes="100vw" data-src="./img/image-05.jpg" alt="" />
+			</figure>
+		</div>
+		<div class="heart-slide">
+			<figure class="image-holder">
+				<img data-sizes="100vw" data-src="./img/image-04.jpg" alt="" />
+			</figure>
+		</div>
+		<div class="heart-slide">
+			<figure class="image-holder">
+				<img style="object-position: 50% 95%" data-sizes="100vw" data-src="./img/image-05.jpg" alt="" />
+			</figure>
+		</div>
+		<div class="heart-slide">
+			<figure class="image-holder">
+				<img data-sizes="100vw" data-src="./img/image-07.jpg" alt="" />
+			</figure>
+		</div>
+		<div class="heart-slide">
+			<figure class="image-holder">
+				<img style="object-position: 50% 95%" data-sizes="100vw" data-src="./img/image-08.jpg" alt="" />
+			</figure>
+		</div>
+		<div class="heart-slide">
+			<figure class="image-holder">
+				<img style="object-position: 50% 75%" data-sizes="100vw" data-src="./img/image-09.jpg" alt="" />
+			</figure>
+		</div>
+		<!-- <div class="heart-slide">
 				<video>
 					<source data-src="video/heartslider-video-02.mp4" type="video/mp4" />
 					<source data-src="video/heartslider-video-02.webm" type="video/webm" />
 				</video>
 			</div> -->
-		</div>
-	</body>
+	</div>
+</body>
+
 </html>

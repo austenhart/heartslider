@@ -1,7 +1,7 @@
 "use strict";
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.4.13 ❤
+❤ Version 3.4.14 ❤
 
 === Steps to Push New Version ===
 1) Update Changelog and version number in .js, .css, readme.md, and package.json
@@ -10,6 +10,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.4.14 - Fixed an animation stutter when manually advancing slides.
 3.4.13 - Prevented videos from auto-playing paused slideshows.
 3.4.12 - Fixed issue with duplicated active class.
 3.4.11 - Added module file for NPM imports (mjs).
@@ -363,10 +364,10 @@ class HeartSlider {
 					};
 				}
 			} else {
-				console.warn("Your second argument for " + type + " must be a function.");
+				if (_this.settings.debug) console.warn("Your second argument for " + type + " must be a function.");
 			}
 		} else {
-			console.warn("\x22" + type + "\x22 is not a valid event. Try one of these:", supportedEvents);
+			if (_this.settings.debug) console.warn("\x22" + type + "\x22 is not a valid event. Try one of these:", supportedEvents);
 		}
 	}
 
@@ -425,7 +426,7 @@ class HeartSlider {
 		/* Disables the slideshow when the window in not in view */
 		if (_this !== null && _this.settings.pauseOnInactiveWindow && _this.settings.slideshow !== null) {
 			if (document.visibilityState == "hidden") {
-				console.log("%cWindow Lost Focus. HeartSlider is Paused.", "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
+				if (_this.settings.debug) console.log("%cWindow Lost Focus. HeartSlider is Paused.", "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
 				// _this.visSlides = { current: targetSlide, previous: prevSlide };
 				// console.log(_this.visSlides);
 				_this.pause();
@@ -444,7 +445,7 @@ class HeartSlider {
 				// 		prevSlide = _this.visSlides.previous;
 				// 	}
 				// }
-				console.log("%cRegained Focus. Resumed HeartSlider.", "font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;");
+				if (_this.settings.debug) console.log("%cRegained Focus. Resumed HeartSlider.", "font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;");
 				if (_this.currentSlideProgress > 0) {
 					targetSlide.style.transitionDuration = _this.settings.transition * _this.currentSlideProgress + "ms";
 					targetSlide.style.transitionTimingFunction = "ease-out";
@@ -613,14 +614,17 @@ class HeartSlider {
 			 * 3) Can this section be more function or promise-based, with less dependency on timers?
 			 * 4) Instead of looping through all of them, is there a more targeted way to figure out which slide shouldn't have "active"?
 			 */
-			if (_this.slides.length) {
+			const hasDuplicateActive = _this.slideshowSelector.querySelectorAll(".heart-slide.active").length > 1;
+			if (hasDuplicateActive) {
+				if (_this.settings.debug) console.warn("HeartSlider detected multiple active slides. Fixing...");
 				for (const slide of _this.slides) {
-					if (slide.classList.contains("active")) {
+					if (slide.classList.contains("active") && slide !== _this.currentSlide) {
 						slide.classList.remove("active");
 						slide.style.transitionDelay = 0 + "ms";
 						slide.style.transitionDuration = 0 + "ms";
 					}
 				}
+				if (_this.settings.debug) console.log("Fixed!");
 			}
 			/* End fix */
 
@@ -904,7 +908,7 @@ class HeartSlider {
 		setTimeout(() => {
 			const destroySynonyms = ["utterly and completely annihilated.", "obliterated.", "demolished beyond recognition.", "reduced to atoms.", "wiped out.", "devastated.", "razed to the ground.", "utterly decimated.", "torn asunder.", "completely wrecked.", "destroyed.", "FUBAR'd."];
 			const randomIndex = Math.floor(Math.random() * destroySynonyms.length);
-			console.warn("%cSuccess! HeartSlider has been " + destroySynonyms[randomIndex], "font-size: 1.2em; font-weight: bold");
+			if (_this.settings.debug) console.warn("%cSuccess! HeartSlider has been " + destroySynonyms[randomIndex], "font-size: 1.2em; font-weight: bold");
 			setTimeout(() => {
 				const messages = [
 					"What did I ever do to you?",
@@ -931,17 +935,17 @@ class HeartSlider {
 					"Let the hate flow through you.",
 				];
 				const randomIndex = Math.floor(Math.random() * messages.length);
-				console.warn("%c" + messages[randomIndex], "font-size: 1em; font-weight: bold");
+				if (_this.settings.debug) console.warn("%c" + messages[randomIndex], "font-size: 1em; font-weight: bold");
 			}, 1500);
 		}, 100);
 	};
 	goTo = function (jumpToIndex) {
-		console.log(jumpToIndex + 1 <= this.total);
+		if (_this.settings.debug) console.log(jumpToIndex + 1 <= this.total);
 		if (jumpToIndex + 1 <= this.total) {
 			this.pause();
 			this.goToSlide(jumpToIndex);
 		} else {
-			console.warn("Attempting to go to a slide that does not exist.", "Slide requested: " + jumpToIndex + " of " + this.total);
+			if (_this.settings.debug) console.warn("Attempting to go to a slide that does not exist.", "Slide requested: " + jumpToIndex + " of " + this.total);
 		}
 	};
 	next = function (_this = this, isManuallyCalled = false) {

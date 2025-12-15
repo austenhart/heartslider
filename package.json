@@ -6,7 +6,7 @@
 	"style": "heartslider.css",
 	"browserslist": "> 0.5%, last 2 versions, not dead",
 	"scripts": {
-		"babelfy": "babel src -d dist && minify dist/heartslider.js --out-file dist/heartslider.min.js --mangle false && rm dist/heartslider.js",
+		"babelfy": "babel src -d dist && terser dist/heartslider.js -o dist/heartslider.min.js --compress --mangle reserved=['HeartSlider'] && rm dist/heartslider.js",
 		"module": "cp dist/heartslider.min.js dist/heartslider.min.mjs && echo 'export{HeartSlider}' >> dist/heartslider.min.mjs",
 		"version:extract": "cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]'",
 		"version:append": "echo '/* ❤ HeartSlider 'v$(npm run version:extract --silent)' ❤ */'\r$(cat dist/heartslider.min.js) > dist/heartslider.min.js && echo '/* ❤ HeartSlider Styles 'v$(npm run version:extract --silent)' ❤ */'\r$(cat dist/heartslider.min.css) > dist/heartslider.min.css",
@@ -38,13 +38,12 @@
 		}
 	},
 	"devDependencies": {
-		"@babel/cli": "^7.12.0",
-		"@babel/core": "^7.12.0",
-		"@babel/preset-env": "^7.12.0",
-		"babel-minify": "^0.5.2",
-		"babel-preset-minify": "^0.5.2",
-		"cssnano": "^4.1.11",
-		"postcss": "^8.2.15",
-		"postcss-cli": "^8.3.1"
+		"@babel/cli": "^7.26.3",
+		"@babel/core": "^7.26.3",
+		"@babel/preset-env": "^7.26.3",
+		"terser": "^5.37.0",
+		"cssnano": "^5.1.15",
+		"postcss": "^8.4.49",
+		"postcss-cli": "^9.1.0"
 	}
 }

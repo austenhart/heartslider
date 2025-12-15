@@ -2,7 +2,6 @@
 /* 
 ❤  Heartslider  ❤
 ❤ Version 3.4.14 ❤
-❤ Version 3.4.14 ❤
 
 === Steps to Push New Version ===
 1) Update Changelog and version number in .js, .css, readme.md, and package.json

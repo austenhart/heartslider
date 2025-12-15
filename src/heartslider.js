@@ -10,7 +10,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
-3.4.14 - Fixed an animation stutter when manually advancing slides.
+3.4.14 - Fixed an animation stutter when manually advancing slides / looping on videos is now optional.
 3.4.13 - Prevented videos from auto-playing paused slideshows.
 3.4.12 - Fixed issue with duplicated active class.
 3.4.11 - Added module file for NPM imports (mjs).
@@ -710,7 +710,7 @@ class HeartSlider {
 					} else {
 						// currentVideo.classList.add("heart-loading");
 						currentVideo.muted = "muted";
-						currentVideo.removeAttribute("loop");
+						// currentVideo.removeAttribute("loop"); // Looping can be optional
 						const mustHaveAttributes = ["playsinline", "disablepictureinpicture", "disableremoteplayback", "preload"];
 						mustHaveAttributes.forEach((attr) => {
 							if (!currentVideo.getAttribute(attr)) {

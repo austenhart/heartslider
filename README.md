@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.4.14
+##### Version 3.5.0
 
 '''''''''''''''''
 
@@ -18,6 +18,7 @@ Features:
 
 Change Log:
 
+-   3.5.0 - Improved logic for slide timing, delay, and manual transition. Progressive now supports an offset. Added debug setting.
 -   3.4.14 - Fixed an animation stutter when manually advancing slides / looping on videos is now optional.
 -   3.4.13 - Prevented videos from auto-playing paused slideshows.
 -   3.4.12 - Fixed issue with duplicated active class.

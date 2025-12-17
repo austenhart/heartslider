@@ -4,20 +4,21 @@
 const homepageSlider = new HeartSlider({
 	// slideshow: slideshow,
 	slides: ".heart-slide",
-	transition: 200,
-	manualTransition: 200,
-	delay: 200,
+	transition: 3000,
+	manualTransition: 500,
+	debug: false,
+	delay: 1000,
 	loop: true,
 	randomize: false, // give option for "start" and "all"
-	paused: true,
+	paused: false,
 	effect: "fadeOut", // "fadeOut" or "fadeInOut"
+	allowFullVideoPlayback: true,
 	buttons: true,
 	swipe: true,
 	clickToAdvance: true,
 	pauseOnInactiveWindow: false,
-	// NEW
 	progressIndicators: {
-		// type: "dot", // "dash" is default
+		type: "dot", // "dash" is default
 		clickable: true,
 		color: "#fff",
 	},

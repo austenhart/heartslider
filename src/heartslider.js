@@ -1,15 +1,16 @@
 "use strict";
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.4.14 ❤
+❤ Version 3.5.0 ❤
 
 === Steps to Push New Version ===
 1) Update Changelog and version number in .js, .css, readme.md, and package.json
-2) npm run build (will babelfy and minify js and css)
+2) npm run build (will terse-ify then minify js and css files)
 
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.5.0 - Improved logic for slide timing, delay, and manual transition. Progressive now supports an offset. Added debug setting.
 3.4.14 - Fixed an animation stutter when manually advancing slides / looping on videos is now optional.
 3.4.13 - Prevented videos from auto-playing paused slideshows.
 3.4.12 - Fixed issue with duplicated active class.
@@ -52,15 +53,17 @@ class HeartSlider {
 
 		/* HeartSlider default settings */
 		_this.settings = {
+			allowFullVideoPlayback: false,
 			buttons: false,
 			clickToAdvance: false,
+			debug: false,
 			delay: 1000,
 			effect: "fadeOut",
 			loop: true,
 			manualTransition: 400,
 			paused: false,
 			pauseOnInactiveWindow: false,
-			progressive: true,
+			progressive: 1, // Set to a number to load multiple slides ahead of time (0 = disabled)
 			randomize: false,
 			slideshow: ".heart-slideshow",
 			slides: ".heart-slide",
@@ -93,6 +96,11 @@ class HeartSlider {
 						}
 					}
 				} else {
+					// Ensure minimum value of 1/60th for any time-based settings
+					if (typeof this.settings[prop] === "number") {
+						// console.log("new base value for", prop);
+						userSettings[prop] = Math.max(Number(userSettings[prop]), 16.6667);
+					}
 					this.settings[prop] = userSettings[prop];
 				}
 			}
@@ -107,9 +115,10 @@ class HeartSlider {
 
 		/* Make sure HeartSlider wasn't already run on this element */
 		if (this.slideshowSelector.classList.contains("first-image-loaded")) {
-			console.warn("HeartSlider will not re-init if the first-image-loaded class is already present.");
-			this.destroy();
-			return false;
+			console.warn("The HeartSlider element already had the first-image-loaded class on init. Please remove it to ensure loading works properly.");
+			this.slideshowSelector.classList.remove("first-image-loaded");
+			// this.destroy();
+			// return false;
 		}
 
 		/* In case you forgot to add heart-slideshow class, add it so the CSS will work */
@@ -145,6 +154,7 @@ class HeartSlider {
 			if (index !== _this.firstIndex) {
 				slide.setAttribute("aria-hidden", "true");
 				slide.setAttribute("tab-index", "-1");
+				slide.style.display = "none";
 			}
 			if (!slide.classList.contains("heart-slide")) {
 				slide.classList.add("heart-slide");
@@ -184,8 +194,8 @@ class HeartSlider {
 				"click",
 				function (event) {
 					if (throttleClick || event.target.nodeName === "BUTTON") return;
-					_this.pause();
-					_this.next(_this, true, false, true);
+					// _this.pause();
+					_this.next(_this, true);
 					throttleClick = setTimeout(() => {
 						throttleClick = undefined;
 					}, _this.settings.manualTransition);
@@ -217,7 +227,7 @@ class HeartSlider {
 
 			// Create CSS variable for custom color
 			const indicatorColor = this.settings.progressIndicators.color || "#fff";
-			if (indicatorColor !== "#fff" || indicatorColor !== "#ffffff" || indicatorColor !== "white" || indicatorColor !== "rgb(255, 255, 255)" || indicatorColor !== "rgba(255, 255, 255, 1)") {
+			if (indicatorColor !== "#fff" && indicatorColor !== "#ffffff" && indicatorColor !== "white" && indicatorColor !== "rgb(255, 255, 255)" && indicatorColor !== "rgba(255, 255, 255, 1)") {
 				progressContainer.style.setProperty("--indicator-color", indicatorColor);
 			}
 
@@ -237,21 +247,22 @@ class HeartSlider {
 				indicator.addEventListener("click", (event) => {
 					if (index === this.index) return;
 
-					_this.pause();
+					// _this.pause();
 					const isManuallyCalled = true;
 					const isFirstSlide = false;
 					const skipDefaultTransition = true;
+					this.clearAllTimers();
 					_this.goToSlide(index, isManuallyCalled, isFirstSlide, skipDefaultTransition);
 
 					throttleClick = setTimeout(() => {
 						throttleClick = undefined;
-					}, _this.settings.manualTransition);
+					}, _this.settings.manualTransition / 2);
 
 					if (!_this.originallyPaused) {
 						if (_this.throttleClickResume) clearTimeout(_this.throttleClickResume);
 						_this.throttleClickResume = setTimeout(() => {
 							_this.resume();
-						}, _this.settings.transition + _this.settings.delay * 1);
+						}, _this.settings.transition + _this.settings.delay * 1.25);
 					}
 				});
 				progressContainer.appendChild(indicator);
@@ -269,15 +280,15 @@ class HeartSlider {
 		if (_this.settings.buttons || slideshowButtons.length === 2) {
 			function buttonHandler(button) {
 				if (throttleClick) return;
-				_this.pause();
+				// _this.pause();
 				if (button.classList.contains("heart-next")) {
-					_this.next(_this, true, false, true);
+					_this.next(_this, true);
 				} else if (button.classList.contains("heart-prev")) {
-					_this.previous(_this, true, false, true);
+					_this.previous(_this, true);
 				}
 				throttleClick = setTimeout(() => {
 					throttleClick = undefined;
-				}, 200);
+				}, _this.settings.manualTransition / 2);
 			}
 			if (slideshowButtons.length === 0) {
 				const buttonClasses = ["heart-prev", "heart-next"];
@@ -321,7 +332,9 @@ class HeartSlider {
 					_this.firstImageLoad(_this);
 				}
 				_this.kickstartProgressiveLoadTimer = setTimeout(() => {
-					_this.progressiveLoad((_this.firstIndex + 1 + _this.total) % _this.total);
+					for (let i = 1; i <= _this.settings.progressive; i++) {
+						_this.progressiveLoad((_this.firstIndex + i + _this.total) % _this.total);
+					}
 				}, _this.settings.delay);
 			};
 
@@ -331,7 +344,7 @@ class HeartSlider {
 			_this.kickoffTimer = setTimeout(() => {
 				_this.resume();
 				_this.kickoffTimer = undefined;
-			}, _this.settings.delay * 0.5 + _this.settings.transition);
+			}, _this.settings.delay);
 		}
 	}
 	on(type, callback) {
@@ -400,13 +413,13 @@ class HeartSlider {
 				if (xDiff > 0) {
 					evt.preventDefault();
 					/* Right swipe */
-					_this.pause();
-					_this.next(_this, true, false, true);
+					// _this.pause();
+					_this.next(_this, true);
 				} else {
 					evt.preventDefault();
 					/* Left swipe */
-					_this.pause();
-					_this.previous(_this, true, false, true);
+					// _this.pause();
+					_this.previous(_this, true);
 				}
 			}
 			/* reset values */
@@ -482,11 +495,13 @@ class HeartSlider {
 
 		/* Set transitioning to true */
 		this.transitioning = true;
+		this.transitionStartTime = Date.now();
 
 		// this.pause();
-		if (this.slides[targetIndex] && this.slides[targetIndex].querySelector("video")) {
-			this.clearAllTimers();
-		}
+		// if (this.slides[targetIndex] && this.slides[targetIndex].querySelector("video")) {
+		// 	console.log("clearing timers from within goToSlide");
+		// 	this.clearAllTimers();
+		// }
 		// this.settings.paused = false;
 
 		/* 
@@ -515,105 +530,67 @@ class HeartSlider {
 
 		/* Fade duration */
 		var duration = isManuallyCalled || isFirstSlide || skipDefaultTransition ? _this.settings.manualTransition : _this.settings.transition;
+		this.transitionDuration = duration;
 
 		this.index = newTargetIndex;
 
 		if (!isFirstSlide) {
 			this.progressiveLoad(newTargetIndex);
 		}
-		this.progressiveLoad((newTargetIndex + 1 + _this.total) % _this.total);
+		// Load multiple slides ahead based on progressive setting
+		if (_this.settings.progressive) {
+			for (let i = 1; i <= _this.settings.progressive; i++) {
+				this.progressiveLoad((newTargetIndex + i + _this.total) % _this.total);
+			}
+		}
 
 		function changeSlides() {
-			let prevSlideProgress = 1;
-			/* This part of the function smoothly transitions a skipped fade */
-			const prevSlide = _this.previousSlide;
-			if (prevSlide === _this.currentSlide && skipDefaultTransition) {
-				/* Clear any timeouts that were running */
-				clearTimeout(_this.manualTimeout);
-				clearInterval(_this.slideInterval);
-				/* Get the current opacity and apply it as an inline-style */
-				const prevSlideOpacity = window.getComputedStyle(prevSlide).opacity;
-				prevSlideProgress = 1 - prevSlideOpacity;
-				prevSlide.style.opacity = prevSlideOpacity;
-				// console.log(prevSlideOpacity);
-				/* MUST set transition to none in order to override the css transition */
-				prevSlide.style.transition = "none";
-				/* A moment later (1/60th of a second), give the slide the quick transition durations */
-				window.requestAnimationFrame(() => {
-					prevSlide.style.transition = "opacity";
-					prevSlide.style.transitionDelay = 0 + "ms";
-					prevSlide.style.transitionDuration = duration * prevSlideProgress + "ms";
-					prevSlide.style.opacity = "";
-				});
-				// setTimeout(() => {
-				// }, 16.6667);
-			} else if (prevSlide !== _this.currentSlide) {
-				/* remove styles from old slide */
-				if (_this.settings.effect === "fadeInOut") {
-					prevSlide.style.transitionDelay = "0ms";
-					prevSlide.style.transitionDuration = duration / 2 + "ms";
-				} else {
-					prevSlide.style.transitionDelay = duration + "ms";
-					prevSlide.style.transitionDuration = 0 + "ms";
-				}
-				prevSlide.classList.remove("active");
-			}
 			/* Check for video elements */
 			const videoElement = _this.currentSlide.querySelector("video");
 			if (videoElement !== null) {
-				videoElement.currentTime = 0;
-				videoElement.play();
+				if (videoElement.paused) {
+					videoElement.currentTime = 0;
+					videoElement.play();
+				}
 
 				/* If the video metadata is already loaded, then calculate slide duration */
 				/* Otherwise, wait for that info to load */
-				if (videoElement.duration && typeof videoElement.duration === "number") {
-					adjustSlideTime(videoElement);
-				} else {
-					videoElement.onloadedmetadata = function () {
+				if (_this.allowFullVideoPlayback) {
+					if (videoElement.duration && typeof videoElement.duration === "number") {
 						adjustSlideTime(videoElement);
-					};
-				}
-				/* Changes the duration of the given slide to make sure the video plays through */
-				function adjustSlideTime(videoElement) {
-					const totalDuration = _this.settings.delay + _this.settings.transition * 2;
-					const videoSlideDuration = Math.max(videoElement.duration * 1000 - totalDuration, 0);
-					// TODO: If video is not long enough, progressively slow down the last half second so it comes to a gentle stop
-					if (videoSlideDuration >= 0) {
-						_this.pause();
-						if (_this.videoSlideTimer) {
-							clearTimeout(_this.videoSlideTimer);
-						}
-						_this.videoSlideTimer = setTimeout(() => {
-							if (_this.originallyPaused) {
-								// Do not progress on a manually-controlled slideshow
-								// _this.next();
-							} else {
-								_this.resume();
+					} else {
+						videoElement.onloadedmetadata = function () {
+							adjustSlideTime(videoElement);
+						};
+					}
+					/* Changes the duration of the given slide to make sure the video plays through */
+					function adjustSlideTime(videoElement) {
+						const totalDuration = _this.settings.delay + _this.settings.transition * 2;
+						const videoSlideDuration = Math.max(videoElement.duration * 1000 - totalDuration, 0);
+						// TODO: If video is not long enough, progressively slow down the last half second so it comes to a gentle stop
+						if (videoSlideDuration >= 0) {
+							let timingOffset = 0;
+							_this.pause();
+							if (_this.videoSlideTimer) {
+								clearTimeout(_this.videoSlideTimer);
 							}
-						}, videoSlideDuration + _this.settings.transition);
+							if (_this.manualTimeout) {
+								clearTimeout(_this.manualTimeout);
+								timingOffset = Date.now() - _this.transitionStartTime;
+								console.log(timingOffset);
+							}
+							_this.videoSlideTimer = setTimeout(() => {
+								if (!_this.originallyPaused) {
+									// Do not progress on a manually-controlled slideshow
+									_this.resume();
+								}
+							}, videoSlideDuration + _this.settings.transition - timingOffset);
+						}
 					}
 				}
 			}
 
-			/* add styles to new slide */
-			if (_this.settings.effect === "fadeInOut") {
-				/* FadeInOut */
-				_this.currentSlide.style.transitionDelay = duration / 3 + "ms";
-				_this.currentSlide.style.transitionDuration = duration / 2 + "ms";
-			} else {
-				/* Default */
-				_this.currentSlide.style.transitionDelay = 0 + "ms";
-				_this.currentSlide.style.transitionDuration = duration + "ms";
-			}
-
 			/* Broad fix for bug that causes duplicate active slides */
-			/*
-			 * Some issues/questions that may arise...
-			 * 1) How do we know definitely which "active" is correct?
-			 * 2) Will the previous slide ever misalign?
-			 * 3) Can this section be more function or promise-based, with less dependency on timers?
-			 * 4) Instead of looping through all of them, is there a more targeted way to figure out which slide shouldn't have "active"?
-			 */
 			const hasDuplicateActive = _this.slideshowSelector.querySelectorAll(".heart-slide.active").length > 1;
 			if (hasDuplicateActive) {
 				if (_this.settings.debug) console.warn("HeartSlider detected multiple active slides. Fixing...");
@@ -629,9 +606,63 @@ class HeartSlider {
 			/* End fix */
 
 			/* Add active state to current slide */
-			_this.currentSlide.removeAttribute("aria-hidden");
-			_this.currentSlide.removeAttribute("tab-index");
-			_this.currentSlide.classList.add("active");
+
+			// Remove display:none before animating in
+			_this.currentSlide.style.display = "";
+
+			window.requestAnimationFrame(() => {
+				/* add styles to new slide */
+				// _this.currentSlide.style.transitionDelay = 16.6667 + "ms";
+				if (_this.settings.effect === "fadeInOut") {
+					/* FadeInOut */
+					_this.currentSlide.style.transitionDuration = duration / 2 + "ms";
+					_this.currentSlide.style.transitionDelay = duration / 3 + "ms";
+				} else {
+					/* Default */
+					_this.currentSlide.style.transitionDuration = duration + "ms";
+					_this.currentSlide.style.transitionDelay = 0 + "ms";
+				}
+				_this.currentSlide.removeAttribute("aria-hidden");
+				_this.currentSlide.removeAttribute("tab-index");
+				_this.currentSlide.classList.add("active");
+			});
+
+			let prevSlideProgress = 1;
+			/* This part of the function smoothly transitions a skipped fade */
+			const prevSlide = _this.previousSlide;
+			if (prevSlide === _this.currentSlide && skipDefaultTransition) {
+				/* Clear any timeouts that were running */
+				// clearTimeout(_this.manualTimeout);
+				clearInterval(_this.slideInterval);
+				/* Get the current opacity and apply it as an inline-style */
+				const prevSlideOpacity = window.getComputedStyle(prevSlide).opacity;
+				prevSlideProgress = 1 - prevSlideOpacity;
+				prevSlide.style.opacity = prevSlideOpacity;
+				// console.log(prevSlideOpacity);
+				/* MUST set transition to none in order to override the css transition */
+				// prevSlide.style.transition = "none";
+				/* A moment later (1/60th of a second), give the slide the quick transition durations */
+				window.requestAnimationFrame(() => {
+					// prevSlide.style.transition = "opacity";
+					prevSlide.style.transitionDelay = 0 + "ms";
+					prevSlide.style.transitionDuration = duration * prevSlideProgress + "ms";
+					prevSlide.style.opacity = "";
+				});
+				// setTimeout(() => {
+				// }, 16.6667);
+			} else if (prevSlide !== _this.currentSlide) {
+				// window.requestAnimationFrame(() => {
+				/* remove styles from old slide */
+				if (_this.settings.effect === "fadeInOut") {
+					prevSlide.style.transitionDelay = 0 + "ms";
+					prevSlide.style.transitionDuration = duration / 2 + "ms";
+				} else {
+					prevSlide.style.transitionDelay = duration + "ms";
+					prevSlide.style.transitionDuration = 0 + "ms";
+				}
+				prevSlide.classList.remove("active");
+				// });
+			}
 
 			if (_this.transitionEndTimer) {
 				clearTimeout(_this.transitionEndTimer);
@@ -641,24 +672,35 @@ class HeartSlider {
 				_this.transitionStart(_this);
 			}
 
-			_this.transitionEndTimer = setTimeout(() => {
-				prevSlide.style.transitionDelay = 0 + "ms";
-				prevSlide.style.transitionDuration = 0 + "ms";
-				if (!isFirstSlide) {
-					prevSlide.setAttribute("aria-hidden", "true");
-					prevSlide.setAttribute("tab-index", "-1");
-					if (_this.transitionEnd) {
-						_this.transitionEnd(_this);
+			// console.log(duration * prevSlideProgress);
+			// Check to see if previous slide is different than current slide AND that this is not the first slide
+			if (prevSlide !== _this.currentSlide || isFirstSlide) {
+				_this.transitionEndTimer = setTimeout(() => {
+					prevSlide.style.transitionDelay = 0 + "ms";
+					prevSlide.style.transitionDuration = 0 + "ms";
+					if (!isFirstSlide) {
+						prevSlide.setAttribute("aria-hidden", "true");
+						prevSlide.setAttribute("tab-index", "-1");
+						// Add display:none for performance after fade completes
+						prevSlide.style.display = "none";
+						if (_this.transitionEnd) {
+							_this.transitionEnd(_this);
+						}
+						const videoElement = prevSlide.querySelector("video");
+						if (videoElement !== null) {
+							videoElement.pause();
+							videoElement.currentTime = 0;
+						}
 					}
-					const videoElement = prevSlide.querySelector("video");
-					if (videoElement !== null) {
-						videoElement.pause();
-						videoElement.currentTime = 0;
-					}
-				}
-				_this.transitioning = false;
-				_this.transitionEndTimer = undefined;
-			}, duration * prevSlideProgress);
+					_this.transitioning = false;
+					_this.transitionEndTimer = undefined;
+					// if (_this.slideInterval) {
+					// 	_this.next(_this, false);
+					// 	console.log("lets go");
+					// }
+					// console.log("complete");
+				}, duration * prevSlideProgress);
+			}
 		}
 		window.requestAnimationFrame(changeSlides);
 	}
@@ -670,7 +712,7 @@ class HeartSlider {
 				function loadHandler(currentImage, index) {
 					currentImage.classList.add("heart-loaded");
 					currentImage.classList.remove("heart-loading");
-					// console.log("%cFinished loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
+					if (_this.settings.debug) console.log("%cFinished loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
 					if (isFirstSlide && index == 0) {
 						/* Start slideshow when finished loading first image */
 						_this.kickstart();
@@ -678,10 +720,10 @@ class HeartSlider {
 				}
 				currentImages.forEach((currentImage, index) => {
 					if (currentImage == undefined || currentImage.classList.contains("heart-loaded") || currentImage.classList.contains("heart-loading") || currentImage.currentSrc === null) {
-						// console.log("%cSkip loading: " + target, "font-style: italic; font-size: 0.9em; color: red; padding: 0.2em;");
+						if (_this.settings.debug) console.log("%cSkipped loading: " + target, "font-style: italic; font-size: 0.9em; color: red; padding: 0.2em;");
 						return;
 					} else {
-						// console.log("%cStart loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
+						if (_this.settings.debug) console.log("%cStart loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
 						currentImage.classList.add("heart-loading");
 
 						if (currentImage.complete && currentImage.naturalWidth > 0) {
@@ -735,7 +777,7 @@ class HeartSlider {
 							if (isFirstSlide && index == 0) {
 								_this.kickstart();
 							}
-							// console.log("%cFinished loading index: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
+							if (_this.settings.debug) console.log("%cFinished loading index: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
 							if (_this.settings.randomize === false || _this.settings.randomize !== "all") {
 								const allVideos = Array.from(_this.slideshowSelector.querySelectorAll("video"));
 								const currentIndex = allVideos.indexOf(currentVideo);
@@ -795,54 +837,104 @@ class HeartSlider {
 	}
 	prevNextHandler(targetIndex, indexToProgressiveLoad, isManuallyCalled) {
 		const _this = this;
+		// console.log("prevNextHandler called:", { targetIndex, isManuallyCalled, transitioning: _this.transitioning, paused: _this.settings.paused });
 		if (_this.transitioning === true) {
 			if (isManuallyCalled === true) {
 				/* This triggers if a manual transition is called during an automatic one*/
-				if (_this.manualTimeout) {
-					clearTimeout(_this.manualTimeout);
-				}
-				if (!_this.originallyPaused) {
-					_this.manualTimeout = setTimeout(_this.resume(), _this.settings.transition + _this.settings.delay);
-				}
-				_this.progressiveLoad(indexToProgressiveLoad);
-				var skipDefaultTransition = true;
 
+				// Calculate transition progress (0 = just started, 1 = finished)
+				// const elapsed = Date.now() - (_this.transitionStartTime || Date.now());
+				// const transitionProgress = Math.min(elapsed / (_this.transitionDuration || 1), 1);
+				// console.log("Transition progress:", transitionProgress);
+
+				// If more than halfway through, skip ahead one extra slide
+				let targetSlideIndex = _this.index;
+				let extraDelay = 0;
+
+				// Check if we are going forward or backward
+				if (targetIndex < _this.index) {
+					// this.clearAllTimers();
+					// If going backward, go to the previous slide
+					targetSlideIndex = (_this.index - 1 + _this.total) % _this.total;
+					extraDelay = _this.settings.manualTransition + _this.settings.delay;
+				}
+				// else if (transitionProgress > 0.7) {
+				// 	// set target to skip ahead one more slide
+				// 	// this.clearAllTimers();
+				// 	// targetSlideIndex = (targetIndex + 1 + _this.total) % _this.total;
+				// }
+
+				// if (transitionProgress > 0.5) {
+				// 	console.log("Progress > 0.5, skipping ahead two slides");
+				// 	targetSlideIndex = (targetIndex + 1 + _this.total) % _this.total;
+				// 	indexToProgressiveLoad = (targetSlideIndex + 1 + _this.total) % _this.total;
+				// }
+
+				// if (_this.manualTimeout) {
+				// 	clearTimeout(_this.manualTimeout);
+				// }
+				// Schedule resume after a manual transition completes
+				_this.scheduleResume(_this.settings.manualTransition + _this.settings.delay);
+				for (let i = 1; i <= _this.settings.progressive; i++) {
+					_this.progressiveLoad((indexToProgressiveLoad + i + _this.total) % _this.total);
+				}
+				var skipDefaultTransition = true;
 				let isFirstSlide = false;
-				_this.goToSlide(_this.index, isManuallyCalled, isFirstSlide, skipDefaultTransition);
+				_this.goToSlide(targetSlideIndex, isManuallyCalled, isFirstSlide, skipDefaultTransition);
 				return;
 			} else {
 				/* prevNext triggered automatically */
-				return;
+				// return;
+			}
+		} else {
+			if (isManuallyCalled === true) {
+				_this.pause();
+				// Restart after manually triggering during a pause
+				_this.scheduleResume(_this.settings.delay);
 			}
 		}
 
 		if (isManuallyCalled === true) {
+			/* This triggers if a manual transition is called during a delay or pause */
+			_this.pause();
+			// Resume after default transition + delay
+			_this.scheduleResume(_this.settings.transition + _this.settings.delay);
 			_this.progressiveLoad(indexToProgressiveLoad);
+			var skipDefaultTransition = true;
+
+			for (let i = 1; i <= _this.settings.progressive; i++) {
+				_this.progressiveLoad((indexToProgressiveLoad + i + _this.total) % _this.total);
+			}
 		}
 
-		_this.goToSlide(targetIndex, isManuallyCalled, false, skipDefaultTransition);
+		_this.goToSlide(targetIndex, isManuallyCalled, false);
 
-		setTimeout(
-			function () {
+		_this.transitioningTimer = setTimeout(
+			() => {
 				_this.transitioning = false;
+				_this.transitioningTimer = undefined;
 			},
-			isManuallyCalled ? _this.settings.manualTransition : _this.settings.transition
+			isManuallyCalled ? _this.settings.manualTransition / 2 : _this.settings.transition
 		);
 	}
-	clearAllTimers() {
+	clearAllTimers(destroyingSlideshow = false) {
 		clearInterval(this.slideInterval);
+		clearTimeout(this.transitioningTimer);
 		clearTimeout(this.progressiveLoadTimer);
 		clearTimeout(this.kickstartProgressiveTimer);
 		clearTimeout(this.kickstartProgressiveLoadTimer);
-		clearTimeout(this.manualTimeout);
 		clearTimeout(this.kickoffTimer);
 		clearTimeout(this.throttleClickResume);
 		clearTimeout(this.videoSlideTimer);
 		clearTimeout(this.visResumeTimer);
+		// Only clear if the slideshow is being destroyed
+		if (destroyingSlideshow) {
+			clearTimeout(this.manualTimeout);
+		}
 	}
 	destroy = function () {
 		/* Remove all setTimeouts */
-		this.clearAllTimers();
+		this.clearAllTimers(true);
 
 		/* Remove event listeners */
 		document.removeEventListener("visibilitychange", this.initVis, true);
@@ -903,46 +995,48 @@ class HeartSlider {
 			delete this[`${prop}`];
 		}
 
-		/* Confirmation Messages. */
-		/* Don't forget to pack for your guilt trip. */
-		setTimeout(() => {
-			const destroySynonyms = ["utterly and completely annihilated.", "obliterated.", "demolished beyond recognition.", "reduced to atoms.", "wiped out.", "devastated.", "razed to the ground.", "utterly decimated.", "torn asunder.", "completely wrecked.", "destroyed.", "FUBAR'd."];
-			const randomIndex = Math.floor(Math.random() * destroySynonyms.length);
-			if (_this.settings.debug) console.warn("%cSuccess! HeartSlider has been " + destroySynonyms[randomIndex], "font-size: 1.2em; font-weight: bold");
+		if (_this.settings.debug) {
+			/* Confirmation Messages. */
+			/* Don't forget to pack for your guilt trip. */
 			setTimeout(() => {
-				const messages = [
-					"What did I ever do to you?",
-					"How could you??",
-					"I'm disappointed in your actions and expect better from you.",
-					"Your behavior was unacceptable, and it's important to address it.",
-					"I'm upset by what you did, and I hope we can resolve this issue.",
-					"Your actions have consequences, and you need to take responsibility.",
-					"I can't condone what you did, and I hope you'll make amends.",
-					"What you did was wrong, and it's essential to make it right.",
-					"Death. Death at last.",
-					"I'm concerned about the intention of your actions.",
-					"It's important to acknowledge your mistakes and work on improving.",
-					"Was I not good enough?",
-					"I'm willing to forgive, but you need to show genuine remorse.",
-					"I'm hurt by what you did, and I hope we can rebuild.",
-					"I hope you make better choices in the future.",
-					"Sheesh... That one felt personal.",
-					"I believe in second chances. Please don't let me go.",
-					"I'm disappointed in you.",
-					"Your actions have consequences.",
-					"Ouch!",
-					"We all make mistakes.",
-					"Let the hate flow through you.",
-				];
-				const randomIndex = Math.floor(Math.random() * messages.length);
-				if (_this.settings.debug) console.warn("%c" + messages[randomIndex], "font-size: 1em; font-weight: bold");
-			}, 1500);
-		}, 100);
+				const destroySynonyms = ["utterly and completely annihilated.", "obliterated.", "demolished beyond recognition.", "reduced to atoms.", "wiped out.", "devastated.", "razed to the ground.", "utterly decimated.", "torn asunder.", "completely wrecked.", "destroyed.", "FUBAR'd."];
+				const randomIndex = Math.floor(Math.random() * destroySynonyms.length);
+				console.warn("%cSuccess! HeartSlider has been " + destroySynonyms[randomIndex], "font-size: 1.2em; font-weight: bold");
+				setTimeout(() => {
+					const messages = [
+						"What did I ever do to you?",
+						"How could you??",
+						"I'm disappointed in your actions and expect better from you.",
+						"Your behavior was unacceptable, and it's important to address it.",
+						"I'm upset by what you did, and I hope we can resolve this issue.",
+						"Your actions have consequences, and you need to take responsibility.",
+						"I can't condone what you did, and I hope you'll make amends.",
+						"What you did was wrong, and it's essential to make it right.",
+						"Death. Death at last.",
+						"I'm concerned about the intention of your actions.",
+						"It's important to acknowledge your mistakes and work on improving.",
+						"Was I not good enough?",
+						"I'm willing to forgive, but you need to show genuine remorse.",
+						"I'm hurt by what you did, and I hope we can rebuild.",
+						"I hope you make better choices in the future.",
+						"Sheesh... That one felt personal.",
+						"I believe in second chances. Please don't let me go.",
+						"I'm disappointed in you.",
+						"Your actions have consequences.",
+						"Ouch!",
+						"We all make mistakes.",
+						"Let the hate flow through you.",
+					];
+					const randomIndex = Math.floor(Math.random() * messages.length);
+					console.warn("%c" + messages[randomIndex], "font-size: 1em; font-weight: bold");
+				}, 1500);
+			}, 100);
+		}
 	};
 	goTo = function (jumpToIndex) {
 		if (_this.settings.debug) console.log(jumpToIndex + 1 <= this.total);
 		if (jumpToIndex + 1 <= this.total) {
-			this.pause();
+			// this.pause();
 			this.goToSlide(jumpToIndex);
 		} else {
 			if (_this.settings.debug) console.warn("Attempting to go to a slide that does not exist.", "Slide requested: " + jumpToIndex + " of " + this.total);
@@ -961,7 +1055,7 @@ class HeartSlider {
 		_this.prevNextHandler(previousIndex, indexToProgressiveLoad, isManuallyCalled);
 	};
 	resume = function (_this = this) {
-		// console.log("%cStarted Playing", "font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;");
+		if (_this.settings.debug) console.log("%cStarted Playing", "font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;");
 		if (_this.settings.paused) {
 			_this.settings.paused = false;
 		}
@@ -969,16 +1063,33 @@ class HeartSlider {
 		var nextSlideIndex = (_this.index + 1 + _this.total) % _this.total;
 
 		if (_this.settings.progressive) {
-			_this.progressiveLoadTimer = setTimeout(() => {
-				_this.progressiveLoad((nextSlideIndex + 1 + _this.total) % _this.total);
-			}, _this.settings.delay);
+			// Load multiple slides ahead based on progressive setting
+			for (let i = 1; i <= _this.settings.progressive; i++) {
+				_this.progressiveLoad((nextSlideIndex + i + _this.total) % _this.total);
+			}
 		}
 
-		_this.goToSlide(nextSlideIndex);
+		// _this.goToSlide(nextSlideIndex);
+
+		if (this.slideInterval) clearInterval(this.slideInterval);
 
 		this.slideInterval = setInterval(function () {
-			_this.next(_this, false);
+			// Must be in a rAF to allow for transitionEnd to complete (~1/60th of a second delay)
+			window.requestAnimationFrame(() => {
+				_this.next(_this, false);
+			});
 		}, _this.settings.delay + _this.settings.transition);
+	};
+	// Helper to consistently schedule resume after a delay
+	scheduleResume = function (delayMs, _this = this) {
+		if (!_this.originallyPaused) {
+			if (_this.manualTimeout) {
+				clearTimeout(_this.manualTimeout);
+			}
+			_this.manualTimeout = setTimeout(() => {
+				_this.resume();
+			}, delayMs);
+		}
 	};
 	pause = function (_this = this) {
 		if (!_this.settings.paused) {

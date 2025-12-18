@@ -18,6 +18,8 @@ Features:
 
 Change Log:
 
+#### Last Updated: December 17, 2025
+
 -   3.5.0 - Improved logic for slide timing, delay, and manual transition. Progressive now supports an offset. Added debug setting.
 -   3.4.14 - Fixed an animation stutter when manually advancing slides / looping on videos is now optional.
 -   3.4.13 - Prevented videos from auto-playing paused slideshows.
@@ -95,5 +97,3 @@ To Do:
 -   [x] Wait until first image load to start timer
 
 '''''''''''''''
-
-#### Last Updated: March, 27 2024

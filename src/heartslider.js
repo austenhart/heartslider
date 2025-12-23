@@ -1,7 +1,7 @@
 "use strict";
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.5.1 ❤
+❤ Version 3.5.2 ❤
 
 === Steps to Push New Version ===
 1) Update Changelog and version number in .js, .css, readme.md, and package.json
@@ -10,6 +10,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.5.2 - Fixed goTo debug bug again.
 3.5.1 - Fixed goTo debug bug, and allowFullVideoPlayback option.
 3.5.0 - Improved logic for slide timing, delay, and manual transition. Progressive now supports an offset. Added debug setting.
 3.4.14 - Fixed an animation stutter when manually advancing slides / looping on videos is now optional.

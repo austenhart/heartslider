@@ -996,7 +996,7 @@ class HeartSlider {
 			delete this[`${prop}`];
 		}
 
-		if (_this.settings.debug) {
+		if (this.settings.debug) {
 			/* Confirmation Messages. */
 			/* Don't forget to pack for your guilt trip. */
 			setTimeout(() => {

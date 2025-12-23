@@ -1,7 +1,7 @@
 "use strict";
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.5.2 ❤
+❤ Version 3.5.3 ❤
 
 === Steps to Push New Version ===
 1) Update Changelog and version number in .js, .css, readme.md, and package.json
@@ -10,6 +10,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.5.3 - Fixed destroy debug bug.
 3.5.2 - Fixed goTo debug bug again.
 3.5.1 - Fixed goTo debug bug, and allowFullVideoPlayback option.
 3.5.0 - Improved logic for slide timing, delay, and manual transition. Progressive now supports an offset. Added debug setting.
@@ -935,6 +936,7 @@ class HeartSlider {
 		}
 	}
 	destroy = function () {
+		const enableDebug = this.settings.debug;
 		/* Remove all setTimeouts */
 		this.clearAllTimers(true);
 
@@ -997,7 +999,7 @@ class HeartSlider {
 			delete this[`${prop}`];
 		}
 
-		if (this.settings.debug) {
+		if (enableDebug) {
 			/* Confirmation Messages. */
 			/* Don't forget to pack for your guilt trip. */
 			setTimeout(() => {

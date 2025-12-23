@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.5.2
+##### Version 3.5.3
 
 '''''''''''''''''
 
@@ -20,6 +20,7 @@ Change Log:
 
 #### Last Updated: December 23, 2025
 
+-   3.5.3 - Fixed destroy debug bug.
 -   3.5.2 - Fixed goTo debug bug again.
 -   3.5.1 - Fixed goTo debug bug, and allowFullVideoPlayback option.
 -   3.5.0 - Improved logic for slide timing, delay, and manual transition. Progressive now supports an offset. Added debug setting.

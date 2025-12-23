@@ -1,7 +1,7 @@
 "use strict";
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.5.0 ❤
+❤ Version 3.5.1 ❤
 
 === Steps to Push New Version ===
 1) Update Changelog and version number in .js, .css, readme.md, and package.json
@@ -10,6 +10,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.5.1 - Fixed goTo debug bug, and allowFullVideoPlayback option.
 3.5.0 - Improved logic for slide timing, delay, and manual transition. Progressive now supports an offset. Added debug setting.
 3.4.14 - Fixed an animation stutter when manually advancing slides / looping on videos is now optional.
 3.4.13 - Prevented videos from auto-playing paused slideshows.
@@ -555,7 +556,7 @@ class HeartSlider {
 
 				/* If the video metadata is already loaded, then calculate slide duration */
 				/* Otherwise, wait for that info to load */
-				if (_this.allowFullVideoPlayback) {
+				if (_this.settings.allowFullVideoPlayback) {
 					if (videoElement.duration && typeof videoElement.duration === "number") {
 						adjustSlideTime(videoElement);
 					} else {
@@ -1034,13 +1035,13 @@ class HeartSlider {
 		}
 	};
 	goTo = function (jumpToIndex) {
-		if (_this.settings.debug) console.log(jumpToIndex + 1 <= this.total);
 		if (jumpToIndex + 1 <= this.total) {
 			// this.pause();
 			this.goToSlide(jumpToIndex);
 		} else {
-			if (_this.settings.debug) console.warn("Attempting to go to a slide that does not exist.", "Slide requested: " + jumpToIndex + " of " + this.total);
+			if (this.settings.debug) console.warn("Attempting to go to a slide that does not exist.", "Slide requested: " + jumpToIndex + " of " + this.total);
 		}
+		if (this.settings.debug) console.log(jumpToIndex + 1 <= this.total);
 	};
 	next = function (_this = this, isManuallyCalled = false) {
 		var nextIndex = (_this.index + 1 + _this.total) % _this.total;

@@ -4,10 +4,11 @@
 const homepageSlider = new HeartSlider({
 	// slideshow: slideshow,
 	slides: ".heart-slide",
-	transition: 3000,
+	transition: 1600,
 	manualTransition: 500,
 	debug: false,
-	delay: 1000,
+	delay: 2400,
+	delayStart: 0,
 	loop: true,
 	randomize: false, // give option for "start" and "all"
 	paused: false,
@@ -15,6 +16,10 @@ const homepageSlider = new HeartSlider({
 	allowFullVideoPlayback: true,
 	buttons: true,
 	swipe: true,
+	stackOnMobile: {
+		enable: true,
+		threshold: 768,
+	},
 	clickToAdvance: true,
 	pauseOnInactiveWindow: false,
 	progressIndicators: {
@@ -23,6 +28,10 @@ const homepageSlider = new HeartSlider({
 		color: "#fff",
 	},
 });
+
+// homepageSlider.loadAllContent().then((results) => {
+// 	console.log("All slide content attempted:", results);
+// });
 
 // Events
 // homepageSlider.on("transitionStart", function (slideshow, slideshowElement, currentSlide) {

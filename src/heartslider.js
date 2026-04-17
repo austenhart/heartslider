@@ -1,7 +1,7 @@
 "use strict";
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.5.3 ❤
+❤ Version 3.5.4 ❤
 
 === Steps to Push New Version ===
 1) Update Changelog and version number in .js, .css, readme.md, and package.json
@@ -10,6 +10,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.5.4 - Added stackOnMobile and preload APIs, improved transition/manual-skip timing, fixed allowFullVideoPLayback bug.
 3.5.3 - Fixed destroy debug bug.
 3.5.2 - Fixed goTo debug bug again.
 3.5.1 - Fixed goTo debug bug, and allowFullVideoPlayback option.
@@ -60,6 +61,7 @@ class HeartSlider {
 			buttons: false,
 			clickToAdvance: false,
 			debug: false,
+			delayStart: 0,
 			delay: 1000,
 			effect: "fadeOut",
 			loop: true,
@@ -70,6 +72,10 @@ class HeartSlider {
 			randomize: false,
 			slideshow: ".heart-slideshow",
 			slides: ".heart-slide",
+			stackOnMobile: {
+				enable: false,
+				threshold: 768,
+			},
 			swipe: true,
 			transition: 3000,
 			progressIndicators: {
@@ -101,13 +107,25 @@ class HeartSlider {
 				} else {
 					// Ensure minimum value of 1/60th for any time-based settings
 					if (typeof this.settings[prop] === "number") {
-						// console.log("new base value for", prop);
-						userSettings[prop] = Math.max(Number(userSettings[prop]), 16.6667);
+						// delayStart may be disabled with 0, all other timing values keep the minimum frame duration.
+						const minimumValue = prop === "delayStart" ? 0 : 16.6667;
+						userSettings[prop] = Math.max(Number(userSettings[prop]), minimumValue);
 					}
 					this.settings[prop] = userSettings[prop];
 				}
 			}
 		}
+
+		if (typeof this.settings.stackOnMobile !== "object" || this.settings.stackOnMobile === null) {
+			this.settings.stackOnMobile = {
+				enable: Boolean(this.settings.stackOnMobile),
+				threshold: 768,
+			};
+		}
+		if (typeof this.settings.stackOnMobile.threshold !== "number" || !Number.isFinite(this.settings.stackOnMobile.threshold)) {
+			this.settings.stackOnMobile.threshold = 768;
+		}
+		this.settings.stackOnMobile.threshold = Math.max(Number(this.settings.stackOnMobile.threshold), 0);
 
 		/* Check to see if slideshow actually exists */
 		/* If `slideshow` is a string, then use a query selector. If it is already a query selector, then use that. */
@@ -142,7 +160,19 @@ class HeartSlider {
 		this.total = this.slides.length;
 		this.index = 0;
 		this.manualTimeout;
+		this.delayStartComplete = this.settings.delayStart <= 0;
+		this.delayStartRemaining = this.settings.delayStart;
+		this.delayStartStartedAt = 0;
+		this.delayStartTimer = undefined;
+		this.delayedStartVideo = undefined;
+		this.delayedStartVideoTime = 0;
+		this.kickstarted = false;
 		this.originallyPaused = this.settings.paused;
+		this.stackOnMobileResizeHandler = undefined;
+		this.stackModePauseTimer = undefined;
+		this.isStackedOnMobile = false;
+		this.pausedForStackOnMobile = false;
+		this.pauseRequestedByVideo = false;
 		// this.transitioning = false;
 
 		/* Start */
@@ -151,6 +181,7 @@ class HeartSlider {
 		if (this.settings.effect === "fadeInOut") this.slideshowSelector.classList.add("fade-in-out");
 
 		this.firstIndex = this.index;
+		this.configureStackOnMobile(this);
 
 		/* Loop through each slide  */
 		this.slides.forEach(function (slide, index) {
@@ -187,30 +218,33 @@ class HeartSlider {
 		}
 
 		if (_this.settings.swipe) {
-			_this.slideshowSelector.addEventListener("touchstart", _this.swipeHandler(_this).handleTouchStart, { passive: true });
-			_this.slideshowSelector.addEventListener("touchmove", _this.swipeHandler(_this).handleTouchMove, { passive: true });
+			// Store handler references so they can be removed in destroy()
+			_this.swipeHandlers = _this.swipeHandler(_this);
+			_this.slideshowSelector.addEventListener("touchstart", _this.swipeHandlers.handleTouchStart, { passive: true });
+			_this.slideshowSelector.addEventListener("touchmove", _this.swipeHandlers.handleTouchMove, { passive: true });
 		}
 
 		if (_this.settings.clickToAdvance) {
 			var throttleClick;
-			_this.slideshowSelector.addEventListener(
-				"click",
-				function (event) {
-					if (throttleClick || event.target.nodeName === "BUTTON") return;
-					// _this.pause();
-					_this.next(_this, true);
-					throttleClick = setTimeout(() => {
-						throttleClick = undefined;
-					}, _this.settings.manualTransition);
-					if (!_this.originallyPaused) {
-						if (_this.throttleClickResume) clearTimeout(_this.throttleClickResume);
-						_this.throttleClickResume = setTimeout(() => {
+			// Store handler reference so it can be removed in destroy()
+			_this.clickHandler = function (event) {
+				if (throttleClick || event.target.nodeName === "BUTTON") return;
+				// _this.pause();
+				_this.next(_this, true);
+				throttleClick = setTimeout(() => {
+					throttleClick = undefined;
+				}, _this.settings.manualTransition);
+				if (!_this.originallyPaused) {
+					if (_this.throttleClickResume) clearTimeout(_this.throttleClickResume);
+					_this.throttleClickResume = setTimeout(
+						() => {
 							_this.resume();
-						}, _this.settings.transition + _this.settings.delay * 1.25);
-					}
-				},
-				false
-			);
+						},
+						_this.settings.transition + _this.settings.delay * 1.25,
+					);
+				}
+			};
+			_this.slideshowSelector.addEventListener("click", _this.clickHandler, false);
 		}
 
 		/* Progress Indicators */
@@ -263,9 +297,12 @@ class HeartSlider {
 
 					if (!_this.originallyPaused) {
 						if (_this.throttleClickResume) clearTimeout(_this.throttleClickResume);
-						_this.throttleClickResume = setTimeout(() => {
-							_this.resume();
-						}, _this.settings.transition + _this.settings.delay * 1.25);
+						_this.throttleClickResume = setTimeout(
+							() => {
+								_this.resume();
+							},
+							_this.settings.transition + _this.settings.delay * 1.25,
+						);
 					}
 				});
 				progressContainer.appendChild(indicator);
@@ -305,7 +342,7 @@ class HeartSlider {
 						function (e) {
 							buttonHandler(e.currentTarget);
 						},
-						false
+						false,
 					);
 					_this.slideshowSelector.appendChild(button);
 				}
@@ -320,14 +357,123 @@ class HeartSlider {
 						function (e) {
 							buttonHandler(e.currentTarget);
 						},
-						false
+						false,
 					);
+				}
+			}
+		}
+	}
+	configureStackOnMobile(_this = this) {
+		if (_this.stackOnMobileResizeHandler) {
+			window.removeEventListener("resize", _this.stackOnMobileResizeHandler);
+			_this.stackOnMobileResizeHandler = undefined;
+		}
+
+		const mobileStacking = _this.settings.stackOnMobile;
+		const stackEnabled = mobileStacking && mobileStacking.enable;
+
+		_this.slideshowSelector.classList.toggle("stack-on-mobile", stackEnabled);
+		if (!stackEnabled) {
+			_this.applyStackModeVideoBehavior(false, _this);
+			_this.isStackedOnMobile = false;
+			_this.pausedForStackOnMobile = false;
+			_this.slideshowSelector.classList.remove("is-stacked-mobile");
+			return;
+		}
+
+		const stackThreshold = Math.max(Number(mobileStacking.threshold || 768), 0);
+		_this.stackOnMobileResizeHandler = () => {
+			const shouldStack = window.innerWidth <= stackThreshold;
+			const justExitedStackMode = !shouldStack && _this.isStackedOnMobile;
+			const justEnteredStackMode = shouldStack && !_this.isStackedOnMobile;
+			_this.isStackedOnMobile = shouldStack;
+			_this.slideshowSelector.classList.toggle("is-stacked-mobile", shouldStack);
+
+			if (justEnteredStackMode) {
+				_this.pausedForStackOnMobile = !_this.settings.paused;
+				if (_this.stackModePauseTimer) {
+					clearTimeout(_this.stackModePauseTimer);
+					_this.stackModePauseTimer = undefined;
+				}
+				_this.stackModePauseTimer = setTimeout(() => {
+					if (_this.pausedForStackOnMobile && _this.isStackedOnMobile && !_this.settings.paused) {
+						_this.pause(_this, "stack");
+					}
+					_this.stackModePauseTimer = undefined;
+					_this.applyStackModeVideoBehavior(true, _this);
+					_this.loadAllContent(_this);
+				}, _this.settings.transition / 2);
+			}
+
+			if (justExitedStackMode) {
+				if (_this.stackModePauseTimer) {
+					clearTimeout(_this.stackModePauseTimer);
+					_this.stackModePauseTimer = undefined;
+				}
+				_this.applyStackModeVideoBehavior(false, _this);
+				if (_this.pausedForStackOnMobile && _this.settings.paused) {
+					_this.resume();
+				}
+				_this.pausedForStackOnMobile = false;
+			}
+		};
+
+		_this.stackOnMobileResizeHandler();
+		window.addEventListener("resize", _this.stackOnMobileResizeHandler, { passive: true });
+	}
+	applyStackModeVideoBehavior(enableForStackMode, _this = this) {
+		const videos = _this.slideshowSelector.querySelectorAll("video");
+
+		for (const video of videos) {
+			if (enableForStackMode) {
+				if (video.getAttribute("data-heartslider-stack-orig-autoplay") === null) {
+					video.setAttribute("data-heartslider-stack-orig-autoplay", video.autoplay ? "true" : "false");
+				}
+				if (video.getAttribute("data-heartslider-stack-orig-loop") === null) {
+					video.setAttribute("data-heartslider-stack-orig-loop", video.loop ? "true" : "false");
+				}
+
+				video.autoplay = true;
+				video.loop = true;
+				video.setAttribute("autoplay", "");
+				video.setAttribute("loop", "");
+
+				const playPromise = video.play();
+				if (playPromise && typeof playPromise.catch === "function") {
+					playPromise.catch(() => {});
+				}
+			} else {
+				const originalAutoplay = video.getAttribute("data-heartslider-stack-orig-autoplay");
+				const originalLoop = video.getAttribute("data-heartslider-stack-orig-loop");
+
+				if (originalAutoplay !== null) {
+					const shouldAutoplay = originalAutoplay === "true";
+					video.autoplay = shouldAutoplay;
+					if (shouldAutoplay) {
+						video.setAttribute("autoplay", "");
+					} else {
+						video.removeAttribute("autoplay");
+					}
+					video.removeAttribute("data-heartslider-stack-orig-autoplay");
+				}
+
+				if (originalLoop !== null) {
+					const shouldLoop = originalLoop === "true";
+					video.loop = shouldLoop;
+					if (shouldLoop) {
+						video.setAttribute("loop", "");
+					} else {
+						video.removeAttribute("loop");
+					}
+					video.removeAttribute("data-heartslider-stack-orig-loop");
 				}
 			}
 		}
 	}
 	kickstart() {
 		const _this = this;
+		if (_this.kickstarted) return;
+		_this.kickstarted = true;
 		if (_this.settings.progressive) {
 			_this.slideshowSelector.classList.add("first-image-loaded");
 			var startProgressiveLoad = function startProgressiveLoad() {
@@ -344,11 +490,131 @@ class HeartSlider {
 			window.requestAnimationFrame(startProgressiveLoad);
 		}
 		if (!_this.settings.paused) {
-			_this.kickoffTimer = setTimeout(() => {
-				_this.resume();
-				_this.kickoffTimer = undefined;
-			}, _this.settings.delay);
+			_this.scheduleStart();
 		}
+	}
+	hasDelayedStartPending() {
+		return this.settings.delayStart > 0 && !this.delayStartComplete && this.delayStartRemaining > 0;
+	}
+	pauseDelayedStartVideo(videoElement) {
+		if (videoElement === null) return;
+
+		this.delayedStartVideo = videoElement;
+		this.delayedStartVideoTime = videoElement.currentTime || 0;
+		videoElement.pause();
+	}
+	playSlideVideo(videoElement, preserveCurrentTime = false) {
+		if (videoElement === null) return false;
+
+		if (preserveCurrentTime) {
+			videoElement.currentTime = this.delayedStartVideoTime || 0;
+		} else {
+			videoElement.currentTime = 0;
+		}
+
+		const playPromise = videoElement.play();
+		if (playPromise && typeof playPromise.catch === "function") {
+			playPromise.catch(() => {});
+		}
+
+		if (this.delayedStartVideo === videoElement) {
+			this.delayedStartVideo = undefined;
+			this.delayedStartVideoTime = 0;
+		}
+
+		if (this.settings.allowFullVideoPlayback) {
+			this.setupVideoSlideDuration(videoElement);
+			return true;
+		}
+
+		return false;
+	}
+	setupVideoSlideDuration(videoElement) {
+		const _this = this;
+
+		/* If the video metadata is already loaded, then calculate slide duration */
+		/* Otherwise, wait for that info to load */
+		if (videoElement.duration && typeof videoElement.duration === "number") {
+			adjustSlideTime(videoElement);
+		} else {
+			videoElement.onloadedmetadata = function () {
+				adjustSlideTime(videoElement);
+			};
+		}
+
+		/* Changes the duration of the given slide to make sure the video plays through */
+		function adjustSlideTime(videoElement) {
+			if (_this.isStackedOnMobile) {
+				return;
+			}
+			const totalDuration = _this.settings.delay + _this.settings.transition * 2;
+			const videoSlideDuration = Math.max(videoElement.duration * 1000 - totalDuration, 0);
+			// TODO: If video is not long enough, progressively slow down the last half second so it comes to a gentle stop
+			if (videoSlideDuration >= 0) {
+				let timingOffset = 0;
+				_this.pauseRequestedByVideo = true;
+				_this.pause(_this, "video");
+				if (_this.videoSlideTimer) {
+					clearTimeout(_this.videoSlideTimer);
+				}
+				if (_this.manualTimeout) {
+					clearTimeout(_this.manualTimeout);
+					timingOffset = Date.now() - _this.transitionStartTime;
+				}
+				_this.videoSlideTimer = setTimeout(
+					() => {
+						if (!_this.originallyPaused && _this.pauseRequestedByVideo) {
+							// Do not progress on a manually-controlled slideshow
+							_this.resume();
+						}
+						_this.pauseRequestedByVideo = false;
+					},
+					videoSlideDuration + _this.settings.transition - timingOffset,
+				);
+			}
+		}
+	}
+	scheduleKickoff() {
+		if (this.settings.paused) return;
+		clearTimeout(this.kickoffTimer);
+
+		this.kickoffTimer = setTimeout(() => {
+			this.resume();
+			this.kickoffTimer = undefined;
+		}, this.settings.delay);
+	}
+	scheduleStart() {
+		if (!this.hasDelayedStartPending()) {
+			this.scheduleKickoff();
+			return;
+		}
+
+		const firstSlideVideo = this.currentSlide ? this.currentSlide.querySelector("video") : null;
+		if (firstSlideVideo !== null) {
+			this.pauseDelayedStartVideo(firstSlideVideo);
+		}
+
+		clearTimeout(this.delayStartTimer);
+		this.delayStartStartedAt = Date.now();
+		this.delayStartTimer = setTimeout(() => {
+			let handledVideoTiming = false;
+
+			this.delayStartComplete = true;
+			this.delayStartRemaining = 0;
+			this.delayStartStartedAt = 0;
+			this.delayStartTimer = undefined;
+
+			if (this.delayedStartVideo && this.currentSlide === this.slides[this.firstIndex]) {
+				handledVideoTiming = this.playSlideVideo(this.delayedStartVideo, true);
+			} else {
+				this.delayedStartVideo = undefined;
+				this.delayedStartVideoTime = 0;
+			}
+
+			if (!handledVideoTiming && !this.settings.paused) {
+				this.scheduleKickoff();
+			}
+		}, this.delayStartRemaining);
 	}
 	on(type, callback) {
 		const _this = this;
@@ -551,45 +817,11 @@ class HeartSlider {
 			/* Check for video elements */
 			const videoElement = _this.currentSlide.querySelector("video");
 			if (videoElement !== null) {
-				if (videoElement.paused) {
-					videoElement.currentTime = 0;
-					videoElement.play();
-				}
-
-				/* If the video metadata is already loaded, then calculate slide duration */
-				/* Otherwise, wait for that info to load */
-				if (_this.settings.allowFullVideoPlayback) {
-					if (videoElement.duration && typeof videoElement.duration === "number") {
-						adjustSlideTime(videoElement);
-					} else {
-						videoElement.onloadedmetadata = function () {
-							adjustSlideTime(videoElement);
-						};
-					}
-					/* Changes the duration of the given slide to make sure the video plays through */
-					function adjustSlideTime(videoElement) {
-						const totalDuration = _this.settings.delay + _this.settings.transition * 2;
-						const videoSlideDuration = Math.max(videoElement.duration * 1000 - totalDuration, 0);
-						// TODO: If video is not long enough, progressively slow down the last half second so it comes to a gentle stop
-						if (videoSlideDuration >= 0) {
-							let timingOffset = 0;
-							_this.pause();
-							if (_this.videoSlideTimer) {
-								clearTimeout(_this.videoSlideTimer);
-							}
-							if (_this.manualTimeout) {
-								clearTimeout(_this.manualTimeout);
-								timingOffset = Date.now() - _this.transitionStartTime;
-								console.log(timingOffset);
-							}
-							_this.videoSlideTimer = setTimeout(() => {
-								if (!_this.originallyPaused) {
-									// Do not progress on a manually-controlled slideshow
-									_this.resume();
-								}
-							}, videoSlideDuration + _this.settings.transition - timingOffset);
-						}
-					}
+				const shouldDelayFirstSlideVideo = isFirstSlide && _this.hasDelayedStartPending();
+				if (shouldDelayFirstSlideVideo) {
+					_this.pauseDelayedStartVideo(videoElement);
+				} else {
+					_this.playSlideVideo(videoElement);
 				}
 			}
 
@@ -613,21 +845,26 @@ class HeartSlider {
 			// Remove display:none before animating in
 			_this.currentSlide.style.display = "";
 
+			// Double RAF: first frame lets the browser process the layout change
+			// after removing display:none; second frame fires after the element
+			// has been painted so the transition starts on a rendered frame.
 			window.requestAnimationFrame(() => {
-				/* add styles to new slide */
-				// _this.currentSlide.style.transitionDelay = 16.6667 + "ms";
-				if (_this.settings.effect === "fadeInOut") {
-					/* FadeInOut */
-					_this.currentSlide.style.transitionDuration = duration / 2 + "ms";
-					_this.currentSlide.style.transitionDelay = duration / 3 + "ms";
-				} else {
-					/* Default */
-					_this.currentSlide.style.transitionDuration = duration + "ms";
-					_this.currentSlide.style.transitionDelay = 0 + "ms";
-				}
-				_this.currentSlide.removeAttribute("aria-hidden");
-				_this.currentSlide.removeAttribute("tab-index");
-				_this.currentSlide.classList.add("active");
+				window.requestAnimationFrame(() => {
+					/* add styles to new slide */
+					// _this.currentSlide.style.transitionDelay = 16.6667 + "ms";
+					if (_this.settings.effect === "fadeInOut") {
+						/* FadeInOut */
+						_this.currentSlide.style.transitionDuration = duration / 2 + "ms";
+						_this.currentSlide.style.transitionDelay = duration / 3 + "ms";
+					} else {
+						/* Default */
+						_this.currentSlide.style.transitionDuration = duration + "ms";
+						_this.currentSlide.style.transitionDelay = 0 + "ms";
+					}
+					_this.currentSlide.removeAttribute("aria-hidden");
+					_this.currentSlide.removeAttribute("tab-index");
+					_this.currentSlide.classList.add("active");
+				});
 			});
 
 			let prevSlideProgress = 1;
@@ -732,7 +969,7 @@ class HeartSlider {
 						if (currentImage.complete && currentImage.naturalWidth > 0) {
 							loadHandler(currentImage, index);
 						} else {
-							currentImage.onload = loadHandler(currentImage, index);
+							currentImage.onload = () => loadHandler(currentImage, index);
 							var atts = ["sizes", "srcset", "src"];
 							atts.forEach(function (attribute) {
 								var targetAtt = currentImage.getAttribute("data-" + attribute);
@@ -822,6 +1059,127 @@ class HeartSlider {
 			}
 		}
 	}
+	loadSlideContent(targetIndex, _this = this) {
+		const targetSlide = _this.slides[targetIndex];
+		if (!targetSlide) {
+			return Promise.resolve({ targetIndex: targetIndex, loaded: true, errors: [] });
+		}
+
+		// Reuse existing loading behavior so class state/classes stay consistent.
+		_this.progressiveLoad(targetIndex, false, _this);
+
+		const errors = [];
+
+		const imagePromises = Array.prototype.slice.call(targetSlide.querySelectorAll("img")).map((image) => {
+			return new Promise((resolve) => {
+				// Ensure lazy attributes are promoted even if progressiveLoad skipped this node.
+				var imageAtts = ["sizes", "srcset", "src"];
+				imageAtts.forEach((attribute) => {
+					var targetAtt = image.getAttribute("data-" + attribute);
+					if (targetAtt && image.getAttribute(attribute) == null) {
+						image.setAttribute(attribute, targetAtt);
+						image.setAttribute("data-" + attribute, "");
+					}
+				});
+
+				if (image.complete && image.naturalWidth > 0) {
+					resolve();
+					return;
+				}
+
+				const onLoad = () => {
+					resolve();
+				};
+				const onError = () => {
+					errors.push({ type: "image", index: targetIndex, element: image });
+					resolve();
+				};
+
+				image.addEventListener("load", onLoad, { once: true });
+				image.addEventListener("error", onError, { once: true });
+			});
+		});
+
+		const videoPromises = Array.prototype.slice.call(targetSlide.querySelectorAll("video")).map((video) => {
+			return new Promise((resolve) => {
+				const mustHaveAttributes = ["playsinline", "disablepictureinpicture", "disableremoteplayback", "preload"];
+				mustHaveAttributes.forEach((attr) => {
+					if (!video.getAttribute(attr)) {
+						let value = "";
+						if (attr === "preload") {
+							value = "auto";
+						}
+						video.setAttribute(attr, value);
+					}
+				});
+
+				if (video.src == "" && video.getAttribute("data-src") !== null) {
+					video.src = video.getAttribute("data-src");
+					video.removeAttribute("data-src");
+				}
+
+				const sources = video.querySelectorAll("source");
+				for (const source of sources) {
+					if (source.src == "" && source.getAttribute("data-src") !== null) {
+						source.src = source.getAttribute("data-src");
+						source.removeAttribute("data-src");
+					}
+				}
+
+				if (video.readyState >= 3) {
+					resolve();
+					return;
+				}
+
+				const finalize = () => {
+					video.removeEventListener("canplaythrough", onReady);
+					video.removeEventListener("loadeddata", onReady);
+					video.removeEventListener("error", onError);
+					resolve();
+				};
+
+				const onReady = () => {
+					finalize();
+				};
+
+				const onError = () => {
+					errors.push({ type: "video", index: targetIndex, element: video });
+					finalize();
+				};
+
+				video.addEventListener("canplaythrough", onReady, { once: true });
+				video.addEventListener("loadeddata", onReady, { once: true });
+				video.addEventListener("error", onError, { once: true });
+				video.load();
+			});
+		});
+
+		return Promise.all(imagePromises.concat(videoPromises)).then(() => {
+			if (targetIndex === 0) {
+				_this.slideshowSelector.classList.add("first-image-loaded");
+			}
+
+			return {
+				targetIndex: targetIndex,
+				loaded: errors.length === 0,
+				errors: errors,
+			};
+		});
+	}
+	loadAllContent(_this = this) {
+		if (!_this.slides || _this.slides.length === 0) {
+			return Promise.resolve([]);
+		}
+
+		const slideLoadPromises = _this.slides.map((slide, index) => {
+			return _this.loadSlideContent(index, _this);
+		});
+
+		return Promise.all(slideLoadPromises);
+	}
+	loadAll(_this = this) {
+		return _this.loadAllContent(_this);
+	}
 	removeEmptySlideAndReinit(target, errorCount, totalNumberOfSources) {
 		const currentSlide = this.slides[target];
 
@@ -846,9 +1204,8 @@ class HeartSlider {
 				/* This triggers if a manual transition is called during an automatic one*/
 
 				// Calculate transition progress (0 = just started, 1 = finished)
-				// const elapsed = Date.now() - (_this.transitionStartTime || Date.now());
-				// const transitionProgress = Math.min(elapsed / (_this.transitionDuration || 1), 1);
-				// console.log("Transition progress:", transitionProgress);
+				const elapsed = Date.now() - (_this.transitionStartTime || Date.now());
+				const transitionProgress = Math.min(elapsed / (_this.transitionDuration || 1), 1);
 
 				// If more than halfway through, skip ahead one extra slide
 				let targetSlideIndex = _this.index;
@@ -856,16 +1213,14 @@ class HeartSlider {
 
 				// Check if we are going forward or backward
 				if (targetIndex < _this.index) {
-					// this.clearAllTimers();
 					// If going backward, go to the previous slide
 					targetSlideIndex = (_this.index - 1 + _this.total) % _this.total;
 					extraDelay = _this.settings.manualTransition + _this.settings.delay;
+				} else if (transitionProgress > 0.65) {
+					// Nearly done transitioning — skip ahead to the intended next slide
+					targetSlideIndex = targetIndex;
+					indexToProgressiveLoad = (targetIndex + 1 + _this.total) % _this.total;
 				}
-				// else if (transitionProgress > 0.7) {
-				// 	// set target to skip ahead one more slide
-				// 	// this.clearAllTimers();
-				// 	// targetSlideIndex = (targetIndex + 1 + _this.total) % _this.total;
-				// }
 
 				// if (transitionProgress > 0.5) {
 				// 	console.log("Progress > 0.5, skipping ahead two slides");
@@ -917,19 +1272,33 @@ class HeartSlider {
 				_this.transitioning = false;
 				_this.transitioningTimer = undefined;
 			},
-			isManuallyCalled ? _this.settings.manualTransition / 2 : _this.settings.transition
+			isManuallyCalled ? _this.settings.manualTransition / 2 : _this.settings.transition,
 		);
 	}
 	clearAllTimers(destroyingSlideshow = false) {
 		clearInterval(this.slideInterval);
 		clearTimeout(this.transitioningTimer);
+		clearTimeout(this.transitionEndTimer);
+		if (this.delayStartTimer && !this.delayStartComplete && this.delayStartStartedAt) {
+			const elapsedDelayStart = Date.now() - this.delayStartStartedAt;
+			this.delayStartRemaining = Math.max(this.delayStartRemaining - elapsedDelayStart, 0);
+		}
+		this.transitionEndTimer = undefined;
+		// Ensure transitioning flag is always reset when timers are cleared,
+		// since both transitioningTimer and transitionEndTimer are responsible for resetting it.
+		this.transitioning = false;
 		clearTimeout(this.progressiveLoadTimer);
 		clearTimeout(this.kickstartProgressiveTimer);
 		clearTimeout(this.kickstartProgressiveLoadTimer);
 		clearTimeout(this.kickoffTimer);
+		clearTimeout(this.delayStartTimer);
+		this.delayStartTimer = undefined;
+		this.delayStartStartedAt = 0;
 		clearTimeout(this.throttleClickResume);
 		clearTimeout(this.videoSlideTimer);
 		clearTimeout(this.visResumeTimer);
+		clearTimeout(this.stackModePauseTimer);
+		this.stackModePauseTimer = undefined;
 		// Only clear if the slideshow is being destroyed
 		if (destroyingSlideshow) {
 			clearTimeout(this.manualTimeout);
@@ -942,6 +1311,16 @@ class HeartSlider {
 
 		/* Remove event listeners */
 		document.removeEventListener("visibilitychange", this.initVis, true);
+		if (this.stackOnMobileResizeHandler) {
+			window.removeEventListener("resize", this.stackOnMobileResizeHandler);
+		}
+		if (this.swipeHandlers) {
+			this.slideshowSelector.removeEventListener("touchstart", this.swipeHandlers.handleTouchStart);
+			this.slideshowSelector.removeEventListener("touchmove", this.swipeHandlers.handleTouchMove);
+		}
+		if (this.clickHandler) {
+			this.slideshowSelector.removeEventListener("click", this.clickHandler);
+		}
 
 		/* loop through each slide and reset classes/rels/styles */
 		if (this.slides !== undefined) {
@@ -1062,6 +1441,11 @@ class HeartSlider {
 		if (_this.settings.debug) console.log("%cStarted Playing", "font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;");
 		if (_this.settings.paused) {
 			_this.settings.paused = false;
+			_this.originallyPaused = false;
+		}
+		if (_this.hasDelayedStartPending()) {
+			_this.scheduleStart();
+			return;
 		}
 
 		var nextSlideIndex = (_this.index + 1 + _this.total) % _this.total;
@@ -1074,7 +1458,6 @@ class HeartSlider {
 		}
 
 		// _this.goToSlide(nextSlideIndex);
-
 		if (this.slideInterval) clearInterval(this.slideInterval);
 
 		this.slideInterval = setInterval(function () {
@@ -1083,6 +1466,9 @@ class HeartSlider {
 				_this.next(_this, false);
 			});
 		}, _this.settings.delay + _this.settings.transition);
+
+		// Immediately go to the next slide when resuming, then set interval for subsequent slides. This prevents a long wait if resuming near the end of a slide duration.
+		_this.next(_this, false);
 	};
 	// Helper to consistently schedule resume after a delay
 	scheduleResume = function (delayMs, _this = this) {
@@ -1095,7 +1481,11 @@ class HeartSlider {
 			}, delayMs);
 		}
 	};
-	pause = function (_this = this) {
+	pause = function (_this = this, source = "external") {
+		console.log("pause requested");
+		if (source !== "video") {
+			_this.pauseRequestedByVideo = false;
+		}
 		if (!_this.settings.paused) {
 			_this.settings.paused = true;
 			this.clearAllTimers();

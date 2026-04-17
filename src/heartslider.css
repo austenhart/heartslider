@@ -1,4 +1,4 @@
-/* HeartSlider Styles — 3.5.3 */
+/* HeartSlider Styles — 3.5.4 */
 .heart-slideshow {
 	position: relative;
 	top: 0;
@@ -111,6 +111,57 @@
 }
 .fade-in-out .heart-slide.active {
 	transition-timing-function: cubic-bezier(0.27, 0, 0.43, 1);
+}
+
+.heart-slideshow.stack-on-mobile.is-stacked-mobile {
+	height: auto;
+	overflow: visible;
+	visibility: visible;
+	opacity: 1;
+}
+
+.heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-slide {
+	position: relative;
+	top: auto;
+	right: auto;
+	bottom: auto;
+	left: auto;
+	display: block !important;
+	height: auto;
+	opacity: 1;
+	visibility: visible;
+	content-visibility: visible;
+	pointer-events: auto;
+	z-index: auto;
+	transition: none !important;
+	margin: 0;
+}
+
+.heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-slide[aria-hidden="true"],
+.heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-slide[tab-index="-1"] {
+	visibility: visible;
+	content-visibility: visible;
+}
+
+.heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-slide .image-holder {
+	height: auto;
+}
+
+.heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-slide img,
+.heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-slide video {
+	position: relative;
+	display: block;
+	width: 100%;
+	height: auto;
+	opacity: 1;
+	visibility: visible;
+	object-fit: cover;
+}
+
+.heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-prev,
+.heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-next,
+.heart-slideshow.stack-on-mobile.is-stacked-mobile .progress-container {
+	display: none !important;
 }
 
 .heart-prev,

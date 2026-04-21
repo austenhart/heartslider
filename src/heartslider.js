@@ -1482,7 +1482,6 @@ class HeartSlider {
 		}
 	};
 	pause = function (_this = this, source = "external") {
-		console.log("pause requested");
 		if (source !== "video") {
 			_this.pauseRequestedByVideo = false;
 		}

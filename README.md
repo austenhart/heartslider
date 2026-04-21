@@ -18,9 +18,9 @@ Features:
 
 Change Log:
 
-#### Last Updated: April 17, 2026
+#### Last Updated: April 21, 2026
 
-- 3.5.3 - Added stackOnMobile and preload APIs, improved transition/manual-skip timing, fixed allowFullVideoPLayback bug.
+- 3.5.4 - Added stackOnMobile and preload APIs, improved transition/manual-skip timing, fixed allowFullVideoPLayback bug.
 - 3.5.3 - Fixed destroy debug bug.
 - 3.5.2 - Fixed goTo debug bug again.
 - 3.5.1 - Fixed goTo debug bug, and allowFullVideoPlayback option.

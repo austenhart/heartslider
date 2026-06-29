@@ -1,11 +1,11 @@
 "use strict";
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.5.4 ❤
+❤ Version 3.5.5 ❤
 
 === Steps to Push New Version ===
 1) Update changelog notes in this file and README.
-2) Run npm run release -- patch|minor|major (or npm run build if no version bump is needed).
+2) Run npm run release -- patch|minor|major (or npm run build if no version bump is needed). Version number is updated and then pulled from package.json.
 3) Respond to prompts to publish to npm and push to GitHub.
 
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider

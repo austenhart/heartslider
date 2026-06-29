@@ -2,11 +2,18 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.5.4
+##### Version 3.5.5
 
 '''''''''''''''''
 
 [![](https://data.jsdelivr.com/v1/package/gh/austenhart/heartslider/badge)](https://www.jsdelivr.com/package/gh/austenhart/heartslider)
+
+Release Workflow:
+
+- `npm run build` automatically syncs version strings in source files from package.json before building.
+- `npm run release -- patch` bumps package.json, syncs version strings, builds, then prompts to publish to npm and push to GitHub.
+- During release, you can optionally auto-create a release commit and matching `vX.Y.Z` git tag before publish/push prompts.
+- You can also run `npm run release -- minor` or `npm run release -- major`.
 
 Features:
 

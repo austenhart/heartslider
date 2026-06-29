@@ -48,9 +48,9 @@
 		"@babel/cli": "^7.26.3",
 		"@babel/core": "^7.26.3",
 		"@babel/preset-env": "^7.26.3",
-		"terser": "^5.37.0",
 		"cssnano": "^5.1.15",
 		"postcss": "^8.4.49",
-		"postcss-cli": "^8.3.1"
+		"postcss-cli": "^8.3.1",
+		"terser": "^5.37.0"
 	}
 }

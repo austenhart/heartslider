@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.5.5
+##### Version 3.5.6
 
 '''''''''''''''''
 
@@ -25,8 +25,9 @@ Features:
 
 Change Log:
 
-#### Last Updated: April 21, 2026
+#### Last Updated: September 3, 2026
 
+- 3.5.6 - Fixed progressive loading bug.
 - 3.5.5 - Created new release process for versioning and publishing.
 - 3.5.4 - Added stackOnMobile and preload APIs, improved transition/manual-skip timing, fixed allowFullVideoPLayback bug.
 - 3.5.3 - Fixed destroy debug bug.

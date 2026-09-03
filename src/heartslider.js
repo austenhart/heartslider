@@ -1,16 +1,17 @@
 "use strict";
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.5.5 ❤
+❤ Version 3.5.6 ❤
 
 === Steps to Push New Version ===
 1) Update changelog notes in this file and README.
-2) Run npm run release -- patch|minor|major (or npm run build if no version bump is needed). Version number is updated and then pulled from package.json.
+2) `npm run release -- patch` bumps package.json, syncs version strings, builds, then prompts to publish to npm and push to GitHub. Use npm run release -- patch|minor|major to specify the type of version bump.
 3) Respond to prompts to publish to npm and push to GitHub.
 
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.5.6 - Fixed progressive loading bug.
 3.5.5 - Created new release process for versioning and publishing.
 3.5.4 - Added stackOnMobile and preload APIs, improved transition/manual-skip timing, fixed allowFullVideoPLayback bug.
 3.5.3 - Fixed destroy debug bug.
@@ -56,6 +57,13 @@ class HeartSlider {
 
 	reset(userSettings) {
 		var _this = this;
+		const numericSettingRules = {
+			delayStart: { min: 0 },
+			delay: { min: 16.6667 },
+			manualTransition: { min: 16.6667 },
+			transition: { min: 0 },
+			progressive: { min: 0, integer: true },
+		};
 
 		/* HeartSlider default settings */
 		_this.settings = {
@@ -107,11 +115,16 @@ class HeartSlider {
 						}
 					}
 				} else {
-					// Ensure minimum value of 1/60th for any time-based settings
+					// Validate numeric settings with per-setting rules, rather than one global minimum.
 					if (typeof this.settings[prop] === "number") {
-						// delayStart may be disabled with 0, all other timing values keep the minimum frame duration.
-						const minimumValue = prop === "delayStart" ? 0 : 16.6667;
-						userSettings[prop] = Math.max(Number(userSettings[prop]), minimumValue);
+						const parsedValue = Number(userSettings[prop]);
+						const numericRule = numericSettingRules[prop];
+						if (numericRule) {
+							const normalizedValue = numericRule.integer ? Math.floor(parsedValue) : parsedValue;
+							userSettings[prop] = Math.max(normalizedValue, numericRule.min);
+						} else {
+							userSettings[prop] = parsedValue;
+						}
 					}
 					this.settings[prop] = userSettings[prop];
 				}

@@ -1,7 +1,7 @@
 "use strict";
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.5.6 ❤
+❤ Version 3.5.7 ❤
 
 === Steps to Push New Version ===
 1) Update changelog notes in this file and README.
@@ -11,6 +11,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.5.7 - Fixed progress indicator gap.
 3.5.6 - Fixed progressive loading bug.
 3.5.5 - Created new release process for versioning and publishing.
 3.5.4 - Added stackOnMobile and preload APIs, improved transition/manual-skip timing, fixed allowFullVideoPLayback bug.

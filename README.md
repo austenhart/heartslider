@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.5.6
+##### Version 3.5.7
 
 '''''''''''''''''
 
@@ -23,10 +23,50 @@ Features:
 - Progressive loading for multiple sourceset images and video
 - Optional swipe and click to advance
 
+Styling the progress indicators:
+
+The indicators are spaced relative to the **slideshow**, not the viewport, so a slideshow
+in a narrow column looks the same as a full-bleed one. Each indicator gets an equal slot
+(`track width / number of slides`) and the gap is a fraction of that slot, so the spacing
+stays proportional whether there are 3 slides or 30. Override any of these on
+`.progress-container`:
+
+| Property            | Default (dash / dot)                                                     | What it does                                                                                                          |
+| ------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| `--gap-ratio`       | `0.4` / `0`                                                              | Gap as a fraction of one indicator slot. `0` = slots touch, `1` = very airy. The easiest knob to reach for on dashes. |
+| `--indicator-gap`   | derived from `--gap-ratio`                                               | Set this for an absolute gap instead (e.g. `8px`), bypassing the ratio.                                               |
+| `--track-width`     | `calc(100% / (5 + var(--total)) * var(--total))`                         | Width of the indicator track as a percentage of the slideshow.                                                        |
+| `--track-max-width` | `calc(4rem * var(--total))` / `calc(var(--dot-size) * 4 * var(--total))` | Track stops growing here. Use `none` to let it fill `--track-width`. On dots this is what sets their spacing.         |
+| `--dot-size`        | `6px` (dot only)                                                         | Diameter of a dot. Dots shrink below this only if the slideshow is too narrow to fit them.                            |
+| `--indicator-color` | `#fff`                                                                   | Indicator color (also settable via the `progressIndicators.color` option).                                            |
+
+A dash fills its slot, so its spacing is the gap between slots (`--gap-ratio`). A dot does
+not fill its slot, so its spacing comes from how wide the slot is (`--track-max-width`),
+which leaves the whole slot clickable rather than shrinking the target down to the dot.
+
+```css
+/* Tighter dashes, spread across a wider track */
+.progress-container.type-dash {
+	--gap-ratio: 0.2;
+	--track-width: 80%;
+	--track-max-width: none;
+}
+
+/* Bigger dots, spaced 6x their own size apart */
+.progress-container.type-dot {
+	--dot-size: 10px;
+	--track-max-width: calc(var(--dot-size) * 6 * var(--total));
+}
+```
+
+`--total` is set on the container by JavaScript and is the number of slides; treat it as
+read-only. The older `--gutter` property is still honoured if you were overriding it.
+
 Change Log:
 
-#### Last Updated: September 3, 2026
+#### Last Updated: September 9, 2026
 
+- 3.5.7 - Fixed progress indicator gap.
 - 3.5.6 - Fixed progressive loading bug.
 - 3.5.5 - Created new release process for versioning and publishing.
 - 3.5.4 - Added stackOnMobile and preload APIs, improved transition/manual-skip timing, fixed allowFullVideoPLayback bug.

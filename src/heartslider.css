@@ -1,4 +1,4 @@
-/* HeartSlider Styles - 3.5.7 */
+/* HeartSlider Styles - 3.6.0 */
 .heart-slideshow {
 	position: relative;
 	top: 0;
@@ -36,7 +36,7 @@
 	transition: opacity 0s;
 }
 
-.heart-slide[tab-index="-1"] {
+.heart-slide[tabindex="-1"] {
 	visibility: hidden;
 }
 
@@ -138,7 +138,7 @@
 }
 
 .heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-slide[aria-hidden="true"],
-.heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-slide[tab-index="-1"] {
+.heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-slide[tabindex="-1"] {
 	visibility: visible;
 	content-visibility: visible;
 }
@@ -160,12 +160,18 @@
 
 .heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-prev,
 .heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-next,
+.heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-counter,
 .heart-slideshow.stack-on-mobile.is-stacked-mobile .progress-container {
 	display: none !important;
 }
 
 .heart-prev,
 .heart-next {
+	/* --arrow-overhang must match how far past the slideshow edge the button
+	   extends (see width below); --arrow-inset is the gap from that edge. */
+	--arrow-overhang: 5em;
+	--arrow-inset: 4em;
+	--arrow-size: 1.35em;
 	-webkit-tap-highlight-color: transparent;
 	cursor: pointer;
 	position: absolute;
@@ -174,7 +180,7 @@
 	bottom: 0;
 	left: auto;
 	width: 50%;
-	width: calc(50% + 5em);
+	width: calc(50% + var(--arrow-overhang, 5em));
 	z-index: 40;
 	background: transparent;
 	border: 0;
@@ -191,22 +197,28 @@
 .heart-prev::before,
 .heart-next::before {
 	content: "";
-	height: 1.35em;
-	width: 1.35em;
-	border-right: 1px solid #fff;
-	border-bottom: 1px solid #fff;
+	height: var(--arrow-size, 1.35em);
+	width: var(--arrow-size, 1.35em);
+	border-right: 1px solid var(--arrow-color, #fff);
+	border-bottom: 1px solid var(--arrow-color, #fff);
 	position: absolute;
 	top: 0;
-	right: calc(50vw - 4em);
 	bottom: 0;
-	left: auto;
 	margin: auto;
 	transform: rotate(135deg);
 }
 
-.heart-next::before {
+/* The button hangs --arrow-overhang past the slideshow edge, so offsetting by
+   overhang + inset puts the glyph --arrow-inset inside the slideshow itself —
+   correct at any slideshow width, unlike the old 50vw. */
+.heart-prev::before {
 	right: auto;
-	left: calc(50vw - 4em);
+	left: calc(var(--arrow-overhang, 5em) + var(--arrow-inset, 4em) - var(--arrow-size, 1.35em));
+}
+
+.heart-next::before {
+	left: auto;
+	right: calc(var(--arrow-overhang, 5em) + var(--arrow-inset, 4em) - var(--arrow-size, 1.35em));
 	transform: rotate(-45deg);
 }
 
@@ -304,6 +316,23 @@
 	overflow: hidden;
 }
 
+/* The rules above suppress the default ring; put one back for keyboard users.
+   `overflow: hidden` would clip an outline, so the indicator shows its ring
+   outside the box via box-shadow instead. */
+.heart-prev:focus-visible,
+.heart-next:focus-visible,
+.heart-slideshow:focus-visible {
+	outline: var(--focus-ring-width, 2px) solid var(--focus-ring-color, #fff);
+	outline-offset: var(--focus-ring-offset, -4px);
+}
+
+button.indicator:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 var(--focus-ring-width, 2px) var(--focus-ring-color, #fff);
+	border-radius: 2px;
+	overflow: visible;
+}
+
 .type-dot .indicator {
 	-webkit-box-sizing: border-box;
 	box-sizing: border-box;
@@ -314,6 +343,27 @@
 
 .progress-container button {
 	cursor: pointer;
+}
+
+/* Slide counter (e.g. "3 / 8") */
+.heart-counter {
+	position: absolute;
+	top: auto;
+	right: 0;
+	bottom: 0;
+	bottom: env(safe-area-inset-bottom);
+	left: auto;
+	z-index: 50;
+	padding: 1% 1.5%;
+	color: var(--counter-color, #fff);
+	font-size: var(--counter-size, 0.875rem);
+	line-height: 1;
+	letter-spacing: 0.05em;
+	font-variant-numeric: tabular-nums;
+	opacity: var(--counter-opacity, 0.8);
+	pointer-events: none;
+	-webkit-user-select: none;
+	user-select: none;
 }
 
 /* .show-progress .indicator::after, */
@@ -402,3 +452,20 @@ button.indicator:active::before {
 	opacity: 0.65;
 	transition: opacity 0.15s 0.2s ease-out;
 } */
+
+/* Respect a reduced-motion preference: slides swap instantly instead of fading.
+   The JS sets these durations inline, hence !important. */
+@media screen and (prefers-reduced-motion: reduce) {
+	.heart-slideshow,
+	.heart-slideshow .heart-slide,
+	.heart-slideshow .heart-slide.active,
+	.heart-prev,
+	.heart-next,
+	.indicator,
+	.indicator::before {
+		transition-duration: 1ms !important;
+		transition-delay: 0ms !important;
+		animation-duration: 1ms !important;
+		animation-delay: 0ms !important;
+	}
+}

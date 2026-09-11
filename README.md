@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.5.7
+##### Version 3.6.0
 
 '''''''''''''''''
 
@@ -21,7 +21,26 @@ Features:
 - Custom user settings
 - Small and lightweight
 - Progressive loading for multiple sourceset images and video
-- Optional swipe and click to advance
+- Responsive images via `<picture>` and multiple `<source>` elements
+- Optional swipe, click, and arrow-key navigation
+- Accessible by default: named controls, `aria-current`, visible focus, reduced-motion support
+
+Settings worth knowing:
+
+| Setting              | Default                                                           | What it does                                                                                                                                                                                                                  |
+| -------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `keyboard`           | `true`                                                            | Left/Right arrows move a slide, Home/End jump to the first/last. Only fires while focus is inside the slideshow, which becomes focusable so keyboard users can reach it.                                                      |
+| `label`              | `"Slideshow"`                                                     | Accessible name for the slideshow region. Ignored if the element already has its own `aria-label`.                                                                                                                            |
+| `randomize`          | `false`                                                           | `false` plays in order. `"start"` (or `true`) picks a random first slide and then plays in order. `"all"` shuffles the whole running order, never repeating a slide back to back and covering every slide before reshuffling. |
+| `counter`            | `{ enable: false, separator: " / " }`                             | Shows a `3 / 8` position counter. Passing the object turns it on.                                                                                                                                                             |
+| `progressIndicators` | `{ enable: false, type: "dash", clickable: true, color: "#fff" }` | Dots or dashes. Clickable indicators are real buttons with accessible names.                                                                                                                                                  |
+
+Passing an options object for a grouped setting turns that feature on, so
+`counter: { separator: " of " }` is enough. To pass options while leaving a feature off,
+say so explicitly: `stackOnMobile: { enable: false, threshold: 900 }`.
+
+The slideshow honours `prefers-reduced-motion`: slides still change, they just swap
+instantly instead of cross-fading.
 
 Styling the progress indicators:
 
@@ -62,10 +81,24 @@ which leaves the whole slot clickable rather than shrinking the target down to t
 `--total` is set on the container by JavaScript and is the number of slides; treat it as
 read-only. The older `--gutter` property is still honoured if you were overriding it.
 
+Other custom properties:
+
+| Property                                                   | Default                     | What it does                                                |
+| ---------------------------------------------------------- | --------------------------- | ----------------------------------------------------------- |
+| `--arrow-inset`                                            | `4em`                       | How far the prev/next arrows sit inside the slideshow edge. |
+| `--arrow-size`                                             | `1.35em`                    | Size of the arrow glyph.                                    |
+| `--arrow-color`                                            | `#fff`                      | Arrow color.                                                |
+| `--counter-color` / `--counter-size` / `--counter-opacity` | `#fff` / `0.875rem` / `0.8` | Slide counter appearance.                                   |
+| `--focus-ring-color` / `--focus-ring-width`                | `#fff` / `2px`              | Keyboard focus ring.                                        |
+
+Arrows and indicators are positioned relative to the slideshow, not the viewport, so an
+embedded or narrow slideshow lays out the same as a full-bleed one.
+
 Change Log:
 
-#### Last Updated: September 9, 2026
+#### Last Updated: September 11, 2026
 
+- 3.6.0 - Major accessibility improvements. New counter feature, support for picture elements. Fixed small bugs.
 - 3.5.7 - Fixed progress indicator gap.
 - 3.5.6 - Fixed progressive loading bug.
 - 3.5.5 - Created new release process for versioning and publishing.
@@ -120,10 +153,10 @@ To Do:
 - [ ] If video is not long enough, slow it down at the end to prevent abrupt stop
 - [ ] Add fadeRight or fadeLeft effect
 - [x] Delay start
-- [ ] Add ability to navigate with arrow keys
-- [ ] Make randomize a string with 'start' and 'all' options
-- [ ] Add counter (with custom separator, place inside heart-slideshow?)
-- [ ] Add support for the <picture> and elements with multiple sources
+- [x] Add ability to navigate with arrow keys
+- [x] Make randomize a string with 'start' and 'all' options
+- [x] Add counter (with custom separator, place inside heart-slideshow?)
+- [x] Add support for the <picture> and elements with multiple sources
 - [ ] Live swipe transition progress
 - [ ] Use JS bind() function instead of using "\_this" variable
 - [x] Potentially add inner-container to house buttons and counter

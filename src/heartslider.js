@@ -1,7 +1,7 @@
 "use strict";
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.5.7 ❤
+❤ Version 3.6.0 ❤
 
 === Steps to Push New Version ===
 1) Update changelog notes in this file and README.
@@ -11,6 +11,7 @@
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.6.0 - Major accessibility improvements. New counter feature, support for picture elements. Fixed small bugs.
 3.5.7 - Fixed progress indicator gap.
 3.5.6 - Fixed progressive loading bug.
 3.5.5 - Created new release process for versioning and publishing.
@@ -79,8 +80,10 @@ class HeartSlider {
 			manualTransition: 400,
 			paused: false,
 			pauseOnInactiveWindow: false,
+			keyboard: true, // Arrow keys advance the slideshow while it has focus
+			label: "Slideshow", // Accessible name for the slideshow region
 			progressive: 1, // Set to a number to load multiple slides ahead of time (0 = disabled)
-			randomize: false,
+			randomize: false, // false | "start" (random first slide) | "all" (random order)
 			slideshow: ".heart-slideshow",
 			slides: ".heart-slide",
 			stackOnMobile: {
@@ -89,6 +92,10 @@ class HeartSlider {
 			},
 			swipe: true,
 			transition: 3000,
+			counter: {
+				enable: false,
+				separator: " / ",
+			},
 			progressIndicators: {
 				enable: false,
 				type: "dash",
@@ -104,16 +111,22 @@ class HeartSlider {
 		/* Overwrite defaults with user-defined settings */
 		for (var prop in userSettings) {
 			if (this.settings.hasOwnProperty(prop)) {
-				if (typeof userSettings[prop] === "object" && prop !== "slideshow") {
-					// Enables the setting, while keeping the default to false
-					userSettings[prop].enable = true;
+				if (typeof userSettings[prop] === "object" && userSettings[prop] !== null && prop !== "slideshow") {
+					const userGroup = userSettings[prop];
+					/* Did the user say anything about `enable` themselves? */
+					const hasExplicitEnable = Object.prototype.hasOwnProperty.call(userGroup, "enable");
 					// Loop through each sub-property
-					for (const subProp in userSettings[prop]) {
+					for (const subProp in userGroup) {
 						// Re-assign defaults based on user settings
-						const value = userSettings[prop][subProp];
+						const value = userGroup[subProp];
 						if (this.settings[prop].hasOwnProperty(subProp)) {
 							this.settings[prop][subProp] = value;
 						}
+					}
+					/* Passing an options object turns the feature on, but only when the
+					   user did not explicitly ask for it to stay off. */
+					if (!hasExplicitEnable) {
+						this.settings[prop].enable = true;
 					}
 				} else {
 					// Validate numeric settings with per-setting rules, rather than one global minimum.
@@ -130,6 +143,13 @@ class HeartSlider {
 					this.settings[prop] = userSettings[prop];
 				}
 			}
+		}
+
+		/* Normalise randomize into false | "start" | "all" (true is an alias for "start") */
+		if (this.settings.randomize === true) {
+			this.settings.randomize = "start";
+		} else if (this.settings.randomize !== "start" && this.settings.randomize !== "all") {
+			this.settings.randomize = false;
 		}
 
 		if (typeof this.settings.stackOnMobile !== "object" || this.settings.stackOnMobile === null) {
@@ -150,6 +170,10 @@ class HeartSlider {
 		/* Dont. Want. None. Unless. You. Got. Slides. Hun. */
 		if (!this.slideshowSelector) return false;
 
+		/* reset() can run again on a live slideshow (see removeEmptySlideAndReinit).
+		   Drop the previous listeners first so they do not stack up. */
+		this.removeEventListeners();
+
 		/* Make sure HeartSlider wasn't already run on this element */
 		if (this.slideshowSelector.classList.contains("first-image-loaded")) {
 			console.warn("The HeartSlider element already had the first-image-loaded class on init. Please remove it to ensure loading works properly.");
@@ -169,13 +193,16 @@ class HeartSlider {
 		if (this.slides.length === 0) {
 			const directChildren = this.slideshowSelector.children;
 			// this.slides = Array.prototype.slice.apply(this.slideshowSelector.children);
-			this.slides = [...directChildren].filter((child) => child.tagName !== "BUTTON");
+			this.slides = [...directChildren].filter((child) => {
+				if (child.tagName === "BUTTON") return false;
+				/* Skip chrome HeartSlider injected itself on a previous init */
+				return !child.classList.contains("progress-container") && !child.classList.contains("heart-counter");
+			});
 		}
 
 		/* Setting up scoped variables */
 		this.total = this.slides.length;
 		this.index = 0;
-		this.manualTimeout;
 		this.delayStartComplete = this.settings.delayStart <= 0;
 		this.delayStartRemaining = this.settings.delayStart;
 		this.delayStartStartedAt = 0;
@@ -193,6 +220,7 @@ class HeartSlider {
 
 		/* Start */
 		if (this.settings.randomize) this.index = Math.floor(Math.random() * this.total);
+		this.buildPlayOrder(this.index);
 		if (this.settings.progressive) this.progressiveLoad(this.index, true, this);
 		if (this.settings.effect === "fadeInOut") this.slideshowSelector.classList.add("fade-in-out");
 
@@ -203,7 +231,7 @@ class HeartSlider {
 		this.slides.forEach(function (slide, index) {
 			if (index !== _this.firstIndex) {
 				slide.setAttribute("aria-hidden", "true");
-				slide.setAttribute("tab-index", "-1");
+				slide.setAttribute("tabindex", "-1");
 				slide.style.display = "none";
 			}
 			if (!slide.classList.contains("heart-slide")) {
@@ -237,7 +265,9 @@ class HeartSlider {
 			// Store handler references so they can be removed in destroy()
 			_this.swipeHandlers = _this.swipeHandler(_this);
 			_this.slideshowSelector.addEventListener("touchstart", _this.swipeHandlers.handleTouchStart, { passive: true });
-			_this.slideshowSelector.addEventListener("touchmove", _this.swipeHandlers.handleTouchMove, { passive: true });
+			/* Not passive: handleTouchMove calls preventDefault() to stop the page
+			   scrolling underneath a horizontal swipe. */
+			_this.slideshowSelector.addEventListener("touchmove", _this.swipeHandlers.handleTouchMove, { passive: false });
 		}
 
 		if (_this.settings.clickToAdvance) {
@@ -285,7 +315,20 @@ class HeartSlider {
 			}
 
 			// Clickable? Then create a button. Otherwise, just a div.
-			const indicatorType = this.settings.progressIndicators.clickable ? "button" : "div";
+			const indicatorsAreClickable = !!this.settings.progressIndicators.clickable;
+			const indicatorType = indicatorsAreClickable ? "button" : "div";
+
+			/* Clickable indicators are real controls and need a name. Static ones are
+			   decoration, and `aria-current` on the slides already carries the position. */
+			if (indicatorsAreClickable) {
+				progressContainer.setAttribute("role", "group");
+				progressContainer.setAttribute("aria-label", "Choose slide");
+				progressContainer.removeAttribute("aria-hidden");
+			} else {
+				progressContainer.setAttribute("aria-hidden", "true");
+				progressContainer.removeAttribute("role");
+				progressContainer.removeAttribute("aria-label");
+			}
 
 			progressContainer.style.setProperty("--total", this.total);
 
@@ -297,6 +340,11 @@ class HeartSlider {
 				const indicator = document.createElement(indicatorType);
 				indicator.classList.add("indicator");
 				indicator.setAttribute("data-index", index);
+				if (indicatorsAreClickable) {
+					/* Without this a screen reader just announces an unnamed button */
+					indicator.setAttribute("type", "button");
+					indicator.setAttribute("aria-label", "Go to slide " + (index + 1) + " of " + this.total);
+				}
 				indicator.addEventListener("click", (event) => {
 					if (index === this.index) return;
 
@@ -327,8 +375,87 @@ class HeartSlider {
 			this.progressContainerSelector = progressContainer;
 			this.progressIndicators = progressContainer.querySelectorAll(".indicator");
 			window.requestAnimationFrame(() => {
-				this.progressIndicators[this.firstIndex].classList.add("active", "first");
+				const firstIndicator = this.progressIndicators[this.firstIndex];
+				if (firstIndicator === undefined) return;
+				firstIndicator.classList.add("active", "first");
+				/* goToSlide marks every later slide; the first one has to be marked here,
+				   otherwise nothing is current until the slideshow advances. */
+				if (firstIndicator.tagName === "BUTTON") {
+					firstIndicator.setAttribute("aria-current", "true");
+				}
 			});
+		}
+
+		/* Slide Counter */
+		if (this.settings.counter && this.settings.counter.enable) {
+			const existingCounter = this.slideshowSelector.querySelector(".heart-counter");
+			const counter = existingCounter ? existingCounter : document.createElement("div");
+			counter.classList.add("heart-counter");
+			/* Decorative: an auto-advancing live region would announce on every slide.
+			   The indicators carry the position for assistive tech instead. */
+			counter.setAttribute("aria-hidden", "true");
+			counter.innerHTML = "";
+
+			const current = document.createElement("span");
+			current.classList.add("heart-counter-current");
+			const separator = document.createElement("span");
+			separator.classList.add("heart-counter-separator");
+			separator.textContent = this.settings.counter.separator;
+			const totalEl = document.createElement("span");
+			totalEl.classList.add("heart-counter-total");
+			totalEl.textContent = String(this.total);
+
+			counter.appendChild(current);
+			counter.appendChild(separator);
+			counter.appendChild(totalEl);
+			this.slideshowSelector.appendChild(counter);
+			this.counterSelector = counter;
+			this.counterCurrentSelector = current;
+			this.updateCounter(this.index);
+		}
+
+		/* Accessible region + keyboard control */
+		_this.slideshowSelector.setAttribute("role", "region");
+		_this.slideshowSelector.setAttribute("aria-roledescription", "carousel");
+		if (!_this.slideshowSelector.hasAttribute("aria-label") && _this.settings.label) {
+			_this.slideshowSelector.setAttribute("aria-label", _this.settings.label);
+		}
+		if (_this.settings.keyboard) {
+			/* Needs to be focusable for the arrow keys to have somewhere to land */
+			if (!_this.slideshowSelector.hasAttribute("tabindex")) {
+				_this.slideshowSelector.setAttribute("tabindex", "0");
+			}
+			_this.keyboardHandler = function (event) {
+				if (event.altKey || event.ctrlKey || event.metaKey) return;
+				let handled = true;
+				if (event.key === "ArrowRight") {
+					_this.next(_this, true);
+				} else if (event.key === "ArrowLeft") {
+					_this.previous(_this, true);
+				} else if (event.key === "Home") {
+					_this.clearAllTimers();
+					_this.goToSlide(0, true, false, true);
+				} else if (event.key === "End") {
+					_this.clearAllTimers();
+					_this.goToSlide(_this.total - 1, true, false, true);
+				} else {
+					handled = false;
+				}
+				if (handled) {
+					/* Stop the page scrolling out from under the slideshow */
+					event.preventDefault();
+					if (!_this.originallyPaused) {
+						if (_this.throttleClickResume) clearTimeout(_this.throttleClickResume);
+						_this.throttleClickResume = setTimeout(
+							() => {
+								_this.resume();
+							},
+							_this.settings.transition + _this.settings.delay * 1.25,
+						);
+					}
+				}
+			};
+			_this.slideshowSelector.addEventListener("keydown", _this.keyboardHandler);
 		}
 
 		/* Slideshow Buttons */
@@ -352,7 +479,7 @@ class HeartSlider {
 					var button = document.createElement("button");
 					button.classList.add(buttonClasses[i]);
 					button.setAttribute("aria-label", buttonClasses[i].replace("heart-", ""));
-					button.setAttribute("tab-index", "0");
+					button.setAttribute("tabindex", "0");
 					button.addEventListener(
 						"click",
 						function (e) {
@@ -365,7 +492,7 @@ class HeartSlider {
 			} else {
 				// loop through slideshowbuttons and add event listeners
 				for (const button of slideshowButtons) {
-					button.setAttribute("tab-index", "0");
+					button.setAttribute("tabindex", "0");
 					const ariaLabel = button.classList.contains("heart-prev") ? "prev" : "next";
 					button.setAttribute("aria-label", ariaLabel);
 					button.addEventListener(
@@ -376,6 +503,118 @@ class HeartSlider {
 						false,
 					);
 				}
+			}
+		}
+	}
+	/* Promote a single data-* attribute onto its real attribute. */
+	promoteLazyAttribute(element, attribute) {
+		const lazyValue = element.getAttribute("data-" + attribute);
+		if (lazyValue && element.getAttribute(attribute) === null) {
+			element.setAttribute(attribute, lazyValue);
+			element.setAttribute("data-" + attribute, "");
+			return true;
+		}
+		return false;
+	}
+	/* Promote every lazy attribute on an <img>, <source> or <video>. */
+	promoteLazyAttributes(element, attributes = ["sizes", "srcset", "src"]) {
+		let promoted = false;
+		for (const attribute of attributes) {
+			if (this.promoteLazyAttribute(element, attribute)) promoted = true;
+		}
+		return promoted;
+	}
+	/* <picture> sources must be promoted before the <img> inside them, otherwise the
+	   browser has already settled on the fallback by the time the sources appear. */
+	promotePictureSources(targetSlide) {
+		const pictureSources = targetSlide.querySelectorAll("picture source");
+		for (const source of pictureSources) {
+			this.promoteLazyAttributes(source, ["sizes", "srcset", "src"]);
+		}
+		return pictureSources.length > 0;
+	}
+	/* Build the running order for randomize: "all".
+	   The current slide is placed first so the next step is never a repeat. */
+	buildPlayOrder(startIndex = this.index) {
+		if (this.settings.randomize !== "all" || this.total < 3) {
+			this.playOrder = undefined;
+			return;
+		}
+		const order = [];
+		for (let i = 0; i < this.total; i++) {
+			if (i !== startIndex) order.push(i);
+		}
+		/* Fisher-Yates */
+		for (let i = order.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			const swap = order[i];
+			order[i] = order[j];
+			order[j] = swap;
+		}
+		order.unshift(startIndex);
+		this.playOrder = order;
+	}
+	/* The slide that follows `fromIndex`, honouring a shuffled running order.
+	   Does not reshuffle, so it is safe to use for look-ahead preloading. */
+	upcomingIndex(fromIndex) {
+		if (!this.playOrder) return (fromIndex + 1 + this.total) % this.total;
+		const position = this.playOrder.indexOf(fromIndex);
+		if (position === -1 || position + 1 >= this.playOrder.length) return this.playOrder[0];
+		return this.playOrder[position + 1];
+	}
+	/* Walk `steps` slides ahead of `fromIndex` in the running order. */
+	lookaheadIndex(fromIndex, steps) {
+		let index = fromIndex;
+		for (let i = 0; i < steps; i++) {
+			index = this.upcomingIndex(index);
+		}
+		return index;
+	}
+	/* Move one step forward (1) or back (-1), reshuffling at the end of a cycle. */
+	advanceIndex(step) {
+		if (!this.playOrder) return (this.index + step + this.total) % this.total;
+		let position = this.playOrder.indexOf(this.index);
+		if (position === -1) {
+			this.buildPlayOrder(this.index);
+			position = 0;
+		}
+		let nextPosition = position + step;
+		if (nextPosition >= this.playOrder.length) {
+			/* Start a fresh cycle from where we are, so no slide repeats back to back */
+			this.buildPlayOrder(this.index);
+			nextPosition = 1;
+		} else if (nextPosition < 0) {
+			nextPosition = this.playOrder.length - 1;
+		}
+		return this.playOrder[nextPosition];
+	}
+	/* Keep the visible slide counter in step. */
+	updateCounter(currentIndex = this.index) {
+		if (!this.counterCurrentSelector) return;
+		this.counterCurrentSelector.textContent = String(currentIndex + 1);
+	}
+	/* Detach everything reset() attaches. Safe to call before the first init. */
+	removeEventListeners() {
+		if (this.initVis) {
+			document.removeEventListener("visibilitychange", this.initVis, true);
+		}
+		if (this.stackOnMobileResizeHandler) {
+			window.removeEventListener("resize", this.stackOnMobileResizeHandler);
+			this.stackOnMobileResizeHandler = undefined;
+		}
+		if (this.slideshowSelector) {
+			if (this.swipeHandlers) {
+				this.slideshowSelector.removeEventListener("touchstart", this.swipeHandlers.handleTouchStart);
+				this.slideshowSelector.removeEventListener("touchmove", this.swipeHandlers.handleTouchMove);
+				this.swipeHandlers = undefined;
+			}
+			if (this.clickHandler) {
+				this.slideshowSelector.removeEventListener("click", this.clickHandler);
+				this.clickHandler = undefined;
+			}
+			if (this.keyboardHandler) {
+				this.slideshowSelector.removeEventListener("keydown", this.keyboardHandler);
+				this.keyboardHandler = undefined;
 			}
 		}
 	}
@@ -498,7 +737,7 @@ class HeartSlider {
 				}
 				_this.kickstartProgressiveLoadTimer = setTimeout(() => {
 					for (let i = 1; i <= _this.settings.progressive; i++) {
-						_this.progressiveLoad((_this.firstIndex + i + _this.total) % _this.total);
+						_this.progressiveLoad(_this.lookaheadIndex(_this.firstIndex, i));
 					}
 				}, _this.settings.delay);
 			};
@@ -804,14 +1043,23 @@ class HeartSlider {
 		const progressContainerSelector = this.progressContainerSelector;
 		const progressIndicators = this.progressIndicators;
 
-		if (progressContainerSelector !== undefined && progressIndicators.length > 0) {
-			const activeIndicator = progressIndicators[newTargetIndex];
+		if (progressContainerSelector !== undefined && progressIndicators !== undefined && progressIndicators.length > 0) {
+			const newActiveIndicator = progressIndicators[newTargetIndex];
 			const alreadyActiveIndicators = progressContainerSelector.querySelectorAll(".active");
-			for (const activeIndicator of alreadyActiveIndicators) {
-				activeIndicator.classList.remove("active", "first");
+			for (const staleIndicator of alreadyActiveIndicators) {
+				staleIndicator.classList.remove("active", "first");
+				staleIndicator.removeAttribute("aria-current");
 			}
-			activeIndicator.classList.add("active");
+			if (newActiveIndicator !== undefined) {
+				newActiveIndicator.classList.add("active");
+				if (newActiveIndicator.tagName === "BUTTON") {
+					newActiveIndicator.setAttribute("aria-current", "true");
+				}
+			}
 		}
+
+		/* Update the slide counter */
+		this.updateCounter(newTargetIndex);
 
 		/* Fade duration */
 		var duration = isManuallyCalled || isFirstSlide || skipDefaultTransition ? _this.settings.manualTransition : _this.settings.transition;
@@ -825,7 +1073,7 @@ class HeartSlider {
 		// Load multiple slides ahead based on progressive setting
 		if (_this.settings.progressive) {
 			for (let i = 1; i <= _this.settings.progressive; i++) {
-				this.progressiveLoad((newTargetIndex + i + _this.total) % _this.total);
+				this.progressiveLoad(this.lookaheadIndex(newTargetIndex, i));
 			}
 		}
 
@@ -878,7 +1126,7 @@ class HeartSlider {
 						_this.currentSlide.style.transitionDelay = 0 + "ms";
 					}
 					_this.currentSlide.removeAttribute("aria-hidden");
-					_this.currentSlide.removeAttribute("tab-index");
+					_this.currentSlide.removeAttribute("tabindex");
 					_this.currentSlide.classList.add("active");
 				});
 			});
@@ -936,7 +1184,7 @@ class HeartSlider {
 					prevSlide.style.transitionDuration = 0 + "ms";
 					if (!isFirstSlide) {
 						prevSlide.setAttribute("aria-hidden", "true");
-						prevSlide.setAttribute("tab-index", "-1");
+						prevSlide.setAttribute("tabindex", "-1");
 						// Add display:none for performance after fade completes
 						prevSlide.style.display = "none";
 						if (_this.transitionEnd) {
@@ -962,7 +1210,10 @@ class HeartSlider {
 	}
 	progressiveLoad(target, isFirstSlide = false, _this = this) {
 		const targetSlide = this.slides[target];
-		if (targetSlide !== null) {
+		/* An out-of-range index yields undefined, which the old `!== null` test let through. */
+		if (targetSlide) {
+			/* <picture> sources first, so the browser picks the right one for the <img> below */
+			this.promotePictureSources(targetSlide);
 			var currentImages = Array.prototype.slice.call(targetSlide.querySelectorAll("img"));
 			if (!!currentImages && currentImages.length > 0) {
 				function loadHandler(currentImage, index) {
@@ -982,18 +1233,13 @@ class HeartSlider {
 						if (_this.settings.debug) console.log("%cStart loading: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
 						currentImage.classList.add("heart-loading");
 
+						currentImage.onload = () => loadHandler(currentImage, index);
+						/* Promote before the completeness check. Inside a <picture>, a promoted
+						   <source> can finish loading first, which would otherwise leave the
+						   <img> fallback src unset and break narrower viewports. */
+						_this.promoteLazyAttributes(currentImage);
 						if (currentImage.complete && currentImage.naturalWidth > 0) {
 							loadHandler(currentImage, index);
-						} else {
-							currentImage.onload = () => loadHandler(currentImage, index);
-							var atts = ["sizes", "srcset", "src"];
-							atts.forEach(function (attribute) {
-								var targetAtt = currentImage.getAttribute("data-" + attribute);
-								if (targetAtt && currentImage.getAttribute(attribute) == null) {
-									currentImage.setAttribute(attribute, targetAtt);
-									currentImage.setAttribute("data-" + attribute, "");
-								}
-							});
 						}
 					}
 				});
@@ -1034,7 +1280,7 @@ class HeartSlider {
 								_this.kickstart();
 							}
 							if (_this.settings.debug) console.log("%cFinished loading index: " + target, "font-style: italic; font-size: 0.9em; color: #757575; padding: 0.2em;");
-							if (_this.settings.randomize === false || _this.settings.randomize !== "all") {
+							if (_this.settings.randomize !== "all") {
 								const allVideos = Array.from(_this.slideshowSelector.querySelectorAll("video"));
 								const currentIndex = allVideos.indexOf(currentVideo);
 								// If the current video is the last one, return null
@@ -1044,7 +1290,10 @@ class HeartSlider {
 								const nextVideoSlide = allVideos[currentIndex + 1].closest(".heart-slide");
 								if (nextVideoSlide !== null) {
 									const nextVideoSlideIndex = Array.from(_this.slides).indexOf(nextVideoSlide);
-									_this.progressiveLoad(nextVideoSlideIndex);
+									/* indexOf returns -1 when that video is not inside a tracked slide */
+									if (nextVideoSlideIndex !== -1) {
+										_this.progressiveLoad(nextVideoSlideIndex);
+									}
 								}
 							}
 						}
@@ -1083,20 +1332,14 @@ class HeartSlider {
 
 		// Reuse existing loading behavior so class state/classes stay consistent.
 		_this.progressiveLoad(targetIndex, false, _this);
+		_this.promotePictureSources(targetSlide);
 
 		const errors = [];
 
 		const imagePromises = Array.prototype.slice.call(targetSlide.querySelectorAll("img")).map((image) => {
 			return new Promise((resolve) => {
 				// Ensure lazy attributes are promoted even if progressiveLoad skipped this node.
-				var imageAtts = ["sizes", "srcset", "src"];
-				imageAtts.forEach((attribute) => {
-					var targetAtt = image.getAttribute("data-" + attribute);
-					if (targetAtt && image.getAttribute(attribute) == null) {
-						image.setAttribute(attribute, targetAtt);
-						image.setAttribute("data-" + attribute, "");
-					}
-				});
+				_this.promoteLazyAttributes(image);
 
 				if (image.complete && image.naturalWidth > 0) {
 					resolve();
@@ -1199,20 +1442,21 @@ class HeartSlider {
 	removeEmptySlideAndReinit(target, errorCount, totalNumberOfSources) {
 		const currentSlide = this.slides[target];
 
-		if (errorCount === totalNumberOfSources) {
-			this.slideshowSelector.removeChild(currentSlide);
+		if (errorCount === totalNumberOfSources && currentSlide) {
+			/* remove() works whether or not the slide is a direct child */
+			currentSlide.remove();
 			console.warn("removed slide based on error loading source:", currentSlide);
 
 			this.reset(this.settings);
 			if (target === 0) {
 				this.slideshowSelector.classList.add("first-image-loaded");
-				if (_this.firstImageLoad) {
-					_this.firstImageLoad(_this);
+				if (this.firstImageLoad) {
+					this.firstImageLoad(this);
 				}
 			}
 		}
 	}
-	prevNextHandler(targetIndex, indexToProgressiveLoad, isManuallyCalled) {
+	prevNextHandler(targetIndex, indexToProgressiveLoad, isManuallyCalled, direction = 1) {
 		const _this = this;
 		// console.log("prevNextHandler called:", { targetIndex, isManuallyCalled, transitioning: _this.transitioning, paused: _this.settings.paused });
 		if (_this.transitioning === true) {
@@ -1228,9 +1472,9 @@ class HeartSlider {
 				let extraDelay = 0;
 
 				// Check if we are going forward or backward
-				if (targetIndex < _this.index) {
+				if (direction < 0) {
 					// If going backward, go to the previous slide
-					targetSlideIndex = (_this.index - 1 + _this.total) % _this.total;
+					targetSlideIndex = _this.advanceIndex(-1);
 					extraDelay = _this.settings.manualTransition + _this.settings.delay;
 				} else if (transitionProgress > 0.65) {
 					// Nearly done transitioning — skip ahead to the intended next slide
@@ -1250,7 +1494,7 @@ class HeartSlider {
 				// Schedule resume after a manual transition completes
 				_this.scheduleResume(_this.settings.manualTransition + _this.settings.delay);
 				for (let i = 1; i <= _this.settings.progressive; i++) {
-					_this.progressiveLoad((indexToProgressiveLoad + i + _this.total) % _this.total);
+					_this.progressiveLoad(_this.lookaheadIndex(indexToProgressiveLoad, i));
 				}
 				var skipDefaultTransition = true;
 				let isFirstSlide = false;
@@ -1277,7 +1521,7 @@ class HeartSlider {
 			var skipDefaultTransition = true;
 
 			for (let i = 1; i <= _this.settings.progressive; i++) {
-				_this.progressiveLoad((indexToProgressiveLoad + i + _this.total) % _this.total);
+				_this.progressiveLoad(_this.lookaheadIndex(indexToProgressiveLoad, i));
 			}
 		}
 
@@ -1326,17 +1570,7 @@ class HeartSlider {
 		this.clearAllTimers(true);
 
 		/* Remove event listeners */
-		document.removeEventListener("visibilitychange", this.initVis, true);
-		if (this.stackOnMobileResizeHandler) {
-			window.removeEventListener("resize", this.stackOnMobileResizeHandler);
-		}
-		if (this.swipeHandlers) {
-			this.slideshowSelector.removeEventListener("touchstart", this.swipeHandlers.handleTouchStart);
-			this.slideshowSelector.removeEventListener("touchmove", this.swipeHandlers.handleTouchMove);
-		}
-		if (this.clickHandler) {
-			this.slideshowSelector.removeEventListener("click", this.clickHandler);
-		}
+		this.removeEventListeners();
 
 		/* loop through each slide and reset classes/rels/styles */
 		if (this.slides !== undefined) {
@@ -1344,24 +1578,26 @@ class HeartSlider {
 				slide.classList.remove("active");
 				slide.removeAttribute("style");
 				slide.removeAttribute("aria-hidden");
-				slide.removeAttribute("tab-index");
+				slide.removeAttribute("tabindex");
+				slide.removeAttribute("tab-index"); /* legacy typo, clean up in place */
 				slide.removeAttribute("draggable");
-				const slideImages = slide.querySelectorAll("img");
-				for (const image of slideImages) {
+				/* <img> and any <picture>/<video> <source> children */
+				const lazyMedia = slide.querySelectorAll("img, source");
+				for (const media of lazyMedia) {
 					var atts = ["sizes", "srcset", "src"];
 					atts.forEach((attribute) => {
-						var targetAtt = image.getAttribute(attribute);
+						var targetAtt = media.getAttribute(attribute);
 						if (targetAtt !== null) {
-							image.setAttribute("data-" + attribute, image.getAttribute(attribute));
-							image.removeAttribute(attribute);
+							media.setAttribute("data-" + attribute, targetAtt);
+							media.removeAttribute(attribute);
 						}
-						image.classList.remove("heart-loaded");
 					});
+					media.classList.remove("heart-loaded", "heart-loading");
 				}
 				const slideVideos = slide.querySelectorAll("video");
 				for (const video of slideVideos) {
 					if (video !== null) {
-						video.classList.remove("heart-loaded");
+						video.classList.remove("heart-loaded", "heart-loading");
 						video.pause();
 					}
 				}
@@ -1382,6 +1618,22 @@ class HeartSlider {
 			progressIndicators.remove();
 		}
 
+		/* and the slide counter */
+		const counter = this.slideshowSelector.querySelector(".heart-counter");
+		if (counter !== null) {
+			counter.remove();
+		}
+
+		/* and the region/keyboard attributes we added */
+		this.slideshowSelector.removeAttribute("role");
+		this.slideshowSelector.removeAttribute("aria-roledescription");
+		if (this.settings.label && this.slideshowSelector.getAttribute("aria-label") === this.settings.label) {
+			this.slideshowSelector.removeAttribute("aria-label");
+		}
+		if (this.settings.keyboard) {
+			this.slideshowSelector.removeAttribute("tabindex");
+		}
+
 		/* Remove custom classes placed on the main element */
 		this.slideshowSelector.classList.remove("fade-in-out");
 		this.slideshowSelector.classList.remove("first-image-loaded");
@@ -1389,8 +1641,6 @@ class HeartSlider {
 		/* Final Cleanup: Remove all properties from object */
 		const allProperties = Object.getOwnPropertyNames(this);
 		for (const prop of allProperties) {
-			if (this.hasOwnProperty(prop)) {
-			}
 			delete this[`${prop}`];
 		}
 
@@ -1442,16 +1692,16 @@ class HeartSlider {
 		if (this.settings.debug) console.log(jumpToIndex + 1 <= this.total);
 	};
 	next = function (_this = this, isManuallyCalled = false) {
-		var nextIndex = (_this.index + 1 + _this.total) % _this.total;
-		var indexToProgressiveLoad = (nextIndex + 1 + _this.total) % _this.total;
+		var nextIndex = _this.advanceIndex(1);
+		var indexToProgressiveLoad = _this.upcomingIndex(nextIndex);
 
-		_this.prevNextHandler(nextIndex, indexToProgressiveLoad, isManuallyCalled);
+		_this.prevNextHandler(nextIndex, indexToProgressiveLoad, isManuallyCalled, 1);
 	};
 	previous = function (_this = this, isManuallyCalled = false) {
-		var previousIndex = (_this.index - 1 + _this.total) % _this.total;
+		var previousIndex = _this.advanceIndex(-1);
 		var indexToProgressiveLoad = previousIndex;
 
-		_this.prevNextHandler(previousIndex, indexToProgressiveLoad, isManuallyCalled);
+		_this.prevNextHandler(previousIndex, indexToProgressiveLoad, isManuallyCalled, -1);
 	};
 	resume = function (_this = this) {
 		if (_this.settings.debug) console.log("%cStarted Playing", "font-style: italic; font-size: 0.9em; color: #6F9F67; padding: 0.2em;");
@@ -1464,12 +1714,12 @@ class HeartSlider {
 			return;
 		}
 
-		var nextSlideIndex = (_this.index + 1 + _this.total) % _this.total;
+		var nextSlideIndex = _this.upcomingIndex(_this.index);
 
 		if (_this.settings.progressive) {
 			// Load multiple slides ahead based on progressive setting
 			for (let i = 1; i <= _this.settings.progressive; i++) {
-				_this.progressiveLoad((nextSlideIndex + i + _this.total) % _this.total);
+				_this.progressiveLoad(_this.lookaheadIndex(nextSlideIndex, i));
 			}
 		}
 

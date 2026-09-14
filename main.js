@@ -11,10 +11,11 @@ const homepageSlider = new HeartSlider({
 	delayStart: 0,
 	loop: true,
 	randomize: false, // give option for "start" and "all"
+	// randomize: "start",
 	paused: false,
 	effect: "fadeOut", // "fadeOut" or "fadeInOut"
 	allowFullVideoPlayback: true,
-	buttons: true,
+	buttons: false,
 	swipe: true,
 	stackOnMobile: {
 		enable: true,

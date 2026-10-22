@@ -452,20 +452,3 @@ button.indicator:active::before {
 	opacity: 0.65;
 	transition: opacity 0.15s 0.2s ease-out;
 } */
-
-/* Respect a reduced-motion preference: slides swap instantly instead of fading.
-   The JS sets these durations inline, hence !important. */
-@media screen and (prefers-reduced-motion: reduce) {
-	.heart-slideshow,
-	.heart-slideshow .heart-slide,
-	.heart-slideshow .heart-slide.active,
-	.heart-prev,
-	.heart-next,
-	.indicator,
-	.indicator::before {
-		transition-duration: 1ms !important;
-		transition-delay: 0ms !important;
-		animation-duration: 1ms !important;
-		animation-delay: 0ms !important;
-	}
-}

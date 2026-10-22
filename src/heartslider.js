@@ -276,19 +276,11 @@ class HeartSlider {
 			_this.clickHandler = function (event) {
 				if (throttleClick || event.target.nodeName === "BUTTON") return;
 				// _this.pause();
+				/* next() schedules its own resume via prevNextHandler, so none is set here */
 				_this.next(_this, true);
 				throttleClick = setTimeout(() => {
 					throttleClick = undefined;
 				}, _this.settings.manualTransition);
-				if (!_this.originallyPaused) {
-					if (_this.throttleClickResume) clearTimeout(_this.throttleClickResume);
-					_this.throttleClickResume = setTimeout(
-						() => {
-							_this.resume();
-						},
-						_this.settings.transition + _this.settings.delay * 1.25,
-					);
-				}
 			};
 			_this.slideshowSelector.addEventListener("click", _this.clickHandler, false);
 		}
@@ -359,15 +351,9 @@ class HeartSlider {
 						throttleClick = undefined;
 					}, _this.settings.manualTransition / 2);
 
-					if (!_this.originallyPaused) {
-						if (_this.throttleClickResume) clearTimeout(_this.throttleClickResume);
-						_this.throttleClickResume = setTimeout(
-							() => {
-								_this.resume();
-							},
-							_this.settings.transition + _this.settings.delay * 1.25,
-						);
-					}
+					/* Shares scheduleResume's single timer, so a pending resume from a
+					   button or arrow key is replaced rather than firing a second time */
+					_this.scheduleResume(_this.settings.transition + _this.settings.delay * 1.25);
 				});
 				progressContainer.appendChild(indicator);
 			}
@@ -435,25 +421,18 @@ class HeartSlider {
 				} else if (event.key === "Home") {
 					_this.clearAllTimers();
 					_this.goToSlide(0, true, false, true);
+					/* Jumps bypass prevNextHandler, so the resume is scheduled here */
+					_this.scheduleResume(_this.settings.transition + _this.settings.delay * 1.25);
 				} else if (event.key === "End") {
 					_this.clearAllTimers();
 					_this.goToSlide(_this.total - 1, true, false, true);
+					_this.scheduleResume(_this.settings.transition + _this.settings.delay * 1.25);
 				} else {
 					handled = false;
 				}
-				if (handled) {
-					/* Stop the page scrolling out from under the slideshow */
-					event.preventDefault();
-					if (!_this.originallyPaused) {
-						if (_this.throttleClickResume) clearTimeout(_this.throttleClickResume);
-						_this.throttleClickResume = setTimeout(
-							() => {
-								_this.resume();
-							},
-							_this.settings.transition + _this.settings.delay * 1.25,
-						);
-					}
-				}
+				/* Stop the page scrolling out from under the slideshow.
+				   Arrow keys get their resume from prevNextHandler, so none is set here. */
+				if (handled) event.preventDefault();
 			};
 			_this.slideshowSelector.addEventListener("keydown", _this.keyboardHandler);
 		}
@@ -561,6 +540,22 @@ class HeartSlider {
 		const position = this.playOrder.indexOf(fromIndex);
 		if (position === -1 || position + 1 >= this.playOrder.length) return this.playOrder[0];
 		return this.playOrder[position + 1];
+	}
+	/* The slide that comes before `fromIndex`, honouring a shuffled running order.
+	   The mirror of upcomingIndex, and likewise free of side effects. */
+	precedingIndex(fromIndex) {
+		if (!this.playOrder) return (fromIndex - 1 + this.total) % this.total;
+		const position = this.playOrder.indexOf(fromIndex);
+		if (position <= 0) return this.playOrder[this.playOrder.length - 1];
+		return this.playOrder[position - 1];
+	}
+	/* goToSlide already preloads the target and the slides after it, which covers going
+	   forward. Going backward, the slide the viewer will want next is the one *before* the
+	   target, so that single slide is the only extra preload worth doing here. */
+	preloadBehind(indexToProgressiveLoad, direction) {
+		if (direction >= 0 || indexToProgressiveLoad === undefined) return;
+		if (!this.settings.progressive) return;
+		this.progressiveLoad(indexToProgressiveLoad);
 	}
 	/* Walk `steps` slides ahead of `fromIndex` in the running order. */
 	lookaheadIndex(fromIndex, steps) {
@@ -1010,12 +1005,6 @@ class HeartSlider {
 
 		/* Check if slides are animating, if so, don't run this again. */
 		if (this.transitioning && !skipDefaultTransition) return false;
-
-		/* If Loop is set to false, then stop. */
-		if (!this.settings.loop && !isFirstSlide && targetIndex === this.firstIndex) {
-			this.pause();
-			return false;
-		}
 
 		/* Set transitioning to true */
 		this.transitioning = true;
@@ -1473,13 +1462,12 @@ class HeartSlider {
 
 				// Check if we are going forward or backward
 				if (direction < 0) {
-					// If going backward, go to the previous slide
-					targetSlideIndex = _this.advanceIndex(-1);
+					// If going backward, go to the previous slide (previous() already worked it out)
+					targetSlideIndex = targetIndex;
 					extraDelay = _this.settings.manualTransition + _this.settings.delay;
 				} else if (transitionProgress > 0.65) {
 					// Nearly done transitioning — skip ahead to the intended next slide
 					targetSlideIndex = targetIndex;
-					indexToProgressiveLoad = (targetIndex + 1 + _this.total) % _this.total;
 				}
 
 				// if (transitionProgress > 0.5) {
@@ -1493,9 +1481,7 @@ class HeartSlider {
 				// }
 				// Schedule resume after a manual transition completes
 				_this.scheduleResume(_this.settings.manualTransition + _this.settings.delay);
-				for (let i = 1; i <= _this.settings.progressive; i++) {
-					_this.progressiveLoad(_this.lookaheadIndex(indexToProgressiveLoad, i));
-				}
+				_this.preloadBehind(indexToProgressiveLoad, direction);
 				var skipDefaultTransition = true;
 				let isFirstSlide = false;
 				_this.goToSlide(targetSlideIndex, isManuallyCalled, isFirstSlide, skipDefaultTransition);
@@ -1504,12 +1490,6 @@ class HeartSlider {
 				/* prevNext triggered automatically */
 				// return;
 			}
-		} else {
-			if (isManuallyCalled === true) {
-				_this.pause();
-				// Restart after manually triggering during a pause
-				_this.scheduleResume(_this.settings.delay);
-			}
 		}
 
 		if (isManuallyCalled === true) {
@@ -1517,16 +1497,15 @@ class HeartSlider {
 			_this.pause();
 			// Resume after default transition + delay
 			_this.scheduleResume(_this.settings.transition + _this.settings.delay);
-			_this.progressiveLoad(indexToProgressiveLoad);
-			var skipDefaultTransition = true;
-
-			for (let i = 1; i <= _this.settings.progressive; i++) {
-				_this.progressiveLoad(_this.lookaheadIndex(indexToProgressiveLoad, i));
-			}
+			_this.preloadBehind(indexToProgressiveLoad, direction);
 		}
 
-		_this.goToSlide(targetIndex, isManuallyCalled, false);
+		/* goToSlide refuses while another transition is running. Bail out so a refused
+		   call does not leave a timer behind that clears `transitioning` mid-fade. */
+		if (_this.goToSlide(targetIndex, isManuallyCalled, false) === false) return;
 
+		/* Only one of these may be pending; a stale one would end the next transition early */
+		clearTimeout(_this.transitioningTimer);
 		_this.transitioningTimer = setTimeout(
 			() => {
 				_this.transitioning = false;
@@ -1554,7 +1533,6 @@ class HeartSlider {
 		clearTimeout(this.delayStartTimer);
 		this.delayStartTimer = undefined;
 		this.delayStartStartedAt = 0;
-		clearTimeout(this.throttleClickResume);
 		clearTimeout(this.videoSlideTimer);
 		clearTimeout(this.visResumeTimer);
 		clearTimeout(this.stackModePauseTimer);
@@ -1692,14 +1670,24 @@ class HeartSlider {
 		if (this.settings.debug) console.log(jumpToIndex + 1 <= this.total);
 	};
 	next = function (_this = this, isManuallyCalled = false) {
+		/* Without loop, stop at the end of the run instead of wrapping to the start */
+		if (!_this.settings.loop && _this.upcomingIndex(_this.index) === _this.firstIndex) {
+			_this.pause();
+			return;
+		}
 		var nextIndex = _this.advanceIndex(1);
-		var indexToProgressiveLoad = _this.upcomingIndex(nextIndex);
 
-		_this.prevNextHandler(nextIndex, indexToProgressiveLoad, isManuallyCalled, 1);
+		/* No extra preload going forward: goToSlide loads the slides ahead of nextIndex */
+		_this.prevNextHandler(nextIndex, undefined, isManuallyCalled, 1);
 	};
 	previous = function (_this = this, isManuallyCalled = false) {
+		/* Without loop, the first slide is a hard stop going backward */
+		if (!_this.settings.loop && _this.index === _this.firstIndex) return;
 		var previousIndex = _this.advanceIndex(-1);
-		var indexToProgressiveLoad = previousIndex;
+		/* Preload the slide before the one we land on, unless that would wrap past the
+		   start of a non-looping slideshow, where there is nothing further back to show */
+		var atStart = !_this.settings.loop && previousIndex === _this.firstIndex;
+		var indexToProgressiveLoad = atStart ? undefined : _this.precedingIndex(previousIndex);
 
 		_this.prevNextHandler(previousIndex, indexToProgressiveLoad, isManuallyCalled, -1);
 	};

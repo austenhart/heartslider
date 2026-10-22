@@ -84,7 +84,7 @@ async function promptForVersionArg(initialArg) {
 
 	const rl = readline.createInterface({ input: stdin, output: stdout });
 	try {
-		const response = await rl.question("Version bump (patch/minor/major/prerelease or explicit x.y.z) [patch]: ");
+		const response = await rl.question("Version bump (patch/minor/major/prerelease, explicit x.y.z, or nochange) [patch]: ");
 		const selected = response.trim();
 		return selected || "patch";
 	} finally {
@@ -94,9 +94,15 @@ async function promptForVersionArg(initialArg) {
 
 async function run() {
 	const bumpArg = await promptForVersionArg(process.argv[2]);
+	/* `nochange` rebuilds and releases the current version without bumping it */
+	const keepVersion = bumpArg.toLowerCase() === "nochange";
 
-	console.log(`\nBumping version with: npm version ${bumpArg} --no-git-tag-version\n`);
-	runCommand("npm", ["version", bumpArg, "--no-git-tag-version"]);
+	if (keepVersion) {
+		console.log(`\nKeeping the current version (v${getPackageVersion()}).\n`);
+	} else {
+		console.log(`\nBumping version with: npm version ${bumpArg} --no-git-tag-version\n`);
+		runCommand("npm", ["version", bumpArg, "--no-git-tag-version"]);
+	}
 
 	console.log("\nSyncing version references...\n");
 	runCommand("npm", ["run", "version:sync"]);
@@ -132,6 +138,9 @@ async function run() {
 			console.log("Skipped release commit/tag.");
 		}
 
+		if (keepVersion) {
+			console.log(`Note: npm will refuse to publish v${version} again if it is already on the registry.`);
+		}
 		const publishNpmAnswer = await rl.question("Publish to npm now? (y/N): ");
 		if (isYes(publishNpmAnswer)) {
 			runCommand("npm", ["publish"]);

@@ -2,29 +2,36 @@
 // const allSlideshows = document.querySelectorAll(".heart-slideshow");
 // for (const slideshow of allSlideshows) {
 const homepageSlider = new HeartSlider({
-	// slideshow: slideshow,
-	slides: ".heart-slide",
-	transition: 1600,
-	manualTransition: 500,
-	debug: false,
-	delay: 2400,
-	delayStart: 0,
-	loop: false,
-	randomize: false, // give option for "start" and "all"
-	// randomize: "start",
-	paused: false,
-	effect: "fadeOut", // "fadeOut" or "fadeInOut"
-	allowFullVideoPlayback: true,
+	allowFullVideoPlayback: false,
 	buttons: true,
+	clickToAdvance: false,
+	keyboard: true,
+	label: "Slideshow",
+	debug: false,
+	delayStart: 1000,
+	slideshow: ".heart-slideshow",
+	slides: ".heart-slide",
+	transition: 3000,
+	manualTransition: 800,
+	delay: 1000,
+	loop: true,
+	randomize: false, // or "start" / "all"
+	paused: false,
+	effect: "fadeOut",
+	pauseOnInactiveWindow: false,
+	progressive: 1,
 	swipe: true,
 	stackOnMobile: {
-		enable: true,
+		enable: false,
 		threshold: 768,
 	},
-	clickToAdvance: true,
-	pauseOnInactiveWindow: false,
+	counter: {
+		enable: true,
+		separator: " / ",
+	},
 	progressIndicators: {
-		type: "dot", // "dash" is default
+		enable: true,
+		type: "dot", // or "dot"
 		clickable: true,
 		color: "#fff",
 	},

@@ -26,10 +26,12 @@ const homepageSlider = new HeartSlider({
 		threshold: 768,
 	},
 	counter: {
+		container: null,
 		enable: true,
 		separator: " / ",
 	},
 	progressIndicators: {
+		container: null,
 		enable: true,
 		type: "dot", // or "dot"
 		clickable: true,

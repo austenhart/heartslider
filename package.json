@@ -1,6 +1,6 @@
 {
 	"name": "heartslider",
-	"version": "3.6.0",
+	"version": "3.6.1",
 	"description": "An Elegant Slideshow",
 	"main": "heartslider.js",
 	"style": "heartslider.css",
@@ -17,7 +17,8 @@
 		"release": "node scripts/release.js",
 		"release:patch": "npm run release -- patch",
 		"release:minor": "npm run release -- minor",
-		"release:major": "npm run release -- major"
+		"release:major": "npm run release -- major",
+		"release:nochange": "npm run release -- nochange"
 	},
 	"repository": {
 		"type": "git",

@@ -1,4 +1,4 @@
-/* HeartSlider Styles - 3.6.0 */
+/* HeartSlider Styles - 3.6.1 */
 .heart-slideshow {
 	position: relative;
 	top: 0;
@@ -106,6 +106,15 @@
 	transition: opacity 3s cubic-bezier(0.455, 0.03, 0.515, 0.955);
 }
 
+/* Handed over, but still on screen under the incoming slide until it is fully in.
+   Keeps fading in if it was cut short, so nothing underneath shows through. */
+.heart-slideshow .heart-slide.heart-leaving {
+	visibility: visible;
+	content-visibility: visible;
+	opacity: 1;
+	z-index: 19;
+}
+
 .fade-in-out .heart-slide {
 	transition-timing-function: cubic-bezier(0.43, 0, 0.27, 1);
 }
@@ -132,7 +141,7 @@
 	visibility: visible;
 	content-visibility: visible;
 	pointer-events: auto;
-	z-index: auto;
+	z-index: auto !important;
 	transition: none !important;
 	margin: 0;
 }
@@ -161,7 +170,9 @@
 .heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-prev,
 .heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-next,
 .heart-slideshow.stack-on-mobile.is-stacked-mobile .heart-counter,
-.heart-slideshow.stack-on-mobile.is-stacked-mobile .progress-container {
+.heart-slideshow.stack-on-mobile.is-stacked-mobile .progress-container,
+.heart-counter.heart-detached.is-stacked-mobile,
+.progress-container.heart-detached.is-stacked-mobile {
 	display: none !important;
 }
 
@@ -319,18 +330,78 @@
 /* The rules above suppress the default ring; put one back for keyboard users.
    `overflow: hidden` would clip an outline, so the indicator shows its ring
    outside the box via box-shadow instead. */
-.heart-prev:focus-visible,
-.heart-next:focus-visible,
 .heart-slideshow:focus-visible {
-	outline: var(--focus-ring-width, 2px) solid var(--focus-ring-color, #fff);
-	outline-offset: var(--focus-ring-offset, -4px);
+	outline: var(--focus-ring-width, 1px) solid var(--focus-ring-color, rgba(255, 255, 255, 0.5));
+	outline-offset: var(--focus-ring-offset, -1px);
 }
 
 button.indicator:focus-visible {
 	outline: none;
-	box-shadow: 0 0 0 var(--focus-ring-width, 2px) var(--focus-ring-color, #fff);
+	box-shadow: 0 0 0 var(--focus-ring-width, 1px) var(--focus-ring-color, rgba(255, 255, 255, 0.5));
 	border-radius: 2px;
 	overflow: visible;
+}
+
+/* The arrow buttons are big hit areas, so ringing the button would ring half
+   the slideshow. Instead the button brightens like on hover and a small circle
+   is drawn around the glyph alone. The circle is nudged toward the chevron's
+   point (0.15 × --arrow-size) because the visible chevron sits off-centre in
+   its rotated box. */
+.heart-prev:focus-visible,
+.heart-next:focus-visible {
+	opacity: 1;
+}
+
+.heart-prev:focus-visible::after,
+.heart-next:focus-visible::after {
+	--focus-arrow-ring: calc(var(--arrow-size, 1.35em) * 2.5);
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	margin: auto;
+	width: var(--focus-arrow-ring);
+	height: var(--focus-arrow-ring);
+	background-color: rgba(0, 0, 0, 0.15);
+	z-index: -1;
+	border-radius: 50%;
+	box-sizing: border-box;
+	pointer-events: none;
+	animation: heart-focus-fade-a 0.65s ease-out 0.15s both;
+}
+
+/* Pressing an arrow restarts the fade: the JS toggles .heart-focus-replay,
+   which swaps to an identical keyframe set, and changing animation-name is
+   what makes the browser start it over from full opacity. */
+.heart-prev.heart-focus-replay:focus-visible::after,
+.heart-next.heart-focus-replay:focus-visible::after {
+	animation-name: heart-focus-fade-b;
+}
+
+@keyframes heart-focus-fade-a {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes heart-focus-fade-b {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+.heart-prev:focus-visible::after {
+	left: calc(var(--arrow-overhang, 5em) + var(--arrow-inset, 4em) - var(--arrow-size, 1.35em) * 0.7 - var(--focus-arrow-ring) / 2);
+}
+
+.heart-next:focus-visible::after {
+	right: calc(var(--arrow-overhang, 5em) + var(--arrow-inset, 4em) - var(--arrow-size, 1.35em) * 0.7 - var(--focus-arrow-ring) / 2);
 }
 
 .type-dot .indicator {
@@ -364,6 +435,17 @@ button.indicator:focus-visible {
 	pointer-events: none;
 	-webkit-user-select: none;
 	user-select: none;
+}
+
+/* Moved elsewhere with the `container` option: sits in the normal flow of its new
+   parent rather than over the slides. Track widths are then a % of that parent. */
+.progress-container.heart-detached,
+.heart-counter.heart-detached {
+	position: relative;
+	top: auto;
+	right: auto;
+	bottom: auto;
+	left: auto;
 }
 
 /* .show-progress .indicator::after, */
@@ -431,6 +513,14 @@ button.indicator:active::before {
 .progress-container .indicator.active::before {
 	opacity: 0.8;
 	transition: opacity 0.15s 0.2s ease-out;
+}
+
+/* Manual navigation: switch dots straight away, so rapid clicks show where they're headed.
+   Autoplay keeps the softer, delayed fade above. */
+.progress-container.heart-seeking .indicator::before,
+.progress-container.heart-seeking .indicator.active::before {
+	transition-delay: 0s;
+	transition-duration: 0.08s;
 }
 
 /* .show-progress .indicator::after {

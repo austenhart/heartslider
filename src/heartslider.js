@@ -1,16 +1,18 @@
 "use strict";
 /* 
 ❤  Heartslider  ❤
-❤ Version 3.6.0 ❤
+❤ Version 3.6.1 ❤
 
 === Steps to Push New Version ===
 1) Update changelog notes in this file and README.
 2) `npm run release -- patch` bumps package.json, syncs version strings, builds, then prompts to publish to npm and push to GitHub. Use npm run release -- patch|minor|major to specify the type of version bump.
+	or use `npm run release -- nochange` to skip version bump.
 3) Respond to prompts to publish to npm and push to GitHub.
 
 CDN link: https://www.jsdelivr.com/package/gh/austenhart/heartslider
 
 === Changelog ===
+3.6.1 - Removed reduced animation setting — was more visually jarring than a normal animation. Rapid prev/next clicks, swipes and arrow keys are now queued instead of dropped, with each queued fade overlapping the one before it. Slides left over from an interrupted fade are now properly hidden. Progress indicators switch instantly during manual navigation. New `container` option to place the counter and progress indicators anywhere in the DOM.
 3.6.0 - Major accessibility improvements. New counter feature, support for picture elements. Fixed small bugs.
 3.5.7 - Fixed progress indicator gap.
 3.5.6 - Fixed progressive loading bug.
@@ -95,12 +97,14 @@ class HeartSlider {
 			counter: {
 				enable: false,
 				separator: " / ",
+				container: null, // Selector or element to put the counter in, instead of the slideshow
 			},
 			progressIndicators: {
 				enable: false,
 				type: "dash",
 				clickable: true,
 				color: "#fff",
+				container: null, // Selector or element to put the indicators in, instead of the slideshow
 				// possible options:
 				// type: "dot"
 				// size: "small",
@@ -216,6 +220,20 @@ class HeartSlider {
 		this.isStackedOnMobile = false;
 		this.pausedForStackOnMobile = false;
 		this.pauseRequestedByVideo = false;
+		/* Where rapid prev/next input is heading while a manual fade is still on screen */
+		this.queuedIndex = undefined;
+		this.queuedDirection = 1;
+		this.transitionIsManual = false;
+		/* Slides that have faded out but not yet been hidden. A fade that gets cut short
+		   cancels its own cleanup, so whichever fade finishes next hides them all. */
+		this.slidesToHide = new Set();
+		/* Slides on screen, bottom to top. z-index follows this order, so a slide that is
+		   still showing keeps its place when it is navigated back to. */
+		this.slideStack = [];
+		this.sweepTimer = undefined;
+		/* A queued fade may start once the manual fade on screen is this far through */
+		this.overlapTimer = undefined;
+		this.overlapReady = true;
 		// this.transitioning = false;
 
 		/* Start */
@@ -271,25 +289,21 @@ class HeartSlider {
 		}
 
 		if (_this.settings.clickToAdvance) {
-			var throttleClick;
 			// Store handler reference so it can be removed in destroy()
 			_this.clickHandler = function (event) {
-				if (throttleClick || event.target.nodeName === "BUTTON") return;
+				if (event.target.nodeName === "BUTTON") return;
 				// _this.pause();
-				/* next() schedules its own resume via prevNextHandler, so none is set here */
+				/* next() schedules its own resume via prevNextHandler, so none is set here.
+				   Rapid clicks are queued by next(), so there is no throttle. */
 				_this.next(_this, true);
-				throttleClick = setTimeout(() => {
-					throttleClick = undefined;
-				}, _this.settings.manualTransition);
 			};
 			_this.slideshowSelector.addEventListener("click", _this.clickHandler, false);
 		}
 
 		/* Progress Indicators */
 		if (this.settings.progressIndicators && this.settings.progressIndicators.enable) {
-			// create the indicator containing div
-			const progressContainer = this.slideshowSelector.querySelector(".progress-container") ? this.slideshowSelector.querySelector(".progress-container") : document.createElement("div");
-			progressContainer.classList.add("progress-container");
+			// find or create the indicator containing div, in the slideshow or a custom container
+			const progressContainer = this.placeWidget(this.settings.progressIndicators.container, "progress-container");
 			// Give it either a Dash or Dot style
 			const type = this.settings.progressIndicators.type || "dash";
 			progressContainer.classList.add("type-" + type);
@@ -347,17 +361,12 @@ class HeartSlider {
 					this.clearAllTimers();
 					_this.goToSlide(index, isManuallyCalled, isFirstSlide, skipDefaultTransition);
 
-					throttleClick = setTimeout(() => {
-						throttleClick = undefined;
-					}, _this.settings.manualTransition / 2);
-
 					/* Shares scheduleResume's single timer, so a pending resume from a
 					   button or arrow key is replaced rather than firing a second time */
 					_this.scheduleResume(_this.settings.transition + _this.settings.delay * 1.25);
 				});
 				progressContainer.appendChild(indicator);
 			}
-			this.slideshowSelector.appendChild(progressContainer);
 			this.progressContainerSelector = progressContainer;
 			this.progressIndicators = progressContainer.querySelectorAll(".indicator");
 			window.requestAnimationFrame(() => {
@@ -374,9 +383,7 @@ class HeartSlider {
 
 		/* Slide Counter */
 		if (this.settings.counter && this.settings.counter.enable) {
-			const existingCounter = this.slideshowSelector.querySelector(".heart-counter");
-			const counter = existingCounter ? existingCounter : document.createElement("div");
-			counter.classList.add("heart-counter");
+			const counter = this.placeWidget(this.settings.counter.container, "heart-counter");
 			/* Decorative: an auto-advancing live region would announce on every slide.
 			   The indicators carry the position for assistive tech instead. */
 			counter.setAttribute("aria-hidden", "true");
@@ -394,7 +401,6 @@ class HeartSlider {
 			counter.appendChild(current);
 			counter.appendChild(separator);
 			counter.appendChild(totalEl);
-			this.slideshowSelector.appendChild(counter);
 			this.counterSelector = counter;
 			this.counterCurrentSelector = current;
 			this.updateCounter(this.index);
@@ -406,6 +412,11 @@ class HeartSlider {
 		if (!_this.slideshowSelector.hasAttribute("aria-label") && _this.settings.label) {
 			_this.slideshowSelector.setAttribute("aria-label", _this.settings.label);
 		}
+		/* Restart the arrow's focus-shadow fade (see .heart-focus-replay in the CSS) */
+		function replayFocusFade(button) {
+			button.classList.toggle("heart-focus-replay");
+		}
+
 		if (_this.settings.keyboard) {
 			/* Needs to be focusable for the arrow keys to have somewhere to land */
 			if (!_this.slideshowSelector.hasAttribute("tabindex")) {
@@ -414,9 +425,23 @@ class HeartSlider {
 			_this.keyboardHandler = function (event) {
 				if (event.altKey || event.ctrlKey || event.metaKey) return;
 				let handled = true;
+				/* Arrow keys pressed on a prev/next button bubble up here. Hand focus to
+				   the button matching the direction, or focus (and its ring) stays stuck
+				   on whichever button was tabbed to first. */
+				const onArrowButton = event.target.matches && event.target.matches(".heart-prev, .heart-next");
+				const focusArrowButton = function (className) {
+					if (!onArrowButton) return;
+					const target = _this.slideshowSelector.querySelector("button." + className);
+					if (target) {
+						target.focus();
+						replayFocusFade(target);
+					}
+				};
 				if (event.key === "ArrowRight") {
+					focusArrowButton("heart-next");
 					_this.next(_this, true);
 				} else if (event.key === "ArrowLeft") {
+					focusArrowButton("heart-prev");
 					_this.previous(_this, true);
 				} else if (event.key === "Home") {
 					_this.clearAllTimers();
@@ -441,16 +466,14 @@ class HeartSlider {
 		const slideshowButtons = _this.slideshowSelector.querySelectorAll("button[class*='heart-']");
 		if (_this.settings.buttons || slideshowButtons.length === 2) {
 			function buttonHandler(button) {
-				if (throttleClick) return;
+				replayFocusFade(button);
 				// _this.pause();
+				/* Rapid presses are queued by next()/previous(), so there is no throttle */
 				if (button.classList.contains("heart-next")) {
 					_this.next(_this, true);
 				} else if (button.classList.contains("heart-prev")) {
 					_this.previous(_this, true);
 				}
-				throttleClick = setTimeout(() => {
-					throttleClick = undefined;
-				}, _this.settings.manualTransition / 2);
 			}
 			if (slideshowButtons.length === 0) {
 				const buttonClasses = ["heart-prev", "heart-next"];
@@ -583,6 +606,169 @@ class HeartSlider {
 		}
 		return this.playOrder[nextPosition];
 	}
+	/* Highlight the progress indicator for `index`. `instant` skips the soft fade-in,
+	   so the dot keeps up with rapid manual navigation (see .heart-seeking in the CSS). */
+	markActiveIndicator(index, instant = false) {
+		const progressContainerSelector = this.progressContainerSelector;
+		const progressIndicators = this.progressIndicators;
+		if (progressContainerSelector === undefined || progressIndicators === undefined || progressIndicators.length === 0) return;
+		progressContainerSelector.classList.toggle("heart-seeking", instant);
+		const newActiveIndicator = progressIndicators[index];
+		const alreadyActiveIndicators = progressContainerSelector.querySelectorAll(".active");
+		for (const staleIndicator of alreadyActiveIndicators) {
+			staleIndicator.classList.remove("active", "first");
+			staleIndicator.removeAttribute("aria-current");
+		}
+		if (newActiveIndicator !== undefined) {
+			newActiveIndicator.classList.add("active");
+			if (newActiveIndicator.tagName === "BUTTON") {
+				newActiveIndicator.setAttribute("aria-current", "true");
+			}
+		}
+	}
+	/* True while a fade the viewer asked for is still on screen. */
+	manualFadeInProgress() {
+		return this.transitionIsManual && (this.transitioning || this.transitionEndTimer !== undefined);
+	}
+	/* Prev/next input that lands mid-fade moves a queued destination instead of being
+	   dropped. Returns false when nothing is fading, so the step should run right away. */
+	queueStep(direction) {
+		if (!this.manualFadeInProgress()) return false;
+		const from = this.queuedIndex !== undefined ? this.queuedIndex : this.index;
+		/* Without loop, the ends are hard stops for queued steps too */
+		if (!this.settings.loop) {
+			if (direction > 0 && this.upcomingIndex(from) === this.firstIndex) return true;
+			if (direction < 0 && from === this.firstIndex) return true;
+		}
+		this.queuedIndex = direction > 0 ? this.upcomingIndex(from) : this.precedingIndex(from);
+		this.queuedDirection = direction;
+		/* Show where we're headed straight away, so every press visibly registers */
+		this.markActiveIndicator(this.queuedIndex, true);
+		this.updateCounter(this.queuedIndex);
+		/* Keep autoplay from cutting in before the queue has played out */
+		this.scheduleResume(this.settings.manualTransition * 2 + this.settings.transition + this.settings.delay);
+		/* Already past the overlap point, so there is nothing to wait for */
+		if (this.overlapReady) this.playQueuedStep();
+		return true;
+	}
+	/* Fade straight to the queued destination, however many steps away it is,
+	   overlapping the fade that is still on screen. */
+	playQueuedStep() {
+		const target = this.queuedIndex;
+		const direction = this.queuedDirection;
+		this.queuedIndex = undefined;
+		if (target === undefined) return;
+		if (target === this.index) {
+			/* Steps cancelled out; point the indicators back at this slide */
+			this.markActiveIndicator(this.index, true);
+			this.updateCounter(this.index);
+			return;
+		}
+		const atStart = !this.settings.loop && target === this.firstIndex;
+		const indexToProgressiveLoad = direction < 0 && !atStart ? this.precedingIndex(target) : undefined;
+		this.pause();
+		this.scheduleResume(this.settings.transition + this.settings.delay);
+		this.preloadBehind(indexToProgressiveLoad, direction);
+		/* Skipping the default transition lets this fade start over the one still running */
+		this.goToSlide(target, true, false, true);
+	}
+	/* z-index follows the on-screen stack: the top slide gets 20, each one below a step less. */
+	restackSlides() {
+		const top = this.slideStack.length - 1;
+		this.slideStack.forEach((slide, position) => {
+			slide.style.zIndex = String(Math.max(20 - (top - position), 1));
+		});
+	}
+	/* Hide every slide waiting on cleanup that can no longer be seen: faded right out, or
+	   under a fully opaque slide. Overlapping fades finish at different times, so this
+	   checks what is actually on screen and keeps checking until nothing is left. */
+	sweepHiddenSlides() {
+		clearTimeout(this.sweepTimer);
+		this.sweepTimer = undefined;
+		const hide = (slide) => {
+			this.slidesToHide.delete(slide);
+			slide.classList.remove("heart-leaving");
+			slide.style.zIndex = "";
+			slide.style.transitionDelay = 0 + "ms";
+			slide.style.transitionDuration = 0 + "ms";
+			slide.setAttribute("aria-hidden", "true");
+			slide.setAttribute("tabindex", "-1");
+			// Add display:none for performance after fade completes
+			slide.style.display = "none";
+			const videoElement = slide.querySelector("video");
+			if (videoElement !== null) {
+				videoElement.pause();
+				videoElement.currentTime = 0;
+			}
+		};
+		let covered = false;
+		for (let position = this.slideStack.length - 1; position >= 0; position--) {
+			const slide = this.slideStack[position];
+			const opacity = parseFloat(window.getComputedStyle(slide).opacity);
+			if (this.slidesToHide.has(slide) && (covered || opacity === 0)) {
+				hide(slide);
+				this.slideStack.splice(position, 1);
+			}
+			if (opacity >= 0.999) covered = true;
+		}
+		/* Anything not on the stack has nothing to wait for */
+		for (const slide of this.slidesToHide) {
+			if (!this.slideStack.includes(slide)) hide(slide);
+		}
+		this.restackSlides();
+		if (this.slidesToHide.size > 0) {
+			this.sweepTimer = setTimeout(() => this.sweepHiddenSlides(), 100);
+		}
+	}
+	/* Find or create the counter / indicator element (`className`). It lives in the
+	   slideshow unless `container` (a selector or element) names somewhere else. A
+	   container that already has that class is used as the element itself. */
+	placeWidget(container, className) {
+		let host = this.slideshowSelector;
+		if (container) {
+			const target = typeof container === "string" ? document.querySelector(container) : container;
+			if (target instanceof Element) {
+				host = target;
+			} else {
+				console.warn("HeartSlider: no element matches the container " + JSON.stringify(container) + " for ." + className + ". Using the slideshow instead.");
+			}
+		}
+		const detached = host !== this.slideshowSelector;
+		let widget = host.classList.contains(className) ? host : host.querySelector("." + className);
+		if (!widget) {
+			widget = document.createElement("div");
+			/* Marks it as ours, so destroy() removes it rather than just emptying it */
+			widget.setAttribute("data-heartslider", "");
+		}
+		widget.classList.add(className);
+		widget.classList.toggle("heart-detached", detached);
+		/* Inside the slideshow it goes last, as before; elsewhere it stays where it is */
+		if (!detached || !widget.parentNode) host.appendChild(widget);
+		widget.classList.toggle("is-stacked-mobile", detached && !!this.isStackedOnMobile);
+		return widget;
+	}
+	/* Detached widgets sit outside the slideshow, so its stacked-mobile class cannot
+	   reach them in CSS. Mirror it onto them instead. */
+	syncDetachedWidgets() {
+		for (const widget of [this.progressContainerSelector, this.counterSelector]) {
+			if (widget && widget.classList.contains("heart-detached")) {
+				widget.classList.toggle("is-stacked-mobile", !!this.isStackedOnMobile);
+			}
+		}
+	}
+	/* Undo placeWidget: remove what we created, or empty and untag an element the page supplied. */
+	removeWidget(widget) {
+		if (!widget) return;
+		if (widget.hasAttribute("data-heartslider") || !widget.classList.contains("heart-detached")) {
+			widget.remove();
+			return;
+		}
+		widget.innerHTML = "";
+		widget.classList.remove("heart-detached", "heart-seeking", "is-stacked-mobile", "type-dash", "type-dot");
+		["role", "aria-label", "aria-hidden"].forEach((attribute) => widget.removeAttribute(attribute));
+		widget.style.removeProperty("--total");
+		widget.style.removeProperty("--indicator-color");
+	}
 	/* Keep the visible slide counter in step. */
 	updateCounter(currentIndex = this.index) {
 		if (!this.counterCurrentSelector) return;
@@ -628,6 +814,7 @@ class HeartSlider {
 			_this.isStackedOnMobile = false;
 			_this.pausedForStackOnMobile = false;
 			_this.slideshowSelector.classList.remove("is-stacked-mobile");
+			_this.syncDetachedWidgets();
 			return;
 		}
 
@@ -638,6 +825,7 @@ class HeartSlider {
 			const justEnteredStackMode = shouldStack && !_this.isStackedOnMobile;
 			_this.isStackedOnMobile = shouldStack;
 			_this.slideshowSelector.classList.toggle("is-stacked-mobile", shouldStack);
+			_this.syncDetachedWidgets();
 
 			if (justEnteredStackMode) {
 				_this.pausedForStackOnMobile = !_this.settings.paused;
@@ -1028,31 +1216,26 @@ class HeartSlider {
 		var newTargetIndex = (targetIndex + this.total) % this.total;
 		this.currentSlide = this.slides[newTargetIndex];
 
-		/* Update Progress Indicators */
-		const progressContainerSelector = this.progressContainerSelector;
-		const progressIndicators = this.progressIndicators;
-
-		if (progressContainerSelector !== undefined && progressIndicators !== undefined && progressIndicators.length > 0) {
-			const newActiveIndicator = progressIndicators[newTargetIndex];
-			const alreadyActiveIndicators = progressContainerSelector.querySelectorAll(".active");
-			for (const staleIndicator of alreadyActiveIndicators) {
-				staleIndicator.classList.remove("active", "first");
-				staleIndicator.removeAttribute("aria-current");
-			}
-			if (newActiveIndicator !== undefined) {
-				newActiveIndicator.classList.add("active");
-				if (newActiveIndicator.tagName === "BUTTON") {
-					newActiveIndicator.setAttribute("aria-current", "true");
-				}
-			}
-		}
-
-		/* Update the slide counter */
+		/* Update Progress Indicators and the slide counter */
+		this.markActiveIndicator(newTargetIndex, isManuallyCalled || skipDefaultTransition);
 		this.updateCounter(newTargetIndex);
 
 		/* Fade duration */
 		var duration = isManuallyCalled || isFirstSlide || skipDefaultTransition ? _this.settings.manualTransition : _this.settings.transition;
 		this.transitionDuration = duration;
+		this.transitionIsManual = isManuallyCalled || skipDefaultTransition;
+
+		/* Queued input waits until this fade is a fifth of the way in, then overlaps it */
+		clearTimeout(this.overlapTimer);
+		this.overlapTimer = undefined;
+		this.overlapReady = !this.transitionIsManual;
+		if (this.transitionIsManual) {
+			this.overlapTimer = setTimeout(() => {
+				this.overlapTimer = undefined;
+				this.overlapReady = true;
+				this.playQueuedStep();
+			}, duration / 5);
+		}
 
 		this.index = newTargetIndex;
 
@@ -1067,6 +1250,20 @@ class HeartSlider {
 		}
 
 		function changeSlides() {
+			const prevSlide = _this.previousSlide;
+			/* Going back to a slide that is still on screen (under the one fading in, say).
+			   Rather than restart it from invisible on top, which skips, it keeps its place
+			   and the slides above it fade away to reveal it. */
+			const stackPosition = _this.slideStack.indexOf(_this.currentSlide);
+			const revealFromBelow = stackPosition !== -1 && prevSlide !== _this.currentSlide && !isFirstSlide && _this.settings.effect !== "fadeInOut";
+
+			/* The slide coming in may still be waiting on an earlier cleanup; spare it */
+			_this.slidesToHide.delete(_this.currentSlide);
+			if (!revealFromBelow) {
+				if (stackPosition !== -1) _this.slideStack.splice(stackPosition, 1);
+				_this.slideStack.push(_this.currentSlide);
+			}
+
 			/* Check for video elements */
 			const videoElement = _this.currentSlide.querySelector("video");
 			if (videoElement !== null) {
@@ -1087,6 +1284,7 @@ class HeartSlider {
 						slide.classList.remove("active");
 						slide.style.transitionDelay = 0 + "ms";
 						slide.style.transitionDuration = 0 + "ms";
+						_this.slidesToHide.add(slide);
 					}
 				}
 				if (_this.settings.debug) console.log("Fixed!");
@@ -1098,32 +1296,49 @@ class HeartSlider {
 			// Remove display:none before animating in
 			_this.currentSlide.style.display = "";
 
+			if (revealFromBelow) {
+				for (const slide of _this.slideStack.slice(stackPosition + 1)) {
+					slide.style.transitionDelay = 0 + "ms";
+					slide.style.transitionDuration = duration + "ms";
+					slide.classList.remove("active", "heart-leaving");
+					_this.slidesToHide.add(slide);
+				}
+				/* Same frame, so its opacity target never drops and any fade-in carries on */
+				_this.currentSlide.classList.remove("heart-leaving");
+				_this.currentSlide.classList.add("active");
+				_this.currentSlide.removeAttribute("aria-hidden");
+				_this.currentSlide.removeAttribute("tabindex");
+			}
+
 			// Double RAF: first frame lets the browser process the layout change
 			// after removing display:none; second frame fires after the element
 			// has been painted so the transition starts on a rendered frame.
-			window.requestAnimationFrame(() => {
+			if (!revealFromBelow)
 				window.requestAnimationFrame(() => {
-					/* add styles to new slide */
-					// _this.currentSlide.style.transitionDelay = 16.6667 + "ms";
-					if (_this.settings.effect === "fadeInOut") {
-						/* FadeInOut */
-						_this.currentSlide.style.transitionDuration = duration / 2 + "ms";
-						_this.currentSlide.style.transitionDelay = duration / 3 + "ms";
-					} else {
-						/* Default */
-						_this.currentSlide.style.transitionDuration = duration + "ms";
-						_this.currentSlide.style.transitionDelay = 0 + "ms";
-					}
-					_this.currentSlide.removeAttribute("aria-hidden");
-					_this.currentSlide.removeAttribute("tabindex");
-					_this.currentSlide.classList.add("active");
+					window.requestAnimationFrame(() => {
+						/* add styles to new slide */
+						// _this.currentSlide.style.transitionDelay = 16.6667 + "ms";
+						if (_this.settings.effect === "fadeInOut") {
+							/* FadeInOut */
+							_this.currentSlide.style.transitionDuration = duration / 2 + "ms";
+							_this.currentSlide.style.transitionDelay = duration / 3 + "ms";
+						} else {
+							/* Default */
+							_this.currentSlide.style.transitionDuration = duration + "ms";
+							_this.currentSlide.style.transitionDelay = 0 + "ms";
+						}
+						_this.currentSlide.removeAttribute("aria-hidden");
+						_this.currentSlide.removeAttribute("tabindex");
+						_this.currentSlide.classList.remove("heart-leaving");
+						_this.currentSlide.classList.add("active");
+					});
 				});
-			});
 
 			let prevSlideProgress = 1;
 			/* This part of the function smoothly transitions a skipped fade */
-			const prevSlide = _this.previousSlide;
-			if (prevSlide === _this.currentSlide && skipDefaultTransition) {
+			if (revealFromBelow && _this.slideStack.indexOf(prevSlide) > stackPosition) {
+				/* prevSlide was above the revealed slide, so it is already fading away */
+			} else if (prevSlide === _this.currentSlide && skipDefaultTransition) {
 				/* Clear any timeouts that were running */
 				// clearTimeout(_this.manualTimeout);
 				clearInterval(_this.slideInterval);
@@ -1150,10 +1365,12 @@ class HeartSlider {
 					prevSlide.style.transitionDelay = 0 + "ms";
 					prevSlide.style.transitionDuration = duration / 2 + "ms";
 				} else {
-					prevSlide.style.transitionDelay = duration + "ms";
-					prevSlide.style.transitionDuration = 0 + "ms";
+					/* Stays on screen just under the incoming slide. If its own fade was cut
+					   short it keeps fading in, so nothing underneath ever shows through. */
+					prevSlide.classList.add("heart-leaving");
 				}
 				prevSlide.classList.remove("active");
+				_this.slidesToHide.add(prevSlide);
 				// });
 			}
 
@@ -1161,32 +1378,31 @@ class HeartSlider {
 				clearTimeout(_this.transitionEndTimer);
 			}
 
+			_this.restackSlides();
+			/* Hide what this fade leaves out of sight. Two frames of slack for the double rAF above. */
+			if (_this.sweepTimer === undefined && _this.slidesToHide.size > 0) {
+				_this.sweepTimer = setTimeout(() => _this.sweepHiddenSlides(), duration + 34);
+			}
+
 			if (_this.transitionStart) {
 				_this.transitionStart(_this);
 			}
 
 			// console.log(duration * prevSlideProgress);
-			// Check to see if previous slide is different than current slide AND that this is not the first slide
-			if (prevSlide !== _this.currentSlide || isFirstSlide) {
+			// End the transition when the slide changed, on the first slide, or when a cut-short fade was sped up
+			const slideChanged = prevSlide !== _this.currentSlide;
+			if (slideChanged || isFirstSlide || skipDefaultTransition) {
 				_this.transitionEndTimer = setTimeout(() => {
-					prevSlide.style.transitionDelay = 0 + "ms";
-					prevSlide.style.transitionDuration = 0 + "ms";
-					if (!isFirstSlide) {
-						prevSlide.setAttribute("aria-hidden", "true");
-						prevSlide.setAttribute("tabindex", "-1");
-						// Add display:none for performance after fade completes
-						prevSlide.style.display = "none";
-						if (_this.transitionEnd) {
-							_this.transitionEnd(_this);
-						}
-						const videoElement = prevSlide.querySelector("video");
-						if (videoElement !== null) {
-							videoElement.pause();
-							videoElement.currentTime = 0;
-						}
+					if (isFirstSlide) {
+						prevSlide.style.transitionDelay = 0 + "ms";
+						prevSlide.style.transitionDuration = 0 + "ms";
+					} else if (slideChanged && _this.transitionEnd) {
+						_this.transitionEnd(_this);
 					}
 					_this.transitioning = false;
 					_this.transitionEndTimer = undefined;
+					/* The fade is done, so carry on to wherever rapid input was heading */
+					_this.playQueuedStep();
 					// if (_this.slideInterval) {
 					// 	_this.next(_this, false);
 					// 	console.log("lets go");
@@ -1510,6 +1726,8 @@ class HeartSlider {
 			() => {
 				_this.transitioning = false;
 				_this.transitioningTimer = undefined;
+				/* Normally the fade's own end timer plays the queue; this covers fades without one */
+				if (_this.transitionEndTimer === undefined) _this.playQueuedStep();
 			},
 			isManuallyCalled ? _this.settings.manualTransition / 2 : _this.settings.transition,
 		);
@@ -1518,6 +1736,8 @@ class HeartSlider {
 		clearInterval(this.slideInterval);
 		clearTimeout(this.transitioningTimer);
 		clearTimeout(this.transitionEndTimer);
+		clearTimeout(this.overlapTimer);
+		this.overlapTimer = undefined;
 		if (this.delayStartTimer && !this.delayStartComplete && this.delayStartStartedAt) {
 			const elapsedDelayStart = Date.now() - this.delayStartStartedAt;
 			this.delayStartRemaining = Math.max(this.delayStartRemaining - elapsedDelayStart, 0);
@@ -1526,6 +1746,12 @@ class HeartSlider {
 		// Ensure transitioning flag is always reset when timers are cleared,
 		// since both transitioningTimer and transitionEndTimer are responsible for resetting it.
 		this.transitioning = false;
+		/* Drop queued input and point the indicators back at the slide actually showing */
+		if (this.queuedIndex !== undefined) {
+			this.queuedIndex = undefined;
+			this.markActiveIndicator(this.index, true);
+			this.updateCounter(this.index);
+		}
 		clearTimeout(this.progressiveLoadTimer);
 		clearTimeout(this.kickstartProgressiveTimer);
 		clearTimeout(this.kickstartProgressiveLoadTimer);
@@ -1540,6 +1766,9 @@ class HeartSlider {
 		// Only clear if the slideshow is being destroyed
 		if (destroyingSlideshow) {
 			clearTimeout(this.manualTimeout);
+			/* The cleanup sweep outlives pauses so cut-short fades still tidy up, but not a destroy */
+			clearTimeout(this.sweepTimer);
+			this.sweepTimer = undefined;
 		}
 	}
 	destroy = function () {
@@ -1553,7 +1782,7 @@ class HeartSlider {
 		/* loop through each slide and reset classes/rels/styles */
 		if (this.slides !== undefined) {
 			this.slides.forEach(function (slide, index) {
-				slide.classList.remove("active");
+				slide.classList.remove("active", "heart-leaving");
 				slide.removeAttribute("style");
 				slide.removeAttribute("aria-hidden");
 				slide.removeAttribute("tabindex");
@@ -1591,16 +1820,10 @@ class HeartSlider {
 		}
 
 		/* and progress indicators */
-		const progressIndicators = this.slideshowSelector.querySelector(".progress-container");
-		if (progressIndicators !== null) {
-			progressIndicators.remove();
-		}
+		this.removeWidget(this.progressContainerSelector || this.slideshowSelector.querySelector(".progress-container"));
 
 		/* and the slide counter */
-		const counter = this.slideshowSelector.querySelector(".heart-counter");
-		if (counter !== null) {
-			counter.remove();
-		}
+		this.removeWidget(this.counterSelector || this.slideshowSelector.querySelector(".heart-counter"));
 
 		/* and the region/keyboard attributes we added */
 		this.slideshowSelector.removeAttribute("role");
@@ -1670,6 +1893,7 @@ class HeartSlider {
 		if (this.settings.debug) console.log(jumpToIndex + 1 <= this.total);
 	};
 	next = function (_this = this, isManuallyCalled = false) {
+		if (isManuallyCalled && _this.queueStep(1)) return;
 		/* Without loop, stop at the end of the run instead of wrapping to the start */
 		if (!_this.settings.loop && _this.upcomingIndex(_this.index) === _this.firstIndex) {
 			_this.pause();
@@ -1681,6 +1905,7 @@ class HeartSlider {
 		_this.prevNextHandler(nextIndex, undefined, isManuallyCalled, 1);
 	};
 	previous = function (_this = this, isManuallyCalled = false) {
+		if (isManuallyCalled && _this.queueStep(-1)) return;
 		/* Without loop, the first slide is a hard stop going backward */
 		if (!_this.settings.loop && _this.index === _this.firstIndex) return;
 		var previousIndex = _this.advanceIndex(-1);

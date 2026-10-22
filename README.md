@@ -2,7 +2,7 @@
 
 ### A Minimalist JavaScript Slideshow
 
-##### Version 3.6.0
+##### Version 3.6.1
 
 '''''''''''''''''
 
@@ -14,6 +14,7 @@ Release Workflow:
 - `npm run release -- patch` bumps package.json, syncs version strings, builds, then prompts to publish to npm and push to GitHub.
 - During release, you can optionally auto-create a release commit and matching `vX.Y.Z` git tag before publish/push prompts.
 - You can also run `npm run release -- minor` or `npm run release -- major`.
+- `npm run release -- nochange` (or `npm run release:nochange`) runs the same flow without bumping the version: it syncs, builds and offers the same commit/tag, publish and push prompts for the current version. An existing tag is left alone, and npm will not accept a version it has already published.
 
 Features:
 
@@ -23,24 +24,41 @@ Features:
 - Progressive loading for multiple sourceset images and video
 - Responsive images via `<picture>` and multiple `<source>` elements
 - Optional swipe, click, and arrow-key navigation
-- Accessible by default: named controls, `aria-current`, visible focus, reduced-motion support
+- Accessible by default: named controls, `aria-current`, visible focus
 
 Settings worth knowing:
 
-| Setting              | Default                                                           | What it does                                                                                                                                                                                                                  |
-| -------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `keyboard`           | `true`                                                            | Left/Right arrows move a slide, Home/End jump to the first/last. Only fires while focus is inside the slideshow, which becomes focusable so keyboard users can reach it.                                                      |
-| `label`              | `"Slideshow"`                                                     | Accessible name for the slideshow region. Ignored if the element already has its own `aria-label`.                                                                                                                            |
-| `randomize`          | `false`                                                           | `false` plays in order. `"start"` (or `true`) picks a random first slide and then plays in order. `"all"` shuffles the whole running order, never repeating a slide back to back and covering every slide before reshuffling. |
-| `counter`            | `{ enable: false, separator: " / " }`                             | Shows a `3 / 8` position counter. Passing the object turns it on.                                                                                                                                                             |
-| `progressIndicators` | `{ enable: false, type: "dash", clickable: true, color: "#fff" }` | Dots or dashes. Clickable indicators are real buttons with accessible names.                                                                                                                                                  |
+| Setting              | Default                                                                            | What it does                                                                                                                                                                                                                  |
+| -------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `keyboard`           | `true`                                                                             | Left/Right arrows move a slide, Home/End jump to the first/last. Only fires while focus is inside the slideshow, which becomes focusable so keyboard users can reach it.                                                      |
+| `label`              | `"Slideshow"`                                                                      | Accessible name for the slideshow region. Ignored if the element already has its own `aria-label`.                                                                                                                            |
+| `randomize`          | `false`                                                                            | `false` plays in order. `"start"` (or `true`) picks a random first slide and then plays in order. `"all"` shuffles the whole running order, never repeating a slide back to back and covering every slide before reshuffling. |
+| `counter`            | `{ enable: false, separator: " / ", container: null }`                             | Shows a `3 / 8` position counter. Passing the object turns it on. `container` moves it out of the slideshow (see below).                                                                                                      |
+| `progressIndicators` | `{ enable: false, type: "dash", clickable: true, color: "#fff", container: null }` | Dots or dashes. Clickable indicators are real buttons with accessible names. `container` moves them out of the slideshow (see below).                                                                                         |
 
 Passing an options object for a grouped setting turns that feature on, so
 `counter: { separator: " of " }` is enough. To pass options while leaving a feature off,
 say so explicitly: `stackOnMobile: { enable: false, threshold: 900 }`.
 
-The slideshow honours `prefers-reduced-motion`: slides still change, they just swap
-instantly instead of cross-fading.
+Placing the counter and indicators elsewhere:
+
+By default both sit inside the slideshow, over the slides. Give either one a `container`,
+a CSS selector or an element, to put it somewhere else on the page:
+
+```js
+new HeartSlider({
+	progressIndicators: { type: "dot", container: "#slideshow-dots" },
+	counter: { container: document.querySelector(".caption .count") },
+});
+```
+
+The element is added inside the container. If the container already has the
+`progress-container` / `heart-counter` class (or holds an element that does), that element
+is used as is, so you can put it exactly where you want in your markup. Moved elements get
+a `heart-detached` class and sit in the normal flow instead of over the slides, so style
+them from there (the counter is white by default, so you will likely want `--counter-color`).
+If the selector matches nothing, a warning is logged and the slideshow is used instead.
+`destroy()` removes elements HeartSlider created and empties ones you supplied.
 
 Styling the progress indicators:
 
@@ -89,15 +107,16 @@ Other custom properties:
 | `--arrow-size`                                             | `1.35em`                    | Size of the arrow glyph.                                    |
 | `--arrow-color`                                            | `#fff`                      | Arrow color.                                                |
 | `--counter-color` / `--counter-size` / `--counter-opacity` | `#fff` / `0.875rem` / `0.8` | Slide counter appearance.                                   |
-| `--focus-ring-color` / `--focus-ring-width`                | `#fff` / `2px`              | Keyboard focus ring.                                        |
+| `--focus-ring-color` / `--focus-ring-width`                | `rgba(255,255,255,.5)` / `1px` | Keyboard focus ring.                                     |
 
 Arrows and indicators are positioned relative to the slideshow, not the viewport, so an
 embedded or narrow slideshow lays out the same as a full-bleed one.
 
 Change Log:
 
-#### Last Updated: September 11, 2026
+#### Last Updated: October 22, 2026
 
+- 3.6.1 - Removed reduced animation setting — was more visually jarring than a normal animation. Rapid prev/next clicks, swipes and arrow keys are now queued instead of dropped, with each queued fade overlapping the one before it. Slides left over from an interrupted fade are now properly hidden. Progress indicators switch instantly during manual navigation. New `container` option to place the counter and progress indicators anywhere in the DOM.
 - 3.6.0 - Major accessibility improvements. New counter feature, support for picture elements. Fixed small bugs.
 - 3.5.7 - Fixed progress indicator gap.
 - 3.5.6 - Fixed progressive loading bug.
